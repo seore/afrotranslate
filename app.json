@@ -4,41 +4,29 @@
     "slug": "afrotranslate",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    //"icon": "assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      //"image": "assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#FF6B35"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.afrotranslate.app",
-      "buildNumber": "1.0.0",
-      "infoPlist": {
-        "NSMicrophoneUsageDescription": "This app uses the microphone for voice translation features.",
-        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice translation."
-      }
+      "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        //"foregroundImage": "assets/adaptive-icon.png",
         "backgroundColor": "#FF6B35"
       },
       "package": "com.afrotranslate.app",
-      "versionCode": 1,
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "versionCode": 1
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-speech"
-    ]
+      //"favicon": "assets/favicon.png"
+    }
   }
 }

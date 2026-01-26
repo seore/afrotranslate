@@ -14,7 +14,6 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Clipboard from 'expo-clipboard';
 import * as Speech from 'expo-speech';
 
@@ -171,18 +170,14 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      <LinearGradient
-        colors={['#FF6B35', '#F7931E', '#FDC830']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
+      {/* Header with gradient effect using overlapping views */}
+      <View style={styles.header}>
         <Animated.View style={[styles.headerContent, { opacity: fadeAnim }]}>
           <Text style={styles.headerEmoji}>🌍</Text>
           <Text style={styles.headerTitle}>AfroTranslate</Text>
           <Text style={styles.headerSubtitle}>Connect Through Language</Text>
         </Animated.View>
-      </LinearGradient>
+      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -209,14 +204,7 @@ export default function App() {
               style={styles.swapButton}
               onPress={swapLanguages}
             >
-              <LinearGradient
-                colors={['#FF6B35', '#F7931E']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.swapButtonGradient}
-              >
-                <Text style={styles.swapButtonText}>⇄</Text>
-              </LinearGradient>
+              <Text style={styles.swapButtonText}>⇄</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -341,9 +329,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7FAFC',
   },
   header: {
+    backgroundColor: '#FF6B35',
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: 30,
     paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   headerContent: {
     alignItems: 'center',
@@ -412,18 +406,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    overflow: 'hidden',
+    backgroundColor: '#FF6B35',
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
-  },
-  swapButtonGradient: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   swapButtonText: {
     fontSize: 20,
