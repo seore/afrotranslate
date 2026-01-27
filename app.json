@@ -14,19 +14,20 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.afrotranslate.app",
-      "buildNumber": "1.0.0"
+      "bundleIdentifier": "com.seore.afrotranslate",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app uses the microphone for voice translation features.",
+        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice input."
+      }
     },
     "android": {
       "adaptiveIcon": {
         //"foregroundImage": "assets/adaptive-icon.png",
         "backgroundColor": "#FF6B35"
       },
-      "package": "com.afrotranslate.app",
+      "package": "com.seore.afrotranslate",
       "versionCode": 1
-    },
-    "web": {
-      //"favicon": "assets/favicon.png"
     }
   }
 }
