@@ -4,30 +4,35 @@
     "slug": "afrotranslate",
     "version": "1.0.0",
     "orientation": "portrait",
-    //"icon": "assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      //"image": "assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#FF6B35"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.seore.afrotranslate",
       "buildNumber": "1.0.0",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app uses the microphone for voice translation features.",
-        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice input."
+        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice input.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
-        //"foregroundImage": "assets/adaptive-icon.png",
         "backgroundColor": "#FF6B35"
       },
       "package": "com.seore.afrotranslate",
       "versionCode": 1
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1062ba67-97ff-489e-a21d-bfb076d46505"
+      }
     }
   }
 }
