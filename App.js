@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,51 +15,49 @@ import {
   Alert,
   Modal,
   FlatList,
+  Image,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
 const AFRICAN_LANGUAGES = [
-  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true },
-  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true },
-  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true },
-  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true },
-  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true },
-  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false },
-  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false },
-  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true },
-  { code: 'so', name: 'Somali', native: 'Soomaali', flag: '🇸🇴', popular: false },
-  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false },
-  { code: 'ny', name: 'Chichewa', native: 'Chichewa', flag: '🇲🇼', popular: false },
-  { code: 'sn', name: 'Shona', native: 'Shona', flag: '🇿🇼', popular: false },
-  { code: 'st', name: 'Sesotho', native: 'Sesotho', flag: '🇱🇸', popular: false },
-  { code: 'mg', name: 'Malagasy', native: 'Malagasy', flag: '🇲🇬', popular: false },
-  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true },
-  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true },
-  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true },
-  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true },
+  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', greeting: 'Jambo', popular: true, color: '#FF6B35' },
+  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', greeting: 'Ẹ káàbọ̀', popular: true, color: '#F7931E' },
+  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', greeting: 'Sannu', popular: true, color: '#00A859' },
+  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', greeting: 'Ndewo', popular: true, color: '#009245' },
+  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', greeting: 'Sawubona', popular: true, color: '#007A3D' },
+  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', greeting: 'Molo', popular: false, color: '#00843D' },
+  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', greeting: 'Hallo', popular: false, color: '#FFB612' },
+  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', greeting: 'ሰላም', popular: true, color: '#DA291C' },
+  { code: 'so', name: 'Somali', native: 'Soomaali', flag: '🇸🇴', greeting: 'Nabad', popular: false, color: '#4189DD' },
+  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', greeting: 'Muraho', popular: false, color: '#00A1DE' },
+  { code: 'ny', name: 'Chichewa', native: 'Chichewa', flag: '🇲🇼', greeting: 'Moni', popular: false, color: '#CE1126' },
+  { code: 'sn', name: 'Shona', native: 'Shona', flag: '🇿🇼', greeting: 'Mhoro', popular: false, color: '#319F43' },
+  { code: 'st', name: 'Sesotho', native: 'Sesotho', flag: '🇱🇸', greeting: 'Lumela', popular: false, color: '#00209F' },
+  { code: 'mg', name: 'Malagasy', native: 'Malagasy', flag: '🇲🇬', greeting: 'Salama', popular: false, color: '#FC3D32' },
+  { code: 'en', name: 'English', native: 'English', flag: '🌍', greeting: 'Hello', popular: true, color: '#1E88E5' },
+  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', greeting: 'Bonjour', popular: true, color: '#0055A4' },
+  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', greeting: 'مرحبا', popular: true, color: '#006C35' },
+  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', greeting: 'Olá', popular: true, color: '#FF0000' },
 ];
 
-const COMMON_PHRASES = [
-  { en: 'Hello', category: 'Greetings' },
-  { en: 'Good morning', category: 'Greetings' },
-  { en: 'Good evening', category: 'Greetings' },
-  { en: 'How are you?', category: 'Greetings' },
-  { en: 'Thank you', category: 'Basics' },
-  { en: 'Please', category: 'Basics' },
-  { en: 'Yes', category: 'Basics' },
-  { en: 'No', category: 'Basics' },
-  { en: 'Excuse me', category: 'Basics' },
-  { en: 'I need help', category: 'Emergency' },
-  { en: 'Where is the bathroom?', category: 'Travel' },
-  { en: 'How much is this?', category: 'Shopping' },
-  { en: 'Can you help me?', category: 'Emergency' },
-  { en: 'I love you', category: 'Personal' },
-  { en: 'What is your name?', category: 'Social' },
+const PHRASE_OF_DAY = [
+  { text: 'Harambee', translation: 'Pull together (Swahili)', meaning: 'Community working together for a common goal' },
+  { text: 'Ubuntu', translation: 'I am because we are (Zulu)', meaning: 'Humanity towards others, interconnectedness' },
+  { text: 'Sawubona', translation: 'I see you (Zulu)', meaning: 'Deeper than hello - I acknowledge your existence' },
+  { text: 'Akwaaba', translation: 'Welcome (Akan)', meaning: 'You are welcome here, feel at home' },
 ];
+
+const CULTURAL_NOTES = {
+  'Jambo': 'In Swahili culture, greetings are important. Take time to greet properly before starting a conversation.',
+  'Sawubona': 'This Zulu greeting literally means "I see you" - acknowledging someone\'s humanity and existence.',
+  'Ubuntu': 'A philosophy meaning "I am because we are" - emphasizing community and interconnectedness.',
+  'Harambee': 'Kenya\'s national motto meaning "pull together" - reflecting the spirit of community self-help.',
+};
 
 export default function App() {
   const [sourceText, setSourceText] = useState('');
@@ -70,14 +68,18 @@ export default function App() {
   const [showSourcePicker, setShowSourcePicker] = useState(false);
   const [showTargetPicker, setShowTargetPicker] = useState(false);
   
-  const [activeTab, setActiveTab] = useState('translate');
+  const [activeMode, setActiveMode] = useState('simple'); // simple, conversation
+  const [conversations, setConversations] = useState([]);
   const [history, setHistory] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [showCulturalNote, setShowCulturalNote] = useState(null);
+  const [dailyPhrase, setDailyPhrase] = useState(null);
   
   // Animations
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
-  const [scaleAnim] = useState(new Animated.Value(0.95));
+  const [pulseAnim] = useState(new Animated.Value(1));
+  const scrollViewRef = useRef(null);
 
   useEffect(() => {
     Animated.parallel([
@@ -88,37 +90,53 @@ export default function App() {
       }),
       Animated.spring(slideAnim, {
         toValue: 0,
-        tension: 25,
-        friction: 8,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 25,
+        tension: 20,
         friction: 7,
         useNativeDriver: true,
       }),
     ]).start();
     
-    loadHistory();
-    loadFavorites();
+    loadData();
+    setDailyPhraseOfDay();
+    startPulseAnimation();
   }, []);
 
-  const loadHistory = async () => {
-    try {
-      const saved = await AsyncStorage.getItem('translation_history');
-      if (saved) setHistory(JSON.parse(saved));
-    } catch (error) {
-      console.log('Error loading history:', error);
-    }
+  const startPulseAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   };
 
-  const loadFavorites = async () => {
+  const setDailyPhraseOfDay = () => {
+    const today = new Date().getDate();
+    const phraseIndex = today % PHRASE_OF_DAY.length;
+    setDailyPhrase(PHRASE_OF_DAY[phraseIndex]);
+  };
+
+  const loadData = async () => {
     try {
-      const saved = await AsyncStorage.getItem('favorites');
-      if (saved) setFavorites(JSON.parse(saved));
+      const [savedHistory, savedFavorites, savedConversations] = await Promise.all([
+        AsyncStorage.getItem('translation_history'),
+        AsyncStorage.getItem('favorites'),
+        AsyncStorage.getItem('conversations'),
+      ]);
+      
+      if (savedHistory) setHistory(JSON.parse(savedHistory));
+      if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
+      if (savedConversations) setConversations(JSON.parse(savedConversations));
     } catch (error) {
-      console.log('Error loading favorites:', error);
+      console.log('Error loading data:', error);
     }
   };
 
@@ -137,6 +155,26 @@ export default function App() {
     await AsyncStorage.setItem('translation_history', JSON.stringify(updated));
   };
 
+  const addToConversation = async (source, translated, srcLang, tgtLang) => {
+    const newMessage = {
+      id: Date.now().toString(),
+      source,
+      translated,
+      sourceLang: srcLang,
+      targetLang: tgtLang,
+      timestamp: Date.now(),
+    };
+    
+    const updated = [...conversations, newMessage];
+    setConversations(updated);
+    await AsyncStorage.setItem('conversations', JSON.stringify(updated));
+    
+    // Scroll to bottom
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
   const toggleFavorite = async (item) => {
     const exists = favorites.find(f => f.source === item.source && f.translated === item.translated);
     let updated;
@@ -145,7 +183,7 @@ export default function App() {
       updated = favorites.filter(f => !(f.source === item.source && f.translated === item.translated));
       Alert.alert('✓', 'Removed from favorites');
     } else {
-      updated = [item, ...favorites];
+      updated = [{...item, id: Date.now().toString()}, ...favorites];
       Alert.alert('✓', 'Added to favorites');
     }
     
@@ -166,9 +204,7 @@ export default function App() {
         `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
       );
 
-      if (!response.ok) {
-        throw new Error('Translation failed');
-      }
+      if (!response.ok) throw new Error('Translation failed');
 
       const data = await response.json();
       const translated = data[0].map(item => item[0]).join('');
@@ -177,11 +213,32 @@ export default function App() {
       if (showInHistory && text.length > 2) {
         await saveToHistory(text, translated, sourceLang, targetLang);
       }
+
+      // Check for cultural notes
+      checkCulturalNote(text, translated);
     } catch (error) {
       Alert.alert('Error', 'Translation failed. Check your internet connection.');
       console.error('Translation error:', error);
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  const checkCulturalNote = (source, translation) => {
+    const text = source + ' ' + translation;
+    for (const [phrase, note] of Object.entries(CULTURAL_NOTES)) {
+      if (text.toLowerCase().includes(phrase.toLowerCase())) {
+        setTimeout(() => setShowCulturalNote({ phrase, note }), 1000);
+        break;
+      }
+    }
+  };
+
+  const handleSendConversation = () => {
+    if (sourceText.trim() && translatedText.trim()) {
+      addToConversation(sourceText, translatedText, sourceLang, targetLang);
+      setSourceText('');
+      setTranslatedText('');
     }
   };
 
@@ -221,27 +278,12 @@ export default function App() {
     });
   };
 
-  const clearText = () => {
-    setSourceText('');
-    setTranslatedText('');
+  const getLanguageInfo = (code) => {
+    return AFRICAN_LANGUAGES.find(l => l.code === code);
   };
 
-  const getLanguageName = (code) => {
-    const lang = AFRICAN_LANGUAGES.find(l => l.code === code);
-    return lang ? `${lang.flag} ${lang.name}` : code;
-  };
-
-  const loadHistoryItem = (item) => {
-    setSourceLang(item.sourceLang);
-    setTargetLang(item.targetLang);
-    setSourceText(item.source);
-    setTranslatedText(item.translated);
-    setActiveTab('translate');
-  };
-
-  const translatePhrase = async (phrase) => {
-    setSourceText(phrase);
-    setActiveTab('translate');
+  const getLanguageColor = (code) => {
+    return getLanguageInfo(code)?.color || '#8B5CF6';
   };
 
   const LanguagePicker = ({ visible, onClose, selectedLang, onSelect, title }) => {
@@ -251,25 +293,21 @@ export default function App() {
     const otherLangs = AFRICAN_LANGUAGES.filter(l => !l.popular);
 
     return (
-      <Modal
-        visible={visible}
-        transparent
-        animationType="slide"
-        onRequestClose={onClose}
-      >
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
         <View style={styles.pickerOverlay}>
-          <TouchableOpacity 
-            style={styles.pickerBackdrop} 
-            activeOpacity={1} 
-            onPress={onClose}
-          />
+          <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={onClose} />
           <Animated.View style={[styles.pickerContainer, { opacity: fadeAnim }]}>
-            <View style={styles.pickerHeader}>
+            <LinearGradient
+              colors={['#FF6B35', '#F7931E', '#FDC830']}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={styles.pickerHeaderGradient}
+            >
               <Text style={styles.pickerTitle}>{title}</Text>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
-            </View>
+            </LinearGradient>
             
             <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
               <Text style={styles.languageSectionTitle}>POPULAR</Text>
@@ -278,20 +316,22 @@ export default function App() {
                   key={lang.code}
                   style={[
                     styles.pickerItem,
-                    selectedLang === lang.code && styles.pickerItemSelected,
+                    selectedLang === lang.code && { backgroundColor: lang.color + '20', borderColor: lang.color },
                   ]}
                   onPress={() => {
                     onSelect(lang.code);
                     onClose();
                   }}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.pickerItemFlag}>{lang.flag}</Text>
                   <View style={styles.pickerItemText}>
                     <Text style={styles.pickerItemName}>{lang.name}</Text>
                     <Text style={styles.pickerItemNative}>{lang.native}</Text>
+                    <Text style={styles.pickerItemGreeting}>{lang.greeting}</Text>
                   </View>
                   {selectedLang === lang.code && (
-                    <View style={styles.checkmarkCircle}>
+                    <View style={[styles.checkmarkCircle, { backgroundColor: lang.color }]}>
                       <Text style={styles.checkmark}>✓</Text>
                     </View>
                   )}
@@ -304,20 +344,22 @@ export default function App() {
                   key={lang.code}
                   style={[
                     styles.pickerItem,
-                    selectedLang === lang.code && styles.pickerItemSelected,
+                    selectedLang === lang.code && { backgroundColor: lang.color + '20', borderColor: lang.color },
                   ]}
                   onPress={() => {
                     onSelect(lang.code);
                     onClose();
                   }}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.pickerItemFlag}>{lang.flag}</Text>
                   <View style={styles.pickerItemText}>
                     <Text style={styles.pickerItemName}>{lang.name}</Text>
                     <Text style={styles.pickerItemNative}>{lang.native}</Text>
+                    <Text style={styles.pickerItemGreeting}>{lang.greeting}</Text>
                   </View>
                   {selectedLang === lang.code && (
-                    <View style={styles.checkmarkCircle}>
+                    <View style={[styles.checkmarkCircle, { backgroundColor: lang.color }]}>
                       <Text style={styles.checkmark}>✓</Text>
                     </View>
                   )}
@@ -330,277 +372,31 @@ export default function App() {
     );
   };
 
-  const TranslateTab = () => (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.tabContainer}
-    >
-      <ScrollView 
-        style={styles.tabScrollView}
-        contentContainerStyle={styles.tabScrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.languageSelector}>
-          <TouchableOpacity
-            style={styles.languageButton}
-            onPress={() => setShowSourcePicker(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.languageButtonText}>
-              {getLanguageName(sourceLang)}
-            </Text>
-            <Text style={styles.languageButtonIcon}>▼</Text>
-          </TouchableOpacity>
+  const CulturalNoteModal = () => {
+    if (!showCulturalNote) return null;
 
-          <TouchableOpacity 
-            style={styles.swapButton} 
-            onPress={swapLanguages}
-            activeOpacity={0.7}
-          >
-            <View style={styles.swapButtonInner}>
-              <Text style={styles.swapButtonText}>⇄</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.languageButton}
-            onPress={() => setShowTargetPicker(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.languageButtonText}>
-              {getLanguageName(targetLang)}
-            </Text>
-            <Text style={styles.languageButtonIcon}>▼</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.translationCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleContainer}>
-              <View style={styles.cardTitleDot} />
-              <Text style={styles.cardTitle}>Enter Text</Text>
-            </View>
-            <View style={styles.cardActions}>
-              {sourceText.length > 0 && (
-                <>
-                  <TouchableOpacity
-                    onPress={() => speakText(sourceText, sourceLang)}
-                    style={styles.iconButton}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.iconButtonText}>🔊</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={clearText} 
-                    style={styles.iconButton}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.iconButtonText}>✕</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          </View>
-          <TextInput
-            style={styles.textInput}
-            value={sourceText}
-            onChangeText={(text) => setSourceText(text)}
-            placeholder="Type or paste text here..."
-            placeholderTextColor="rgba(139, 92, 246, 0.3)"
-            multiline
-            textAlignVertical="top"
-          />
-          <Text style={styles.characterCount}>{sourceText.length} characters</Text>
-        </View>
-
-        <View style={styles.translationCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleContainer}>
-              <View style={[styles.cardTitleDot, { backgroundColor: '#10B981' }]} />
-              <Text style={styles.cardTitle}>Translation</Text>
-            </View>
-            <View style={styles.cardActions}>
-              {translatedText.length > 0 && (
-                <>
-                  <TouchableOpacity
-                    onPress={() => speakText(translatedText, targetLang)}
-                    style={styles.iconButton}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.iconButtonText}>🔊</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => copyToClipboard(translatedText)}
-                    style={styles.iconButton}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.iconButtonText}>📋</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => toggleFavorite({
-                      id: Date.now().toString(),
-                      source: sourceText,
-                      translated: translatedText,
-                      sourceLang,
-                      targetLang,
-                    })}
-                    style={styles.iconButton}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.iconButtonText}>⭐</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          </View>
-          <View style={styles.translationOutput}>
-            {isTranslating ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#8B5CF6" />
-                <Text style={styles.loadingText}>Translating...</Text>
-              </View>
-            ) : translatedText ? (
-              <Text style={styles.translatedText}>{translatedText}</Text>
-            ) : (
-              <Text style={styles.placeholderText}>
-                Translation will appear here...
-              </Text>
-            )}
-          </View>
-          <Text style={styles.characterCount}>{translatedText.length} characters</Text>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
-
-  const HistoryTab = () => (
-    <View style={styles.tabContainer}>
-      <View style={styles.tabHeader}>
-        <Text style={styles.tabHeaderTitle}>Recent Translations</Text>
-        {history.length > 0 && (
-          <TouchableOpacity
-            onPress={() => {
-              Alert.alert(
-                'Clear History',
-                'Are you sure you want to delete all history?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Clear',
-                    style: 'destructive',
-                    onPress: () => {
-                      setHistory([]);
-                      AsyncStorage.removeItem('translation_history');
-                    },
-                  },
-                ]
-              );
-            }}
-            style={styles.clearButton}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.clearButtonText}>Clear All</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-      
-      {history.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateEmoji}>📚</Text>
-          <Text style={styles.emptyStateText}>No translation history yet</Text>
-          <Text style={styles.emptyStateSubtext}>
-            Your translations will appear here
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={history}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.historyItem}
-              onPress={() => loadHistoryItem(item)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.historyItemHeader}>
-                <Text style={styles.historyLangs}>
-                  {getLanguageName(item.sourceLang)} → {getLanguageName(item.targetLang)}
-                </Text>
-                <TouchableOpacity onPress={() => toggleFavorite(item)}>
-                  <Text style={styles.favoriteIcon}>
-                    {favorites.find(f => f.source === item.source && f.translated === item.translated) ? '⭐' : '☆'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.historySource}>{item.source}</Text>
-              <Text style={styles.historyTranslated}>{item.translated}</Text>
-              <Text style={styles.historyTime}>
-                {new Date(item.timestamp).toLocaleDateString()}
-              </Text>
-            </TouchableOpacity>
-          )}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-        />
-      )}
-    </View>
-  );
-
-  const PhrasesTab = () => {
-    const categories = [...new Set(COMMON_PHRASES.map(p => p.category))];
-    
     return (
-      <ScrollView 
-        style={styles.tabContainer}
-        contentContainerStyle={styles.tabScrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.tabHeader}>
-          <Text style={styles.tabHeaderTitle}>Common Phrases</Text>
+      <Modal transparent visible={true} animationType="fade">
+        <View style={styles.culturalOverlay}>
+          <TouchableOpacity 
+            style={styles.culturalBackdrop} 
+            activeOpacity={1} 
+            onPress={() => setShowCulturalNote(null)} 
+          />
+          <View style={styles.culturalCard}>
+            <Text style={styles.culturalEmoji}>🎭</Text>
+            <Text style={styles.culturalTitle}>Cultural Insight</Text>
+            <Text style={styles.culturalPhrase}>"{showCulturalNote.phrase}"</Text>
+            <Text style={styles.culturalNote}>{showCulturalNote.note}</Text>
+            <TouchableOpacity 
+              style={styles.culturalButton}
+              onPress={() => setShowCulturalNote(null)}
+            >
+              <Text style={styles.culturalButtonText}>Got it!</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        
-        {categories.map(category => (
-          <View key={category} style={styles.phraseCategory}>
-            <Text style={styles.phraseCategoryTitle}>{category}</Text>
-            {COMMON_PHRASES.filter(p => p.category === category).map((phrase, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.phraseItem}
-                onPress={() => translatePhrase(phrase.en)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.phraseText}>{phrase.en}</Text>
-                <View style={styles.phraseArrowCircle}>
-                  <Text style={styles.phraseArrow}>→</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
-        
-        {favorites.length > 0 && (
-          <View style={styles.phraseCategory}>
-            <Text style={styles.phraseCategoryTitle}>⭐ Your Favorites</Text>
-            {favorites.map((item, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.phraseItem}
-                onPress={() => loadHistoryItem(item)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.favoritePhrase}>
-                  <Text style={styles.phraseText}>{item.source}</Text>
-                  <Text style={styles.phraseTranslation}>{item.translated}</Text>
-                </View>
-                <View style={styles.phraseArrowCircle}>
-                  <Text style={styles.phraseArrow}>→</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+      </Modal>
     );
   };
 
@@ -608,64 +404,241 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header with gradient background */}
-      <View style={styles.header}>
-        <View style={styles.headerGradient} />
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>AfroTranslate</Text>
-          <Text style={styles.headerSubtitle}>Connecting Africa Through Language</Text>
-        </View>
-        <View style={styles.headerPattern} />
-      </View>
+      <LinearGradient
+        colors={['#FF6B35', '#F7931E', '#FDC830']}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
+        style={styles.header}
+      >
+        <Animated.View style={[styles.headerContent, { opacity: fadeAnim }]}>
+          <Animated.Text style={[styles.headerEmoji, { transform: [{ scale: pulseAnim }] }]}>
+            🌍
+          </Animated.Text>
+          <Text style={styles.headerTitle}>Sanfoka</Text>
+          <Text style={styles.headerSubtitle}>Reclaim Your Voice</Text>
+        </Animated.View>
+        
+        {dailyPhrase && (
+          <Animated.View style={[styles.dailyPhraseContainer, { opacity: fadeAnim }]}>
+            <Text style={styles.dailyPhraseLabel}>Phrase of the Day</Text>
+            <Text style={styles.dailyPhraseText}>"{dailyPhrase.text}"</Text>
+            <Text style={styles.dailyPhraseTranslation}>{dailyPhrase.translation}</Text>
+          </Animated.View>
+        )}
+      </LinearGradient>
 
-      {/* Tab Bar */}
-      <View style={styles.tabBar}>
+      <View style={styles.modeSelector}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'translate' && styles.tabActive]}
-          onPress={() => setActiveTab('translate')}
+          style={[styles.modeButton, activeMode === 'simple' && styles.modeButtonActive]}
+          onPress={() => setActiveMode('simple')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, activeTab === 'translate' && styles.tabTextActive]}>
-            Translate
+          <Text style={styles.modeIcon}>💬</Text>
+          <Text style={[styles.modeText, activeMode === 'simple' && styles.modeTextActive]}>
+            Simple
           </Text>
-          {activeTab === 'translate' && <View style={styles.tabIndicator} />}
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'history' && styles.tabActive]}
-          onPress={() => setActiveTab('history')}
+          style={[styles.modeButton, activeMode === 'conversation' && styles.modeButtonActive]}
+          onPress={() => setActiveMode('conversation')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>
-            History
+          <Text style={styles.modeIcon}>🗣️</Text>
+          <Text style={[styles.modeText, activeMode === 'conversation' && styles.modeTextActive]}>
+            Conversation
           </Text>
-          {activeTab === 'history' && <View style={styles.tabIndicator} />}
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'phrases' && styles.tabActive]}
-          onPress={() => setActiveTab('phrases')}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.tabText, activeTab === 'phrases' && styles.tabTextActive]}>
-            Phrases
-          </Text>
-          {activeTab === 'phrases' && <View style={styles.tabIndicator} />}
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
-        {activeTab === 'translate' && <TranslateTab />}
-        {activeTab === 'history' && <HistoryTab />}
-        {activeTab === 'phrases' && <PhrasesTab />}
-      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.content}
+      >
+        {activeMode === 'simple' ? (
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.languageSelector}>
+              <TouchableOpacity
+                style={[styles.languageButton, { borderColor: getLanguageColor(sourceLang) }]}
+                onPress={() => setShowSourcePicker(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.languageFlag}>{getLanguageInfo(sourceLang)?.flag}</Text>
+                <Text style={styles.languageButtonText}>{getLanguageInfo(sourceLang)?.name}</Text>
+                <Text style={styles.languageButtonIcon}>▼</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.swapButton} onPress={swapLanguages} activeOpacity={0.7}>
+                <LinearGradient
+                  colors={['#FF6B35', '#F7931E']}
+                  style={styles.swapButtonGradient}
+                >
+                  <Text style={styles.swapButtonText}>⇄</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.languageButton, { borderColor: getLanguageColor(targetLang) }]}
+                onPress={() => setShowTargetPicker(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.languageFlag}>{getLanguageInfo(targetLang)?.flag}</Text>
+                <Text style={styles.languageButtonText}>{getLanguageInfo(targetLang)?.name}</Text>
+                <Text style={styles.languageButtonIcon}>▼</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.translationCard, { borderLeftColor: getLanguageColor(sourceLang) }]}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardLabel}>You say</Text>
+                <View style={styles.cardActions}>
+                  {sourceText.length > 0 && (
+                    <>
+                      <TouchableOpacity
+                        onPress={() => speakText(sourceText, sourceLang)}
+                        style={styles.actionButton}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.actionButtonText}>🔊</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        onPress={() => setSourceText('')} 
+                        style={styles.actionButton}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.actionButtonText}>✕</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              </View>
+              <TextInput
+                style={styles.textInput}
+                value={sourceText}
+                onChangeText={(text) => setSourceText(text)}
+                placeholder="Type here..."
+                placeholderTextColor="rgba(0,0,0,0.3)"
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
+
+            <View style={[styles.translationCard, { borderLeftColor: getLanguageColor(targetLang) }]}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardLabel}>Translation</Text>
+                <View style={styles.cardActions}>
+                  {translatedText.length > 0 && (
+                    <>
+                      <TouchableOpacity
+                        onPress={() => speakText(translatedText, targetLang)}
+                        style={styles.actionButton}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.actionButtonText}>🔊</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => copyToClipboard(translatedText)}
+                        style={styles.actionButton}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.actionButtonText}>📋</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => toggleFavorite({
+                          source: sourceText,
+                          translated: translatedText,
+                          sourceLang,
+                          targetLang,
+                        })}
+                        style={styles.actionButton}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.actionButtonText}>⭐</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              </View>
+              <View style={styles.translationOutput}>
+                {isTranslating ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#FF6B35" />
+                    <Text style={styles.loadingText}>Translating...</Text>
+                  </View>
+                ) : translatedText ? (
+                  <Text style={styles.translatedText}>{translatedText}</Text>
+                ) : (
+                  <Text style={styles.placeholderText}>
+                    Translation appears here...
+                  </Text>
+                )}
+              </View>
+            </View>
+          </ScrollView>
+        ) : (
+          <View style={styles.conversationContainer}>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.conversationScroll}
+              contentContainerStyle={styles.conversationContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {conversations.map((msg, index) => (
+                <View key={msg.id} style={styles.messageGroup}>
+                  <View style={[styles.messageBubble, styles.messageBubbleLeft]}>
+                    <Text style={styles.messageLangLabel}>
+                      {getLanguageInfo(msg.sourceLang)?.flag} {getLanguageInfo(msg.sourceLang)?.name}
+                    </Text>
+                    <Text style={styles.messageText}>{msg.source}</Text>
+                  </View>
+                  <View style={[styles.messageBubble, styles.messageBubbleRight]}>
+                    <Text style={styles.messageLangLabel}>
+                      {getLanguageInfo(msg.targetLang)?.flag} {getLanguageInfo(msg.targetLang)?.name}
+                    </Text>
+                    <Text style={styles.messageText}>{msg.translated}</Text>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+            
+            <View style={styles.conversationInput}>
+              <TextInput
+                style={styles.conversationTextInput}
+                value={sourceText}
+                onChangeText={(text) => setSourceText(text)}
+                placeholder={`Type in ${getLanguageInfo(sourceLang)?.name}...`}
+                placeholderTextColor="rgba(0,0,0,0.3)"
+                multiline
+                maxLength={200}
+              />
+              <TouchableOpacity
+                style={styles.sendButton}
+                onPress={handleSendConversation}
+                disabled={!sourceText.trim() || !translatedText.trim()}
+                activeOpacity={0.7}
+              >
+                <LinearGradient
+                  colors={sourceText.trim() && translatedText.trim() ? ['#FF6B35', '#F7931E'] : ['#ccc', '#aaa']}
+                  style={styles.sendButtonGradient}
+                >
+                  <Text style={styles.sendButtonText}>→</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </KeyboardAvoidingView>
 
       <LanguagePicker
         visible={showSourcePicker}
         onClose={() => setShowSourcePicker(false)}
         selectedLang={sourceLang}
         onSelect={setSourceLang}
-        title="Select Source Language"
+        title="Choose Language"
       />
 
       <LanguagePicker
@@ -673,8 +646,10 @@ export default function App() {
         onClose={() => setShowTargetPicker(false)}
         selectedLang={targetLang}
         onSelect={setTargetLang}
-        title="Select Target Language"
+        title="Translate To"
       />
+
+      <CulturalNoteModal />
     </View>
   );
 }
@@ -682,107 +657,103 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F1E',
+    backgroundColor: '#FFF9F5',
   },
   header: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: 24,
     paddingHorizontal: 24,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  headerGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#1E1B4B',
-    opacity: 1,
-  },
-  headerPattern: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 200,
-    height: 200,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    borderRadius: 100,
-    transform: [{ translateX: 80 }, { translateY: -80 }],
   },
   headerContent: {
-    padding: 20,
     alignItems: 'center',
-    zIndex: 2,
   },
   headerEmoji: {
-    fontSize: 52,
+    fontSize: 56,
     marginBottom: 8,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -0.5,
-    textShadowColor: 'rgba(139, 92, 246, 0.5)',
+    letterSpacing: -1,
+    textShadowColor: 'rgba(0,0,0,0.2)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    textShadowRadius: 4,
   },
   headerSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 4,
+    fontWeight: '600',
+    letterSpacing: 1,
+  },
+  dailyPhraseContainer: {
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  dailyPhraseLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  dailyPhraseText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  dailyPhraseTranslation: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.9)',
     fontWeight: '500',
-    letterSpacing: 0.5,
   },
-  tabBar: {
+  modeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#1A1A2E',
-    paddingTop: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(139, 92, 246, 0.2)',
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    gap: 12,
   },
-  tab: {
+  modeButton: {
     flex: 1,
-    paddingVertical: 14,
+    flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
+    justifyContent: 'center',
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: '#F7F7F7',
+    gap: 8,
   },
-  tabActive: {
-    // Active state handled by indicator
+  modeButtonActive: {
+    backgroundColor: '#FFF0EB',
+    borderWidth: 2,
+    borderColor: '#FF6B35',
   },
-  tabText: {
+  modeIcon: {
+    fontSize: 20,
+  },
+  modeText: {
     fontSize: 15,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.5)',
-    letterSpacing: 0.2,
+    color: '#666',
   },
-  tabTextActive: {
-    color: '#A78BFA',
-  },
-  tabIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: '20%',
-    right: '20%',
-    height: 3,
-    backgroundColor: '#8B5CF6',
-    borderRadius: 2,
+  modeTextActive: {
+    color: '#FF6B35',
   },
   content: {
     flex: 1,
   },
-  tabContainer: {
+  scrollView: {
     flex: 1,
   },
-  tabScrollView: {
-    flex: 1,
-  },
-  tabScrollContent: {
+  scrollContent: {
     padding: 20,
-  },
-  listContent: {
-    paddingBottom: 20,
   },
   languageSelector: {
     flexDirection: 'row',
@@ -792,40 +763,45 @@ const styles = StyleSheet.create({
   },
   languageButton: {
     flex: 1,
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
-    borderRadius: 16,
-    padding: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
+    gap: 10,
+    borderWidth: 2,
+    borderColor: '#FF6B35',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  languageFlag: {
+    fontSize: 24,
   },
   languageButtonText: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
-    flex: 1,
+    color: '#2D3748',
   },
   languageButtonIcon: {
     fontSize: 12,
-    color: 'rgba(139, 92, 246, 0.7)',
-    marginLeft: 8,
+    color: '#999',
   },
   swapButton: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#8B5CF6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
+    overflow: 'hidden',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  swapButtonInner: {
+  swapButtonGradient: {
     width: '100%',
     height: '100%',
     alignItems: 'center',
@@ -837,87 +813,71 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   translationCard: {
-    backgroundColor: 'rgba(26, 26, 46, 0.9)',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  cardTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  cardTitleDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#8B5CF6',
-  },
-  cardTitle: {
-    fontSize: 17,
+  cardLabel: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   cardActions: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
-  iconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFF0EB',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
   },
-  iconButtonText: {
+  actionButtonText: {
     fontSize: 16,
   },
   textInput: {
-    fontSize: 17,
-    color: '#FFFFFF',
-    minHeight: 110,
-    padding: 18,
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
-    borderRadius: 16,
+    fontSize: 18,
+    color: '#2D3748',
+    minHeight: 100,
+    padding: 16,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 12,
     lineHeight: 26,
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
   },
   translationOutput: {
-    minHeight: 110,
-    padding: 18,
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    borderRadius: 16,
+    minHeight: 100,
+    padding: 16,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 12,
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
   },
   translatedText: {
-    fontSize: 17,
-    color: '#FFFFFF',
+    fontSize: 18,
+    color: '#2D3748',
     lineHeight: 26,
   },
   placeholderText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.3)',
+    color: '#999',
     textAlign: 'center',
+    fontStyle: 'italic',
   },
   loadingContainer: {
     alignItems: 'center',
@@ -925,15 +885,84 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: 'rgba(139, 92, 246, 0.7)',
+    color: '#FF6B35',
     marginTop: 12,
     fontWeight: '500',
   },
-  characterCount: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.4)',
-    marginTop: 10,
-    fontWeight: '500',
+  conversationContainer: {
+    flex: 1,
+  },
+  conversationScroll: {
+    flex: 1,
+  },
+  conversationContent: {
+    padding: 20,
+  },
+  messageGroup: {
+    marginBottom: 24,
+  },
+  messageBubble: {
+    maxWidth: '80%',
+    padding: 14,
+    borderRadius: 18,
+    marginBottom: 8,
+  },
+  messageBubbleLeft: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFF0EB',
+    borderBottomLeftRadius: 4,
+  },
+  messageBubbleRight: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#E8F5E9',
+    borderBottomRightRadius: 4,
+  },
+  messageLangLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#666',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  messageText: {
+    fontSize: 16,
+    color: '#2D3748',
+    lineHeight: 22,
+  },
+  conversationInput: {
+    flexDirection: 'row',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    gap: 12,
+  },
+  conversationTextInput: {
+    flex: 1,
+    backgroundColor: '#F7F7F7',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    fontSize: 16,
+    maxHeight: 100,
+  },
+  sendButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  sendButtonGradient: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonText: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   pickerOverlay: {
     flex: 1,
@@ -945,23 +974,21 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   pickerContainer: {
-    backgroundColor: '#1A1A2E',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     maxHeight: height * 0.75,
-    borderTopWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
   },
-  pickerHeader: {
+  pickerHeaderGradient: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(139, 92, 246, 0.2)',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   pickerTitle: {
     fontSize: 22,
@@ -973,13 +1000,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeButtonText: {
     fontSize: 20,
-    color: '#A78BFA',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   pickerScroll: {
@@ -988,7 +1015,7 @@ const styles = StyleSheet.create({
   languageSectionTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: 'rgba(167, 139, 250, 0.6)',
+    color: '#999',
     marginTop: 20,
     marginBottom: 16,
     letterSpacing: 1.5,
@@ -996,17 +1023,12 @@ const styles = StyleSheet.create({
   pickerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 18,
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+    padding: 16,
+    backgroundColor: '#F7F7F7',
     borderRadius: 16,
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.15)',
-  },
-  pickerItemSelected: {
-    backgroundColor: 'rgba(139, 92, 246, 0.25)',
-    borderColor: '#8B5CF6',
     borderWidth: 2,
+    borderColor: 'transparent',
   },
   pickerItemFlag: {
     fontSize: 32,
@@ -1018,19 +1040,24 @@ const styles = StyleSheet.create({
   pickerItemName: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#2D3748',
     letterSpacing: 0.2,
   },
   pickerItemNative: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: '#666',
     marginTop: 2,
+  },
+  pickerItemGreeting: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
   checkmarkCircle: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#8B5CF6',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1039,142 +1066,59 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
   },
-  tabHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  tabHeaderTitle: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-  clearButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-  },
-  clearButtonText: {
-    color: '#F87171',
-    fontWeight: '700',
-    fontSize: 14,
-    letterSpacing: 0.3,
-  },
-  emptyState: {
+  culturalOverlay: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 80,
-  },
-  emptyStateEmoji: {
-    fontSize: 72,
-    marginBottom: 20,
-    opacity: 0.5,
-  },
-  emptyStateText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  emptyStateSubtext: {
-    fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-  historyItem: {
-    backgroundColor: 'rgba(26, 26, 46, 0.9)',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
-  },
-  historyItemHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
-  historyLangs: {
-    fontSize: 12,
-    color: 'rgba(167, 139, 250, 0.8)',
-    fontWeight: '700',
-    letterSpacing: 0.5,
+  culturalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
-  favoriteIcon: {
-    fontSize: 22,
+  culturalCard: {
+    width: width - 60,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 28,
+    alignItems: 'center',
   },
-  historySource: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    marginBottom: 6,
-    lineHeight: 22,
-  },
-  historyTranslated: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 12,
-    lineHeight: 22,
-  },
-  historyTime: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontWeight: '500',
-  },
-  phraseCategory: {
-    marginBottom: 32,
-  },
-  phraseCategoryTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
+  culturalEmoji: {
+    fontSize: 64,
     marginBottom: 16,
-    letterSpacing: 0.3,
   },
-  phraseItem: {
-    backgroundColor: 'rgba(26, 26, 46, 0.9)',
-    borderRadius: 18,
-    padding: 20,
+  culturalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#2D3748',
     marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
   },
-  phraseText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    flex: 1,
-  },
-  phraseArrowCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(139, 92, 246, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  phraseArrow: {
-    fontSize: 16,
-    color: '#A78BFA',
+  culturalPhrase: {
+    fontSize: 18,
     fontWeight: '700',
+    color: '#FF6B35',
+    marginBottom: 16,
+    textAlign: 'center',
   },
-  favoritePhrase: {
-    flex: 1,
+  culturalNote: {
+    fontSize: 15,
+    color: '#666',
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: 24,
   },
-  phraseTranslation: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginTop: 4,
+  culturalButton: {
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 24,
+  },
+  culturalButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
