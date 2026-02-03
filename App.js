@@ -16,16 +16,16 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import * as Speech from 'expo-speech';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { 
   getVerifiedTranslation, 
   isVerified, 
   findSimilarVerified,
   getVerifiedCount 
 } from './verifiedTranslations';
-import * as Clipboard from 'expo-clipboard';
-import * as Speech from 'expo-speech';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -62,7 +62,7 @@ const COMMON_PHRASES = [
   { en: 'Excuse me', category: 'Basics' },
   { en: 'I need help', category: 'Emergency' },
   { en: 'Where is the bathroom?', category: 'Travel' },
-  { en: 'How much is this?', category: 'Shopping' },
+  { en: 'How much?', category: 'Shopping' },
 ];
 
 export default function App() {
@@ -73,10 +73,13 @@ export default function App() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [showSourcePicker, setShowSourcePicker] = useState(false);
   const [showTargetPicker, setShowTargetPicker] = useState(false);
+  const [translationSource, setTranslationSource] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
   
   const [activeTab, setActiveTab] = useState('translate');
   const [history, setHistory] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [verifiedCount, setVerifiedCount] = useState(0);
   
   const [fadeAnim] = useState(new Animated.Value(0));
   const [glowAnim] = useState(new Animated.Value(0));
@@ -92,7 +95,17 @@ export default function App() {
     
     startGlowAnimation();
     loadData();
+    updateVerifiedCount();
   }, []);
+
+  const updateVerifiedCount = () => {
+    const count = getVerifiedCount(sourceLang, targetLang);
+    setVerifiedCount(count);
+  };
+
+  useEffect(() => {
+    updateVerifiedCount();
+  }, [sourceLang, targetLang]);
 
   const startGlowAnimation = () => {
     Animated.loop(
@@ -125,13 +138,14 @@ export default function App() {
     }
   };
 
-  const saveToHistory = async (source, translated, srcLang, tgtLang) => {
+  const saveToHistory = async (source, translated, srcLang, tgtLang, translationType) => {
     const newItem = {
       id: Date.now().toString(),
       source,
       translated,
       sourceLang: srcLang,
       targetLang: tgtLang,
+      translationType,
       timestamp: new Date().toISOString(),
     };
     
@@ -154,103 +168,112 @@ export default function App() {
     await AsyncStorage.setItem('favorites', JSON.stringify(updated));
   };
 
+  // HYBRID TRANSLATION SYSTEM
   const translateText = async (text, showInHistory = true) => {
-  if (!text.trim()) {
-    setTranslatedText('');
-    setTranslationSource(null);
-    return;
-  }
-
-  setIsTranslating(true);
-
-  try {
-    // STEP 1: Check verified database first
-    const verified = getVerifiedTranslation(text, sourceLang, targetLang);
-    
-    if (verified) {
-      // Found in verified database - instant, 100% accurate!
-      setTranslatedText(verified);
-      setTranslationSource({ type: 'verified', confidence: 1.0 });
-      
-      if (showInHistory && text.length > 2) {
-        await saveToHistory(text, verified, sourceLang, targetLang, 'verified');
-      }
-      
-      setIsTranslating(false);
+    if (!text.trim()) {
+      setTranslatedText('');
+      setTranslationSource(null);
       return;
     }
 
-    // STEP 2: Check for similar phrases
-    const similar = findSimilarVerified(text, sourceLang, targetLang);
-    
-    if (similar && similar.similarity > 0.85) {
-      // Found very similar phrase
-      setTranslatedText(similar.translation);
+    setIsTranslating(true);
+
+    try {
+      // STEP 1: Check verified database first (INSTANT!)
+      const verified = getVerifiedTranslation(text, sourceLang, targetLang);
+      
+      if (verified) {
+        setTranslatedText(verified);
+        setTranslationSource({ 
+          type: 'verified', 
+          confidence: 1.0,
+          method: 'Human-Verified'
+        });
+        
+        if (showInHistory && text.length > 2) {
+          await saveToHistory(text, verified, sourceLang, targetLang, 'verified');
+        }
+        
+        setIsTranslating(false);
+        return;
+      }
+
+      // STEP 2: Check for similar verified phrases
+      const similar = findSimilarVerified(text, sourceLang, targetLang);
+      
+      if (similar && similar.similarity > 0.85) {
+        setTranslatedText(similar.translation);
+        setTranslationSource({ 
+          type: 'verified', 
+          confidence: similar.similarity,
+          method: 'Similar Match',
+          note: `Similar to: "${similar.phrase}"`
+        });
+        
+        if (showInHistory && text.length > 2) {
+          await saveToHistory(text, similar.translation, sourceLang, targetLang, 'verified-similar');
+        }
+        
+        setIsTranslating(false);
+        return;
+      }
+
+      // STEP 3: Fall back to Google Translate AI
+      const response = await fetch(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
+      );
+
+      if (!response.ok) throw new Error('Translation failed');
+
+      const data = await response.json();
+      const translated = data[0].map(item => item[0]).join('');
+      
+      setTranslatedText(translated);
       setTranslationSource({ 
-        type: 'verified', 
-        confidence: similar.similarity,
-        note: `Similar to: "${similar.phrase}"`
+        type: 'ai', 
+        confidence: 0.75,
+        method: 'Google Translate'
       });
       
       if (showInHistory && text.length > 2) {
-        await saveToHistory(text, similar.translation, sourceLang, targetLang, 'verified-similar');
+        await saveToHistory(text, translated, sourceLang, targetLang, 'google');
       }
-      
+
+    } catch (error) {
+      Alert.alert('Error', 'Translation failed. Check your internet connection.');
+      setTranslationSource({ type: 'error' });
+      console.error('Translation error:', error);
+    } finally {
       setIsTranslating(false);
-      return;
     }
+  };
 
-    // STEP 3: Fall back to AI (Google Translate)
-    const response = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
-    );
-
-    if (!response.ok) throw new Error('Translation failed');
-
-    const data = await response.json();
-    const translated = data[0].map(item => item[0]).join('');
+  // Report translation error
+  const reportTranslationError = async () => {
+    const error = {
+      id: Date.now().toString(),
+      source: sourceText,
+      translation: translatedText,
+      sourceLang,
+      targetLang,
+      translationType: translationSource?.type,
+      timestamp: new Date().toISOString(),
+    };
     
-    setTranslatedText(translated);
-    setTranslationSource({ type: 'ai', engine: 'google', confidence: 0.75 });
-    
-    if (showInHistory && text.length > 2) {
-      await saveToHistory(text, translated, sourceLang, targetLang, 'google');
-    }
-
-  } catch (error) {
-    Alert.alert('Error', 'Translation failed. Check your internet connection.');
-    setTranslationSource({ type: 'error' });
-  } finally {
-    setIsTranslating(false);
-  }
-};
-
-  const QualityBadge = () => {
-    if (!translationSource || !translatedText) return null;
-    
-    if (translationSource.type === 'verified') {
-      return (
-      <View style={[styles.qualityBadge, { backgroundColor: '#00FF9420' }]}>
-        <View style={[styles.qualityDot, { backgroundColor: '#00FF94' }]} />
-        <Text style={[styles.qualityText, { color: '#00FF94' }]}>
-          ✅ Verified • 100% Accurate
-        </Text>
-      </View>
+    try {
+      const errors = await AsyncStorage.getItem('translation_errors');
+      const errorList = errors ? JSON.parse(errors) : [];
+      errorList.push(error);
+      await AsyncStorage.setItem('translation_errors', JSON.stringify(errorList));
+      
+      Alert.alert(
+        '✓ Thank You!', 
+        'Error reported. We\'ll review this translation and improve it with native speakers.'
       );
+      setShowReportModal(false);
+    } catch (err) {
+      console.error('Error saving report:', err);
     }
-    
-    if (translationSource.type === 'ai') {
-      return (
-      <View style={[styles.qualityBadge, { backgroundColor: '#FFD70020' }]}>
-        <View style={[styles.qualityDot, { backgroundColor: '#FFD700' }]} />
-        <Text style={[styles.qualityText, { color: '#FFD700' }]}>
-          🔄 {translationSource.engine === 'google' ? 'Google' : 'AI'} • Good Quality
-        </Text>
-      </View>
-      );
-    }
-    
-    return null;
   };
 
   useEffect(() => {
@@ -259,6 +282,7 @@ export default function App() {
         translateText(sourceText);
       } else {
         setTranslatedText('');
+        setTranslationSource(null);
       }
     }, 500);
 
@@ -293,12 +317,42 @@ export default function App() {
     setTargetLang(item.targetLang);
     setSourceText(item.source);
     setTranslatedText(item.translated);
+    setTranslationSource({ type: item.translationType });
     setActiveTab('translate');
   };
 
   const translatePhrase = (phrase) => {
     setSourceText(phrase);
     setActiveTab('translate');
+  };
+
+  // Quality Badge Component
+  const QualityBadge = () => {
+    if (!translationSource || !translatedText) return null;
+
+    if (translationSource.type === 'verified') {
+      return (
+        <View style={[styles.qualityBadge, { backgroundColor: '#00FF9420' }]}>
+          <View style={[styles.qualityDot, { backgroundColor: '#00FF94' }]} />
+          <Text style={[styles.qualityText, { color: '#00FF94' }]}>
+            ✅ Verified • 100% Accurate
+          </Text>
+        </View>
+      );
+    }
+
+    if (translationSource.type === 'ai') {
+      return (
+        <View style={[styles.qualityBadge, { backgroundColor: '#FFD70020' }]}>
+          <View style={[styles.qualityDot, { backgroundColor: '#FFD700' }]} />
+          <Text style={[styles.qualityText, { color: '#FFD700' }]}>
+            🔄 Google • Good Quality
+          </Text>
+        </View>
+      );
+    }
+
+    return null;
   };
 
   const LanguagePicker = ({ visible, onClose, selectedLang, onSelect, title }) => {
@@ -380,6 +434,46 @@ export default function App() {
     );
   };
 
+  const ReportModal = () => (
+    <Modal visible={showReportModal} transparent animationType="fade">
+      <View style={styles.reportOverlay}>
+        <TouchableOpacity style={styles.reportBackdrop} activeOpacity={1} onPress={() => setShowReportModal(false)} />
+        <View style={styles.reportCard}>
+          <Text style={styles.reportTitle}>⚠️ Report Translation Error</Text>
+          <Text style={styles.reportText}>
+            Help us improve! Report this translation and we'll review it with native speakers.
+          </Text>
+          
+          <View style={styles.reportDetails}>
+            <Text style={styles.reportLabel}>Original:</Text>
+            <Text style={styles.reportValue}>{sourceText}</Text>
+            
+            <Text style={styles.reportLabel}>Translation:</Text>
+            <Text style={styles.reportValue}>{translatedText}</Text>
+            
+            <Text style={styles.reportLabel}>Source:</Text>
+            <Text style={styles.reportValue}>{translationSource?.method || 'Unknown'}</Text>
+          </View>
+          
+          <View style={styles.reportButtons}>
+            <TouchableOpacity 
+              style={styles.reportCancelBtn}
+              onPress={() => setShowReportModal(false)}
+            >
+              <Text style={styles.reportCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.reportSubmitBtn}
+              onPress={reportTranslationError}
+            >
+              <Text style={styles.reportSubmitText}>Report Error</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   const TranslateTab = () => (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -425,6 +519,15 @@ export default function App() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Verified Count Badge */}
+        {verifiedCount > 0 && (
+          <View style={styles.verifiedCountBadge}>
+            <Text style={styles.verifiedCountText}>
+              ✅ {verifiedCount} verified phrases available
+            </Text>
+          </View>
+        )}
 
         <View style={[styles.card, { borderLeftColor: getLanguageColor(sourceLang) }]}>
           <View style={styles.cardTop}>
@@ -476,9 +579,21 @@ export default function App() {
             {isTranslating ? (
               <View style={styles.loading}>
                 <ActivityIndicator size="large" color="#00F5FF" />
+                <Text style={styles.loadingText}>Translating...</Text>
               </View>
             ) : translatedText ? (
-              <Text style={styles.outputText}>{translatedText}</Text>
+              <>
+                <Text style={styles.outputText}>{translatedText}</Text>
+                <QualityBadge />
+                {translationSource?.type === 'ai' && (
+                  <TouchableOpacity 
+                    style={styles.reportBtn}
+                    onPress={() => setShowReportModal(true)}
+                  >
+                    <Text style={styles.reportBtnText}>⚠️ Report Error</Text>
+                  </TouchableOpacity>
+                )}
+              </>
             ) : (
               <Text style={styles.placeholder}>Translation appears here...</Text>
             )}
@@ -520,11 +635,18 @@ export default function App() {
                 <Text style={styles.historyLang}>
                   {getLanguageInfo(item.sourceLang)?.flag} → {getLanguageInfo(item.targetLang)?.flag}
                 </Text>
-                <TouchableOpacity onPress={() => toggleFavorite(item)}>
-                  <Text style={styles.favoriteBtn}>
-                    {favorites.find(f => f.source === item.source && f.translated === item.translated) ? '⭐' : '☆'}
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.historyActions}>
+                  {item.translationType === 'verified' && (
+                    <View style={styles.verifiedBadgeSmall}>
+                      <Text style={styles.verifiedBadgeSmallText}>✅</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity onPress={() => toggleFavorite(item)}>
+                    <Text style={styles.favoriteBtn}>
+                      {favorites.find(f => f.source === item.source && f.translated === item.translated) ? '⭐' : '☆'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <Text style={styles.historySource}>{item.source}</Text>
               <Text style={styles.historyTrans}>{item.translated}</Text>
@@ -555,7 +677,14 @@ export default function App() {
                 onPress={() => translatePhrase(phrase.en)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.phraseText}>{phrase.en}</Text>
+                <View style={styles.phraseContent}>
+                  <Text style={styles.phraseText}>{phrase.en}</Text>
+                  {isVerified(phrase.en, 'en', targetLang) && (
+                    <View style={styles.verifiedBadgeSmall}>
+                      <Text style={styles.verifiedBadgeSmallText}>✅ Verified</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.phraseArrow}>→</Text>
               </TouchableOpacity>
             ))}
@@ -651,6 +780,8 @@ export default function App() {
         onSelect={setTargetLang}
         title="Translate To"
       />
+
+      <ReportModal />
     </View>
   );
 }
@@ -670,7 +801,6 @@ const styles = StyleSheet.create({
   headerContent: {
     alignItems: 'center',
     position: 'relative',
-    marginBottom: 10
   },
   logo: {
     fontSize: 32,
@@ -728,8 +858,8 @@ const styles = StyleSheet.create({
   languageSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    marginTop: 30,
+    marginBottom: 16,
+    marginTop: 15,
     gap: 12,
   },
   langButton: {
@@ -766,6 +896,22 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     color: '#FFFFFF',
+  },
+  verifiedCountBadge: {
+    backgroundColor: '#00FF9420',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#00FF9440',
+  },
+  verifiedCountText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#00FF94',
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
   card: {
     backgroundColor: '#1A1A1A',
@@ -818,6 +964,7 @@ const styles = StyleSheet.create({
   outputText: {
     fontSize: 18,
     color: '#FFFFFF',
+    marginBottom: 8,
   },
   placeholder: {
     fontSize: 16,
@@ -826,6 +973,125 @@ const styles = StyleSheet.create({
   },
   loading: {
     alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 12,
+    color: '#00F5FF',
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  qualityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 6,
+    marginTop: 8,
+  },
+  qualityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  qualityText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  reportBtn: {
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,107,53,0.2)',
+    alignSelf: 'flex-start',
+  },
+  reportBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF6B35',
+  },
+  reportOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  reportBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  reportCard: {
+    width: width - 60,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 24,
+    padding: 24,
+  },
+  reportTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  reportText: {
+    fontSize: 14,
+    color: '#999',
+    lineHeight: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  reportDetails: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  reportLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#00F5FF',
+    marginTop: 8,
+    marginBottom: 4,
+    letterSpacing: 1,
+  },
+  reportValue: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  reportButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  reportCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+  },
+  reportCancelText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#999',
+  },
+  reportSubmitBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: '#FF6B35',
+    alignItems: 'center',
+  },
+  reportSubmitText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   tabHeaderBar: {
     flexDirection: 'row',
@@ -884,6 +1150,22 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '700',
   },
+  historyActions: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  verifiedBadgeSmall: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: '#00FF9420',
+  },
+  verifiedBadgeSmallText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#00FF94',
+  },
   favoriteBtn: {
     fontSize: 18,
   },
@@ -936,26 +1218,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#00F5FF',
     fontWeight: '700',
-  },
-  qualityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 6,
-    marginTop: 8,
-  },
-  qualityDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  qualityText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
   },
   pickerOverlay: {
     flex: 1,
