@@ -17,6 +17,7 @@ import {
   FlatList,
   Vibration,
   Easing,
+  Share,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Speech from 'expo-speech';
@@ -47,19 +48,69 @@ const AFRICAN_LANGUAGES = [
 ];
 
 const COMMON_PHRASES = [
-  { en: 'Hello', category: 'Greetings' },
-  { en: 'Good morning', category: 'Greetings' },
-  { en: 'Good evening', category: 'Greetings' },
-  { en: 'How are you?', category: 'Greetings' },
-  { en: 'Thank you', category: 'Basics' },
-  { en: 'Please', category: 'Basics' },
-  { en: 'Yes', category: 'Basics' },
-  { en: 'No', category: 'Basics' },
-  { en: 'Excuse me', category: 'Basics' },
-  { en: 'I need help', category: 'Emergency' },
-  { en: 'Where is the bathroom?', category: 'Travel' },
-  { en: 'How much?', category: 'Shopping' },
+  { en: 'Hello', category: 'Greetings', icon: '👋' },
+  { en: 'Good morning', category: 'Greetings', icon: '🌅' },
+  { en: 'Good evening', category: 'Greetings', icon: '🌆' },
+  { en: 'How are you?', category: 'Greetings', icon: '😊' },
+  { en: 'Thank you', category: 'Basics', icon: '🙏' },
+  { en: 'Please', category: 'Basics', icon: '🤝' },
+  { en: 'Yes', category: 'Basics', icon: '✅' },
+  { en: 'No', category: 'Basics', icon: '❌' },
+  { en: 'Excuse me', category: 'Basics', icon: '🙋' },
+  { en: 'I need help', category: 'Emergency', icon: '🆘' },
+  { en: 'Where is the bathroom?', category: 'Travel', icon: '🚻' },
+  { en: 'How much?', category: 'Shopping', icon: '💰' },
+  { en: 'Water please', category: 'Food', icon: '💧' },
+  { en: 'I am lost', category: 'Emergency', icon: '🗺️' },
+  { en: 'Call the police', category: 'Emergency', icon: '👮' },
+  { en: 'Where is the hospital?', category: 'Emergency', icon: '🏥' },
+  { en: 'Goodbye', category: 'Greetings', icon: '👋' },
+  { en: 'See you later', category: 'Greetings', icon: '👀' },
+  { en: 'My name is', category: 'Basics', icon: '📛' },
+  { en: 'Nice to meet you', category: 'Basics', icon: '🤝' },
 ];
+
+// Offline phrase translations (basic common phrases)
+const OFFLINE_TRANSLATIONS = {
+  'sw': {
+    'Hello': 'Habari',
+    'Thank you': 'Asante',
+    'Yes': 'Ndiyo',
+    'No': 'Hapana',
+    'Please': 'Tafadhali',
+    'Good morning': 'Habari ya asubuhi',
+    'Good evening': 'Habari ya jioni',
+    'How are you?': 'Habari yako?',
+  },
+  'yo': {
+    'Hello': 'Bawo',
+    'Thank you': 'E se',
+    'Yes': 'Bẹẹni',
+    'No': 'Rara',
+    'Please': 'Jọwọ',
+  },
+  'ha': {
+    'Hello': 'Sannu',
+    'Thank you': 'Na gode',
+    'Yes': 'Eh',
+    'No': 'A\'a',
+    'Please': 'Don Allah',
+  },
+  'zu': {
+    'Hello': 'Sawubona',
+    'Thank you': 'Ngiyabonga',
+    'Yes': 'Yebo',
+    'No': 'Cha',
+    'Please': 'Ngiyacela',
+  },
+  'ig': {
+    'Hello': 'Ndewo',
+    'Thank you': 'Daalụ',
+    'Yes': 'Ee',
+    'No': 'Mba',
+    'Please': 'Biko',
+  },
+};
 
 export default function App() {
   const [sourceText, setSourceText] = useState('');
@@ -72,27 +123,30 @@ export default function App() {
   const [translationSource, setTranslationSource] = useState(null);
   const [isListening, setIsListening] = useState(false);
   const [showCopiedToast, setShowCopiedToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   
   const [activeTab, setActiveTab] = useState('translate');
   const [history, setHistory] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [characterCount, setCharacterCount] = useState(0);
-  const [showLanguageStats, setShowLanguageStats] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const [showPhrasebook, setShowPhrasebook] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All');
   
   // Animations
   const [fadeAnim] = useState(new Animated.Value(0));
   const [glowAnim] = useState(new Animated.Value(0));
-  const [translateAnim] = useState(new Animated.Value(1)); // Start visible
+  const [translateAnim] = useState(new Animated.Value(1));
   const [fabScale] = useState(new Animated.Value(1));
-  const [fabRotate] = useState(new Animated.Value(0));
   const [tabIndicatorAnim] = useState(new Animated.Value(0));
   const [loadingDots] = useState(new Animated.Value(0));
   const [toastAnim] = useState(new Animated.Value(0));
   
-  // Button press animations (one for each action button)
+  // Button press animations
   const [speakPressAnim] = useState(new Animated.Value(1));
   const [copyPressAnim] = useState(new Animated.Value(1));
   const [favoritePressAnim] = useState(new Animated.Value(1));
+  const [sharePressAnim] = useState(new Animated.Value(1));
 
   useEffect(() => {
     Animated.parallel([
@@ -104,12 +158,42 @@ export default function App() {
     ]).start();
     
     startGlowAnimation();
-    startFABAnimation();
     startLoadingDotsAnimation();
     loadData();
+    
+    // Check network status by trying to fetch a small resource
+    const checkNetworkStatus = async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        await fetch('https://www.google.com/favicon.ico', {
+          method: 'HEAD',
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        setIsOnline(true);
+      } catch (error) {
+        setIsOnline(false);
+      }
+    };
+    
+    checkNetworkStatus();
+    
+    // Check network status every 10 seconds
+    const intervalId = setInterval(checkNetworkStatus, 10000);
+    
+    return () => clearInterval(intervalId);
   }, []);
 
-  // Smooth tab indicator animation
+  // Show toast when going offline
+  useEffect(() => {
+    if (!isOnline) {
+      showToast('📡 Offline - Limited features');
+    }
+  }, [isOnline]);
+
   useEffect(() => {
     const tabIndex = activeTab === 'translate' ? 0 : 1;
     Animated.spring(tabIndicatorAnim, {
@@ -137,10 +221,6 @@ export default function App() {
     ).start();
   };
 
-  const startFABAnimation = () => {
-    // FAB is now static - no rotation animation
-  };
-
   const startLoadingDotsAnimation = () => {
     Animated.loop(
       Animated.sequence([
@@ -158,25 +238,6 @@ export default function App() {
     ).start();
   };
 
-  // Typing indicator animation
-  const startTypingAnimation = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(loadingDots, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(loadingDots, {
-          toValue: 0,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  };
-
-  // Haptic feedback
   const hapticFeedback = (type = 'light') => {
     if (Platform.OS === 'ios') {
       if (type === 'light') {
@@ -193,7 +254,6 @@ export default function App() {
     }
   };
 
-  // Button press animation helper
   const animateButtonPress = (animValue) => {
     Animated.sequence([
       Animated.timing(animValue, {
@@ -210,8 +270,8 @@ export default function App() {
     ]).start();
   };
 
-  // Toast notification animation
   const showToast = (message) => {
+    setToastMessage(message);
     setShowCopiedToast(true);
     Animated.sequence([
       Animated.timing(toastAnim, {
@@ -242,22 +302,6 @@ export default function App() {
     }
   };
 
-  const saveToHistory = async (source, translated, srcLang, tgtLang, translationType) => {
-    const newItem = {
-      id: Date.now().toString(),
-      source,
-      translated,
-      sourceLang: srcLang,
-      targetLang: tgtLang,
-      translationType,
-      timestamp: new Date().toISOString(),
-    };
-    
-    const updated = [newItem, ...history].slice(0, 50);
-    setHistory(updated);
-    await AsyncStorage.setItem('translation_history', JSON.stringify(updated));
-  };
-
   const toggleFavorite = async (item) => {
     hapticFeedback('success');
     animateButtonPress(favoritePressAnim);
@@ -267,34 +311,17 @@ export default function App() {
     
     if (exists) {
       updated = favorites.filter(f => !(f.source === item.source && f.translated === item.translated));
+      showToast('⭐ Removed from favorites');
     } else {
       updated = [{...item, id: Date.now().toString()}, ...favorites];
+      showToast('⭐ Added to favorites');
     }
     
     setFavorites(updated);
     await AsyncStorage.setItem('favorites', JSON.stringify(updated));
   };
 
-  // Animated translation - keep card visible
-  const animateTranslation = () => {
-    // Don't reset to 0 - keep card visible
-    // Just add a subtle pulse for feedback
-    Animated.sequence([
-      Animated.timing(translateAnim, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.spring(translateAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  // SIMPLE GOOGLE TRANSLATE - No hybrid system
+  // Try offline translation first, fall back to online
   const translateText = async (text) => {
     if (!text.trim()) {
       setTranslatedText('');
@@ -305,6 +332,40 @@ export default function App() {
     setIsTranslating(true);
 
     try {
+      // Try offline first for common phrases
+      if (OFFLINE_TRANSLATIONS[targetLang] && OFFLINE_TRANSLATIONS[targetLang][text.trim()]) {
+        const translated = OFFLINE_TRANSLATIONS[targetLang][text.trim()];
+        setTranslatedText(translated);
+        setTranslationSource({ 
+          type: 'offline',
+          method: 'Offline'
+        });
+        hapticFeedback('light');
+        
+        const newItem = {
+          id: Date.now().toString(),
+          source: text,
+          translated,
+          sourceLang,
+          targetLang,
+          timestamp: new Date().toISOString(),
+        };
+        
+        const updated = [newItem, ...history].slice(0, 50);
+        setHistory(updated);
+        await AsyncStorage.setItem('translation_history', JSON.stringify(updated));
+        setIsTranslating(false);
+        return;
+      }
+
+      // Check if online
+      if (!isOnline) {
+        Alert.alert('Offline', 'No internet connection. Only common phrases available offline.');
+        setIsTranslating(false);
+        return;
+      }
+
+      // Online Google Translate
       const response = await fetch(
         `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
       );
@@ -322,7 +383,6 @@ export default function App() {
       
       hapticFeedback('light');
       
-      // Save to history
       const newItem = {
         id: Date.now().toString(),
         source: text,
@@ -355,7 +415,15 @@ export default function App() {
     );
   };
 
-  // Debounced translation - waits 800ms after user stops typing
+  // Auto-detect language (simple heuristic)
+  const detectLanguage = (text) => {
+    // Simple detection based on character patterns
+    if (/[\u0600-\u06FF]/.test(text)) return 'ar'; // Arabic
+    if (/[\u1200-\u137F]/.test(text)) return 'am'; // Amharic
+    // Add more patterns as needed
+    return 'en'; // Default to English
+  };
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (sourceText.trim()) {
@@ -364,17 +432,16 @@ export default function App() {
         setTranslatedText('');
         setTranslationSource(null);
       }
-    }, 800); // Wait 800ms after user stops typing
+    }, 800);
 
     return () => clearTimeout(timeoutId);
-  }, [sourceText, sourceLang, targetLang]); // Re-translate when language changes too
+  }, [sourceText, sourceLang, targetLang]);
 
   const swapLanguages = () => {
     hapticFeedback('medium');
     const tempLang = sourceLang;
     const tempText = sourceText;
     
-    // Animate the swap
     Animated.sequence([
       Animated.timing(fadeAnim, {
         toValue: 0.5,
@@ -394,7 +461,6 @@ export default function App() {
     setTranslatedText(tempText);
   };
 
-  // Update character count
   useEffect(() => {
     setCharacterCount(sourceText.length);
   }, [sourceText]);
@@ -403,7 +469,20 @@ export default function App() {
     hapticFeedback('success');
     animateButtonPress(copyPressAnim);
     await Clipboard.setStringAsync(text);
-    showToast('Copied!');
+    showToast('📋 Copied to clipboard');
+  };
+
+  const shareTranslation = async () => {
+    hapticFeedback('success');
+    animateButtonPress(sharePressAnim);
+    
+    try {
+      await Share.share({
+        message: `${sourceText}\n\n${getLanguageInfo(sourceLang)?.flag} → ${getLanguageInfo(targetLang)?.flag}\n\n${translatedText}\n\nTranslated with GRIOT`,
+      });
+    } catch (error) {
+      console.log('Share error:', error);
+    }
   };
 
   const speakText = (text, lang) => {
@@ -429,10 +508,10 @@ export default function App() {
   const translatePhrase = (phrase) => {
     hapticFeedback('light');
     setSourceText(phrase);
+    setShowPhrasebook(false);
     setActiveTab('translate');
   };
 
-  // Animated loading dots
   const LoadingDots = () => {
     const dot1Opacity = loadingDots.interpolate({
       inputRange: [0, 0.33, 0.66, 1],
@@ -456,7 +535,6 @@ export default function App() {
     );
   };
 
-  // Toast notification
   const ToastNotification = () => {
     if (!showCopiedToast) return null;
 
@@ -473,7 +551,7 @@ export default function App() {
           }]
         }
       ]}>
-        <Text style={styles.toastText}>✓ Copied to clipboard</Text>
+        <Text style={styles.toastText}>{toastMessage}</Text>
       </Animated.View>
     );
   };
@@ -498,57 +576,32 @@ export default function App() {
             
             <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
               <Text style={styles.pickerSectionTitle}>POPULAR</Text>
-              {popularLangs.map((lang, index) => {
-                const itemAnim = new Animated.Value(0);
-                
-                useEffect(() => {
-                  Animated.timing(itemAnim, {
-                    toValue: 1,
-                    duration: 300,
-                    delay: index * 50,
-                    useNativeDriver: true,
-                  }).start();
-                }, []);
-
-                return (
-                  <Animated.View
-                    key={lang.code}
-                    style={{
-                      opacity: itemAnim,
-                      transform: [{
-                        translateX: itemAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [50, 0],
-                        })
-                      }]
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={[
-                        styles.pickerItem,
-                        selectedLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
-                      ]}
-                      onPress={() => {
-                        hapticFeedback('light');
-                        onSelect(lang.code);
-                        onClose();
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.pickerFlag}>{lang.flag}</Text>
-                      <View style={styles.pickerInfo}>
-                        <Text style={styles.pickerName}>{lang.name}</Text>
-                        <Text style={styles.pickerNative}>{lang.native}</Text>
-                      </View>
-                      {selectedLang === lang.code && (
-                        <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                          <Text style={styles.pickerCheckText}>✓</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  </Animated.View>
-                );
-              })}
+              {popularLangs.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.pickerItem,
+                    selectedLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                  ]}
+                  onPress={() => {
+                    hapticFeedback('light');
+                    onSelect(lang.code);
+                    onClose();
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                  <View style={styles.pickerInfo}>
+                    <Text style={styles.pickerName}>{lang.name}</Text>
+                    <Text style={styles.pickerNative}>{lang.native}</Text>
+                  </View>
+                  {selectedLang === lang.code && (
+                    <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                      <Text style={styles.pickerCheckText}>✓</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
               
               <Text style={styles.pickerSectionTitle}>ALL LANGUAGES</Text>
               {otherLangs.map((lang) => (
@@ -584,6 +637,65 @@ export default function App() {
     );
   };
 
+  // Phrasebook Modal
+  const PhrasebookModal = () => {
+    const categories = ['All', ...new Set(COMMON_PHRASES.map(p => p.category))];
+    const filteredPhrases = selectedCategory === 'All' 
+      ? COMMON_PHRASES 
+      : COMMON_PHRASES.filter(p => p.category === selectedCategory);
+
+    return (
+      <Modal visible={showPhrasebook} transparent animationType="slide" onRequestClose={() => setShowPhrasebook(false)}>
+        <View style={styles.pickerOverlay}>
+          <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowPhrasebook(false)} />
+          <View style={styles.phrasebookContainer}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>📚 Common Phrases</Text>
+              <TouchableOpacity onPress={() => setShowPhrasebook(false)} style={styles.pickerClose}>
+                <Text style={styles.pickerCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+              {categories.map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[styles.categoryChip, selectedCategory === cat && styles.categoryChipActive]}
+                  onPress={() => {
+                    hapticFeedback('light');
+                    setSelectedCategory(cat);
+                  }}
+                >
+                  <Text style={[styles.categoryChipText, selectedCategory === cat && styles.categoryChipTextActive]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            
+            <ScrollView style={styles.phrasebookScroll}>
+              {filteredPhrases.map((phrase, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.phraseItem}
+                  onPress={() => translatePhrase(phrase.en)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.phraseIcon}>{phrase.icon}</Text>
+                  <View style={styles.phraseInfo}>
+                    <Text style={styles.phraseText}>{phrase.en}</Text>
+                    <Text style={styles.phraseCategory}>{phrase.category}</Text>
+                  </View>
+                  <Text style={styles.phraseArrow}>→</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   const TranslateTab = React.useMemo(() => (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -595,6 +707,13 @@ export default function App() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Offline indicator */}
+        {!isOnline && (
+          <View style={styles.offlineBar}>
+            <Text style={styles.offlineText}>📡 Offline Mode - Limited to common phrases</Text>
+          </View>
+        )}
+
         <View style={styles.languageSelector}>
           <TouchableOpacity
             style={[styles.langButton, { borderColor: getLanguageColor(sourceLang) }]}
@@ -635,6 +754,18 @@ export default function App() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Quick phrase button */}
+        <TouchableOpacity 
+          style={styles.phraseButton}
+          onPress={() => {
+            hapticFeedback('light');
+            setShowPhrasebook(true);
+          }}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.phraseButtonText}>📚 Common Phrases</Text>
+        </TouchableOpacity>
 
         <View style={[styles.card, { borderLeftColor: getLanguageColor(sourceLang) }]}>
           <View style={styles.cardTop}>
@@ -688,12 +819,7 @@ export default function App() {
           )}
         </View>
 
-        <View 
-          style={[
-            styles.card, 
-            { borderLeftColor: getLanguageColor(targetLang) }
-          ]}
-        >
+        <View style={[styles.card, { borderLeftColor: getLanguageColor(targetLang) }]}>
           <View style={styles.cardTop}>
             <Text style={[styles.cardLabel, { color: getLanguageColor(targetLang) }]}>TO</Text>
             {translatedText.length > 0 && (
@@ -712,6 +838,14 @@ export default function App() {
                     style={styles.actionBtn}
                   >
                     <Text style={styles.actionIcon}>📋</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+                <Animated.View style={{ transform: [{ scale: sharePressAnim }] }}>
+                  <TouchableOpacity 
+                    onPress={shareTranslation} 
+                    style={styles.actionBtn}
+                  >
+                    <Text style={styles.actionIcon}>📤</Text>
                   </TouchableOpacity>
                 </Animated.View>
                 <Animated.View style={{ transform: [{ scale: favoritePressAnim }] }}>
@@ -739,7 +873,16 @@ export default function App() {
                 <Text style={styles.loadingText}>Translating...</Text>
               </View>
             ) : translatedText ? (
-              <Text style={styles.outputText}>{translatedText}</Text>
+              <>
+                <Text style={styles.outputText}>{translatedText}</Text>
+                {translationSource && (
+                  <View style={styles.sourceIndicator}>
+                    <Text style={styles.sourceText}>
+                      {translationSource.type === 'offline' ? '📱 Offline' : '🌐 Online'}
+                    </Text>
+                  </View>
+                )}
+              </>
             ) : (
               <Text style={styles.placeholder}>Translation appears here...</Text>
             )}
@@ -749,18 +892,32 @@ export default function App() {
 
       <ToastNotification />
     </KeyboardAvoidingView>
-  ), [sourceText, translatedText, isTranslating, sourceLang, targetLang, characterCount, favorites, isListening, showCopiedToast, toastAnim, speakPressAnim, copyPressAnim, favoritePressAnim, translationSource]);
+  ), [sourceText, translatedText, isTranslating, sourceLang, targetLang, characterCount, favorites, isListening, showCopiedToast, toastAnim, speakPressAnim, copyPressAnim, favoritePressAnim, sharePressAnim, translationSource, isOnline]);
 
   const HistoryTab = () => (
     <View style={styles.tabContainer}>
       <View style={styles.tabHeaderBar}>
-        <Text style={styles.tabHeaderTitle}>History</Text>
+        <Text style={styles.tabHeaderTitle}>📜 History</Text>
         {history.length > 0 && (
           <TouchableOpacity
             onPress={() => {
               hapticFeedback('medium');
-              setHistory([]);
-              AsyncStorage.removeItem('translation_history');
+              Alert.alert(
+                'Clear History',
+                'Are you sure you want to clear all translation history?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { 
+                    text: 'Clear', 
+                    style: 'destructive',
+                    onPress: () => {
+                      setHistory([]);
+                      AsyncStorage.removeItem('translation_history');
+                      showToast('🗑️ History cleared');
+                    }
+                  }
+                ]
+              );
             }}
             style={styles.clearBtn}
           >
@@ -773,6 +930,7 @@ export default function App() {
         <View style={styles.empty}>
           <Text style={styles.emptyIcon}>📚</Text>
           <Text style={styles.emptyText}>No history yet</Text>
+          <Text style={styles.emptySubtext}>Your translations will appear here</Text>
         </View>
       ) : (
         <FlatList
@@ -788,21 +946,17 @@ export default function App() {
                 <Text style={styles.historyLang}>
                   {getLanguageInfo(item.sourceLang)?.flag} → {getLanguageInfo(item.targetLang)?.flag}
                 </Text>
-                <View style={styles.historyActions}>
-                  {item.translationType === 'verified' && (
-                    <View style={styles.verifiedBadgeSmall}>
-                      <Text style={styles.verifiedBadgeSmallText}>✅</Text>
-                    </View>
-                  )}
-                  <TouchableOpacity onPress={() => toggleFavorite(item)}>
-                    <Text style={styles.favoriteBtn}>
-                      {favorites.find(f => f.source === item.source && f.translated === item.translated) ? '⭐' : '☆'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity onPress={() => toggleFavorite(item)}>
+                  <Text style={styles.favoriteBtn}>
+                    {favorites.find(f => f.source === item.source && f.translated === item.translated) ? '⭐' : '☆'}
+                  </Text>
+                </TouchableOpacity>
               </View>
               <Text style={styles.historySource}>{item.source}</Text>
               <Text style={styles.historyTrans}>{item.translated}</Text>
+              <Text style={styles.historyTime}>
+                {new Date(item.timestamp).toLocaleString()}
+              </Text>
             </TouchableOpacity>
           )}
           contentContainerStyle={styles.listContent}
@@ -820,7 +974,8 @@ export default function App() {
         style={styles.header}
       >
         <Animated.View style={[styles.headerContent, { opacity: fadeAnim }]}>
-          <Text style={styles.logo}>SANFOKA</Text>
+          <Text style={styles.logo}>GRIOT</Text>
+          <Text style={styles.subtitle}>African Language Translator</Text>
           <Animated.View style={[styles.logoGlow, {
             opacity: glowAnim.interpolate({
               inputRange: [0, 1],
@@ -831,7 +986,6 @@ export default function App() {
       </LinearGradient>
 
       <View style={styles.tabBar}>
-        {/* Animated tab indicator */}
         <Animated.View style={[
           styles.tabIndicator,
           {
@@ -887,6 +1041,8 @@ export default function App() {
         onSelect={setTargetLang}
         title="Translate To"
       />
+
+      <PhrasebookModal />
     </View>
   );
 }
@@ -898,7 +1054,8 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 20,
+    paddingBottom: 30,
+    marginTop: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -911,6 +1068,13 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 4,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 8,
+    fontWeight: '600',
+    letterSpacing: 1,
   },
   logoGlow: {
     position: 'absolute',
@@ -944,7 +1108,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#666',
     letterSpacing: 0.5,
@@ -965,10 +1129,26 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 100,
   },
+  offlineBar: {
+    backgroundColor: '#FF6B3540',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#FF6B35',
+    alignItems: 'center',
+  },
+  offlineText: {
+    color: '#FF6B35',
+    fontSize: 14,
+    fontWeight: '800',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
   languageSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
     gap: 12,
   },
   langButton: {
@@ -1006,11 +1186,26 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#FFFFFF',
   },
+  phraseButton: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#FF0080',
+    alignItems: 'center',
+  },
+  phraseButtonText: {
+    color: '#FF0080',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
   card: {
     backgroundColor: '#1A1A1A',
     borderRadius: 20,
     padding: 20,
-    marginBottom: 16,
+    marginBottom: 10,
     borderLeftWidth: 3,
   },
   cardTop: {
@@ -1094,25 +1289,18 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#00F5FF',
   },
-  qualityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  sourceIndicator: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 6,
+    paddingVertical: 5,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,245,255,0.1)',
     marginTop: 8,
   },
-  qualityDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  qualityText: {
-    fontSize: 11,
+  sourceText: {
+    fontSize: 10,
+    color: '#00F5FF',
     fontWeight: '700',
-    letterSpacing: 0.5,
   },
   toast: {
     position: 'absolute',
@@ -1127,116 +1315,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    zIndex: 1000,
   },
   toastText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#000',
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    shadowColor: '#FF0080',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  fabGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fabIcon: {
-    fontSize: 28,
-  },
-  reportOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
-  },
-  reportBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  reportCard: {
-    width: width - 60,
-    backgroundColor: '#1A1A1A',
-    borderRadius: 24,
-    padding: 24,
-  },
-  reportTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  reportText: {
-    fontSize: 14,
-    color: '#999',
-    lineHeight: 20,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  reportDetails: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  reportLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#00F5FF',
-    marginTop: 8,
-    marginBottom: 4,
-    letterSpacing: 1,
-  },
-  reportValue: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  reportButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  reportCancelBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    alignItems: 'center',
-  },
-  reportCancelText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#999',
-  },
-  reportSubmitBtn: {
-    flex: 1,
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  reportSubmitGradient: {
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  reportSubmitText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   tabHeaderBar: {
     flexDirection: 'row',
@@ -1274,9 +1358,15 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 18,
+    color: '#999',
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
     color: '#666',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   historyCard: {
     backgroundColor: '#1A1A1A',
@@ -1295,22 +1385,6 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '700',
   },
-  historyActions: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  verifiedBadgeSmall: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    backgroundColor: '#00FF9420',
-  },
-  verifiedBadgeSmallText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#00FF94',
-  },
   favoriteBtn: {
     fontSize: 18,
   },
@@ -1323,6 +1397,12 @@ const styles = StyleSheet.create({
   historyTrans: {
     fontSize: 15,
     color: '#999',
+    marginBottom: 6,
+  },
+  historyTime: {
+    fontSize: 11,
+    color: '#555',
+    fontWeight: '500',
   },
   listContent: {
     paddingBottom: 20,
@@ -1344,6 +1424,12 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: height * 0.7,
+  },
+  phrasebookContainer: {
+    backgroundColor: '#1A1A1A',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: height * 0.75,
   },
   pickerHeader: {
     flexDirection: 'row',
@@ -1378,7 +1464,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#666',
     marginTop: 16,
-    marginBottom: 12,
+    marginBottom: 10,
     letterSpacing: 1.5,
   },
   pickerItem: {
@@ -1386,7 +1472,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 14,
+    borderRadius: 5,
     marginBottom: 8,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -1419,5 +1505,64 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#000',
     fontWeight: '900',
+  },
+  categoryScroll: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  categoryChip: {
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    marginRight: 10,
+  },
+  categoryChipActive: {
+    backgroundColor: '#00F5FF',
+  },
+  categoryChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#999',
+  },
+  categoryChipTextActive: {
+    color: '#000',
+  },
+  phrasebookScroll: {
+    flex: 1,
+    padding: 20,
+  },
+  phraseItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 2,
+  },
+  phraseIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  phraseInfo: {
+    flex: 1,
+  },
+  phraseText: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  phraseCategory: {
+    fontSize: 11,
+    color: '#666',
+    fontWeight: '600',
+  },
+  phraseArrow: {
+    fontSize: 18,
+    color: '#00F5FF',
+    fontWeight: '700',
   },
 });
