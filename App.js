@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,17 +15,13 @@ import {
   Alert,
   Modal,
   FlatList,
+  Vibration,
+  Easing,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  getVerifiedTranslation, 
-  isVerified, 
-  findSimilarVerified,
-  getVerifiedCount 
-} from './verifiedTranslations';
 
 const { width, height } = Dimensions.get('window');
 
@@ -74,38 +70,55 @@ export default function App() {
   const [showSourcePicker, setShowSourcePicker] = useState(false);
   const [showTargetPicker, setShowTargetPicker] = useState(false);
   const [translationSource, setTranslationSource] = useState(null);
-  const [showReportModal, setShowReportModal] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [showCopiedToast, setShowCopiedToast] = useState(false);
   
   const [activeTab, setActiveTab] = useState('translate');
   const [history, setHistory] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [verifiedCount, setVerifiedCount] = useState(0);
+  const [characterCount, setCharacterCount] = useState(0);
+  const [showLanguageStats, setShowLanguageStats] = useState(false);
   
+  // Animations
   const [fadeAnim] = useState(new Animated.Value(0));
   const [glowAnim] = useState(new Animated.Value(0));
+  const [translateAnim] = useState(new Animated.Value(1)); // Start visible
+  const [fabScale] = useState(new Animated.Value(1));
+  const [fabRotate] = useState(new Animated.Value(0));
+  const [tabIndicatorAnim] = useState(new Animated.Value(0));
+  const [loadingDots] = useState(new Animated.Value(0));
+  const [toastAnim] = useState(new Animated.Value(0));
+  
+  // Button press animations (one for each action button)
+  const [speakPressAnim] = useState(new Animated.Value(1));
+  const [copyPressAnim] = useState(new Animated.Value(1));
+  const [favoritePressAnim] = useState(new Animated.Value(1));
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 800,
         useNativeDriver: true,
       }),
     ]).start();
     
     startGlowAnimation();
+    startFABAnimation();
+    startLoadingDotsAnimation();
     loadData();
-    updateVerifiedCount();
   }, []);
 
-  const updateVerifiedCount = () => {
-    const count = getVerifiedCount(sourceLang, targetLang);
-    setVerifiedCount(count);
-  };
-
+  // Smooth tab indicator animation
   useEffect(() => {
-    updateVerifiedCount();
-  }, [sourceLang, targetLang]);
+    const tabIndex = activeTab === 'translate' ? 0 : 1;
+    Animated.spring(tabIndicatorAnim, {
+      toValue: tabIndex,
+      tension: 80,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  }, [activeTab]);
 
   const startGlowAnimation = () => {
     Animated.loop(
@@ -122,6 +135,97 @@ export default function App() {
         }),
       ])
     ).start();
+  };
+
+  const startFABAnimation = () => {
+    // FAB is now static - no rotation animation
+  };
+
+  const startLoadingDotsAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(loadingDots, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(loadingDots, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  // Typing indicator animation
+  const startTypingAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(loadingDots, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(loadingDots, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  // Haptic feedback
+  const hapticFeedback = (type = 'light') => {
+    if (Platform.OS === 'ios') {
+      if (type === 'light') {
+        Vibration.vibrate(10);
+      } else if (type === 'medium') {
+        Vibration.vibrate(20);
+      } else if (type === 'heavy') {
+        Vibration.vibrate([0, 30]);
+      } else if (type === 'success') {
+        Vibration.vibrate([0, 10, 50, 10]);
+      }
+    } else {
+      Vibration.vibrate(50);
+    }
+  };
+
+  // Button press animation helper
+  const animateButtonPress = (animValue) => {
+    Animated.sequence([
+      Animated.timing(animValue, {
+        toValue: 0.85,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(animValue, {
+        toValue: 1,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  // Toast notification animation
+  const showToast = (message) => {
+    setShowCopiedToast(true);
+    Animated.sequence([
+      Animated.timing(toastAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.delay(2000),
+      Animated.timing(toastAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setShowCopiedToast(false));
   };
 
   const loadData = async () => {
@@ -155,6 +259,9 @@ export default function App() {
   };
 
   const toggleFavorite = async (item) => {
+    hapticFeedback('success');
+    animateButtonPress(favoritePressAnim);
+    
     const exists = favorites.find(f => f.source === item.source && f.translated === item.translated);
     let updated;
     
@@ -168,8 +275,27 @@ export default function App() {
     await AsyncStorage.setItem('favorites', JSON.stringify(updated));
   };
 
-  // HYBRID TRANSLATION SYSTEM
-  const translateText = async (text, showInHistory = true) => {
+  // Animated translation - keep card visible
+  const animateTranslation = () => {
+    // Don't reset to 0 - keep card visible
+    // Just add a subtle pulse for feedback
+    Animated.sequence([
+      Animated.timing(translateAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(translateAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  // SIMPLE GOOGLE TRANSLATE - No hybrid system
+  const translateText = async (text) => {
     if (!text.trim()) {
       setTranslatedText('');
       setTranslationSource(null);
@@ -179,46 +305,6 @@ export default function App() {
     setIsTranslating(true);
 
     try {
-      // STEP 1: Check verified database first (INSTANT!)
-      const verified = getVerifiedTranslation(text, sourceLang, targetLang);
-      
-      if (verified) {
-        setTranslatedText(verified);
-        setTranslationSource({ 
-          type: 'verified', 
-          confidence: 1.0,
-          method: 'Human-Verified'
-        });
-        
-        if (showInHistory && text.length > 2) {
-          await saveToHistory(text, verified, sourceLang, targetLang, 'verified');
-        }
-        
-        setIsTranslating(false);
-        return;
-      }
-
-      // STEP 2: Check for similar verified phrases
-      const similar = findSimilarVerified(text, sourceLang, targetLang);
-      
-      if (similar && similar.similarity > 0.85) {
-        setTranslatedText(similar.translation);
-        setTranslationSource({ 
-          type: 'verified', 
-          confidence: similar.similarity,
-          method: 'Similar Match',
-          note: `Similar to: "${similar.phrase}"`
-        });
-        
-        if (showInHistory && text.length > 2) {
-          await saveToHistory(text, similar.translation, sourceLang, targetLang, 'verified-similar');
-        }
-        
-        setIsTranslating(false);
-        return;
-      }
-
-      // STEP 3: Fall back to Google Translate AI
       const response = await fetch(
         `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
       );
@@ -230,52 +316,46 @@ export default function App() {
       
       setTranslatedText(translated);
       setTranslationSource({ 
-        type: 'ai', 
-        confidence: 0.75,
+        type: 'google',
         method: 'Google Translate'
       });
       
-      if (showInHistory && text.length > 2) {
-        await saveToHistory(text, translated, sourceLang, targetLang, 'google');
-      }
+      hapticFeedback('light');
+      
+      // Save to history
+      const newItem = {
+        id: Date.now().toString(),
+        source: text,
+        translated,
+        sourceLang,
+        targetLang,
+        timestamp: new Date().toISOString(),
+      };
+      
+      const updated = [newItem, ...history].slice(0, 50);
+      setHistory(updated);
+      await AsyncStorage.setItem('translation_history', JSON.stringify(updated));
 
     } catch (error) {
       Alert.alert('Error', 'Translation failed. Check your internet connection.');
-      setTranslationSource({ type: 'error' });
       console.error('Translation error:', error);
     } finally {
       setIsTranslating(false);
     }
   };
 
-  // Report translation error
-  const reportTranslationError = async () => {
-    const error = {
-      id: Date.now().toString(),
-      source: sourceText,
-      translation: translatedText,
-      sourceLang,
-      targetLang,
-      translationType: translationSource?.type,
-      timestamp: new Date().toISOString(),
-    };
+  const startVoiceInput = async () => {
+    hapticFeedback('medium');
+    setIsListening(true);
     
-    try {
-      const errors = await AsyncStorage.getItem('translation_errors');
-      const errorList = errors ? JSON.parse(errors) : [];
-      errorList.push(error);
-      await AsyncStorage.setItem('translation_errors', JSON.stringify(errorList));
-      
-      Alert.alert(
-        '✓ Thank You!', 
-        'Error reported. We\'ll review this translation and improve it with native speakers.'
-      );
-      setShowReportModal(false);
-    } catch (err) {
-      console.error('Error saving report:', err);
-    }
+    Alert.alert(
+      '🎤 Voice Input', 
+      'Voice input requires additional setup. For now, please type your text.',
+      [{ text: 'OK', onPress: () => setIsListening(false) }]
+    );
   };
 
+  // Debounced translation - waits 800ms after user stops typing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (sourceText.trim()) {
@@ -284,14 +364,29 @@ export default function App() {
         setTranslatedText('');
         setTranslationSource(null);
       }
-    }, 500);
+    }, 800); // Wait 800ms after user stops typing
 
     return () => clearTimeout(timeoutId);
-  }, [sourceText, sourceLang, targetLang]);
+  }, [sourceText, sourceLang, targetLang]); // Re-translate when language changes too
 
   const swapLanguages = () => {
+    hapticFeedback('medium');
     const tempLang = sourceLang;
     const tempText = sourceText;
+    
+    // Animate the swap
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0.5,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
     
     setSourceLang(targetLang);
     setTargetLang(tempLang);
@@ -299,13 +394,22 @@ export default function App() {
     setTranslatedText(tempText);
   };
 
+  // Update character count
+  useEffect(() => {
+    setCharacterCount(sourceText.length);
+  }, [sourceText]);
+
   const copyToClipboard = async (text) => {
+    hapticFeedback('success');
+    animateButtonPress(copyPressAnim);
     await Clipboard.setStringAsync(text);
-    Alert.alert('✓', 'Copied');
+    showToast('Copied!');
   };
 
   const speakText = (text, lang) => {
     if (!text.trim()) return;
+    hapticFeedback('light');
+    animateButtonPress(speakPressAnim);
     Speech.speak(text, { language: lang, pitch: 1.0, rate: 0.85 });
   };
 
@@ -313,6 +417,7 @@ export default function App() {
   const getLanguageColor = (code) => getLanguageInfo(code)?.color || '#00F5FF';
 
   const loadHistoryItem = (item) => {
+    hapticFeedback('light');
     setSourceLang(item.sourceLang);
     setTargetLang(item.targetLang);
     setSourceText(item.source);
@@ -322,37 +427,55 @@ export default function App() {
   };
 
   const translatePhrase = (phrase) => {
+    hapticFeedback('light');
     setSourceText(phrase);
     setActiveTab('translate');
   };
 
-  // Quality Badge Component
-  const QualityBadge = () => {
-    if (!translationSource || !translatedText) return null;
+  // Animated loading dots
+  const LoadingDots = () => {
+    const dot1Opacity = loadingDots.interpolate({
+      inputRange: [0, 0.33, 0.66, 1],
+      outputRange: [0.3, 1, 0.3, 0.3],
+    });
+    const dot2Opacity = loadingDots.interpolate({
+      inputRange: [0, 0.33, 0.66, 1],
+      outputRange: [0.3, 0.3, 1, 0.3],
+    });
+    const dot3Opacity = loadingDots.interpolate({
+      inputRange: [0, 0.33, 0.66, 1],
+      outputRange: [0.3, 0.3, 0.3, 1],
+    });
 
-    if (translationSource.type === 'verified') {
-      return (
-        <View style={[styles.qualityBadge, { backgroundColor: '#00FF9420' }]}>
-          <View style={[styles.qualityDot, { backgroundColor: '#00FF94' }]} />
-          <Text style={[styles.qualityText, { color: '#00FF94' }]}>
-            ✅ Verified • 100% Accurate
-          </Text>
-        </View>
-      );
-    }
+    return (
+      <View style={styles.loadingDotsContainer}>
+        <Animated.View style={[styles.loadingDot, { opacity: dot1Opacity }]} />
+        <Animated.View style={[styles.loadingDot, { opacity: dot2Opacity }]} />
+        <Animated.View style={[styles.loadingDot, { opacity: dot3Opacity }]} />
+      </View>
+    );
+  };
 
-    if (translationSource.type === 'ai') {
-      return (
-        <View style={[styles.qualityBadge, { backgroundColor: '#FFD70020' }]}>
-          <View style={[styles.qualityDot, { backgroundColor: '#FFD700' }]} />
-          <Text style={[styles.qualityText, { color: '#FFD700' }]}>
-            🔄 Google • Good Quality
-          </Text>
-        </View>
-      );
-    }
+  // Toast notification
+  const ToastNotification = () => {
+    if (!showCopiedToast) return null;
 
-    return null;
+    return (
+      <Animated.View style={[
+        styles.toast,
+        {
+          opacity: toastAnim,
+          transform: [{
+            translateY: toastAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [-20, 0],
+            })
+          }]
+        }
+      ]}>
+        <Text style={styles.toastText}>✓ Copied to clipboard</Text>
+      </Animated.View>
+    );
   };
 
   const LanguagePicker = ({ visible, onClose, selectedLang, onSelect, title }) => {
@@ -365,7 +488,7 @@ export default function App() {
       <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
         <View style={styles.pickerOverlay}>
           <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={onClose} />
-          <View style={styles.pickerContainer}>
+          <Animated.View style={[styles.pickerContainer, { opacity: fadeAnim }]}>
             <View style={styles.pickerHeader}>
               <Text style={styles.pickerTitle}>{title}</Text>
               <TouchableOpacity onPress={onClose} style={styles.pickerClose}>
@@ -375,31 +498,57 @@ export default function App() {
             
             <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
               <Text style={styles.pickerSectionTitle}>POPULAR</Text>
-              {popularLangs.map((lang) => (
-                <TouchableOpacity
-                  key={lang.code}
-                  style={[
-                    styles.pickerItem,
-                    selectedLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
-                  ]}
-                  onPress={() => {
-                    onSelect(lang.code);
-                    onClose();
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.pickerFlag}>{lang.flag}</Text>
-                  <View style={styles.pickerInfo}>
-                    <Text style={styles.pickerName}>{lang.name}</Text>
-                    <Text style={styles.pickerNative}>{lang.native}</Text>
-                  </View>
-                  {selectedLang === lang.code && (
-                    <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                      <Text style={styles.pickerCheckText}>✓</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
+              {popularLangs.map((lang, index) => {
+                const itemAnim = new Animated.Value(0);
+                
+                useEffect(() => {
+                  Animated.timing(itemAnim, {
+                    toValue: 1,
+                    duration: 300,
+                    delay: index * 50,
+                    useNativeDriver: true,
+                  }).start();
+                }, []);
+
+                return (
+                  <Animated.View
+                    key={lang.code}
+                    style={{
+                      opacity: itemAnim,
+                      transform: [{
+                        translateX: itemAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [50, 0],
+                        })
+                      }]
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.pickerItem,
+                        selectedLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                      ]}
+                      onPress={() => {
+                        hapticFeedback('light');
+                        onSelect(lang.code);
+                        onClose();
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                      <View style={styles.pickerInfo}>
+                        <Text style={styles.pickerName}>{lang.name}</Text>
+                        <Text style={styles.pickerNative}>{lang.native}</Text>
+                      </View>
+                      {selectedLang === lang.code && (
+                        <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                          <Text style={styles.pickerCheckText}>✓</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
+                );
+              })}
               
               <Text style={styles.pickerSectionTitle}>ALL LANGUAGES</Text>
               {otherLangs.map((lang) => (
@@ -410,6 +559,7 @@ export default function App() {
                     selectedLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
                   ]}
                   onPress={() => {
+                    hapticFeedback('light');
                     onSelect(lang.code);
                     onClose();
                   }}
@@ -428,53 +578,13 @@ export default function App() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
+          </Animated.View>
         </View>
       </Modal>
     );
   };
 
-  const ReportModal = () => (
-    <Modal visible={showReportModal} transparent animationType="fade">
-      <View style={styles.reportOverlay}>
-        <TouchableOpacity style={styles.reportBackdrop} activeOpacity={1} onPress={() => setShowReportModal(false)} />
-        <View style={styles.reportCard}>
-          <Text style={styles.reportTitle}>⚠️ Report Translation Error</Text>
-          <Text style={styles.reportText}>
-            Help us improve! Report this translation and we'll review it with native speakers.
-          </Text>
-          
-          <View style={styles.reportDetails}>
-            <Text style={styles.reportLabel}>Original:</Text>
-            <Text style={styles.reportValue}>{sourceText}</Text>
-            
-            <Text style={styles.reportLabel}>Translation:</Text>
-            <Text style={styles.reportValue}>{translatedText}</Text>
-            
-            <Text style={styles.reportLabel}>Source:</Text>
-            <Text style={styles.reportValue}>{translationSource?.method || 'Unknown'}</Text>
-          </View>
-          
-          <View style={styles.reportButtons}>
-            <TouchableOpacity 
-              style={styles.reportCancelBtn}
-              onPress={() => setShowReportModal(false)}
-            >
-              <Text style={styles.reportCancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.reportSubmitBtn}
-              onPress={reportTranslationError}
-            >
-              <Text style={styles.reportSubmitText}>Report Error</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-
-  const TranslateTab = () => (
+  const TranslateTab = React.useMemo(() => (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.tabContainer}
@@ -488,7 +598,10 @@ export default function App() {
         <View style={styles.languageSelector}>
           <TouchableOpacity
             style={[styles.langButton, { borderColor: getLanguageColor(sourceLang) }]}
-            onPress={() => setShowSourcePicker(true)}
+            onPress={() => {
+              hapticFeedback('light');
+              setShowSourcePicker(true);
+            }}
             activeOpacity={0.8}
           >
             <Text style={styles.langFlag}>{getLanguageInfo(sourceLang)?.flag}</Text>
@@ -510,7 +623,10 @@ export default function App() {
 
           <TouchableOpacity
             style={[styles.langButton, { borderColor: getLanguageColor(targetLang) }]}
-            onPress={() => setShowTargetPicker(true)}
+            onPress={() => {
+              hapticFeedback('light');
+              setShowTargetPicker(true);
+            }}
             activeOpacity={0.8}
           >
             <Text style={styles.langFlag}>{getLanguageInfo(targetLang)?.flag}</Text>
@@ -520,88 +636,120 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        {/* Verified Count Badge */}
-        {verifiedCount > 0 && (
-          <View style={styles.verifiedCountBadge}>
-            <Text style={styles.verifiedCountText}>
-              ✅ {verifiedCount} verified phrases available
-            </Text>
-          </View>
-        )}
-
         <View style={[styles.card, { borderLeftColor: getLanguageColor(sourceLang) }]}>
           <View style={styles.cardTop}>
             <Text style={[styles.cardLabel, { color: getLanguageColor(sourceLang) }]}>FROM</Text>
-            {sourceText.length > 0 && (
-              <View style={styles.cardActions}>
-                <TouchableOpacity onPress={() => speakText(sourceText, sourceLang)} style={styles.actionBtn}>
-                  <Text style={styles.actionIcon}>🔊</Text>
+            <View style={styles.cardActions}>
+              <Animated.View style={{ transform: [{ scale: speakPressAnim }] }}>
+                <TouchableOpacity 
+                  onPress={startVoiceInput} 
+                  style={[styles.actionBtn, isListening && styles.actionBtnActive]}
+                >
+                  <Text style={styles.actionIcon}>🎤</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setSourceText('')} style={styles.actionBtn}>
-                  <Text style={styles.actionIcon}>✕</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+              </Animated.View>
+              
+              {sourceText.length > 0 && (
+                <>
+                  <Animated.View style={{ transform: [{ scale: speakPressAnim }] }}>
+                    <TouchableOpacity 
+                      onPress={() => speakText(sourceText, sourceLang)} 
+                      style={styles.actionBtn}
+                    >
+                      <Text style={styles.actionIcon}>🔊</Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      hapticFeedback('light');
+                      setSourceText('');
+                    }} 
+                    style={styles.actionBtn}
+                  >
+                    <Text style={styles.actionIcon}>✕</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
           </View>
           <TextInput
             style={styles.input}
             value={sourceText}
             onChangeText={setSourceText}
-            placeholder="Type here..."
+            placeholder="Type or speak..."
             placeholderTextColor="rgba(255,255,255,0.3)"
             multiline
+            maxLength={500}
+            autoFocus={false}
+            blurOnSubmit={false}
           />
+          {sourceText.length > 0 && (
+            <Text style={styles.charCount}>{characterCount}/500 characters</Text>
+          )}
         </View>
 
-        <View style={[styles.card, { borderLeftColor: getLanguageColor(targetLang) }]}>
+        <View 
+          style={[
+            styles.card, 
+            { borderLeftColor: getLanguageColor(targetLang) }
+          ]}
+        >
           <View style={styles.cardTop}>
             <Text style={[styles.cardLabel, { color: getLanguageColor(targetLang) }]}>TO</Text>
             {translatedText.length > 0 && (
               <View style={styles.cardActions}>
-                <TouchableOpacity onPress={() => speakText(translatedText, targetLang)} style={styles.actionBtn}>
-                  <Text style={styles.actionIcon}>🔊</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => copyToClipboard(translatedText)} style={styles.actionBtn}>
-                  <Text style={styles.actionIcon}>📋</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => toggleFavorite({ source: sourceText, translated: translatedText, sourceLang, targetLang })}
-                  style={styles.actionBtn}
-                >
-                  <Text style={styles.actionIcon}>
-                    {favorites.find(f => f.source === sourceText && f.translated === translatedText) ? '⭐' : '☆'}
-                  </Text>
-                </TouchableOpacity>
+                <Animated.View style={{ transform: [{ scale: speakPressAnim }] }}>
+                  <TouchableOpacity 
+                    onPress={() => speakText(translatedText, targetLang)} 
+                    style={styles.actionBtn}
+                  >
+                    <Text style={styles.actionIcon}>🔊</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+                <Animated.View style={{ transform: [{ scale: copyPressAnim }] }}>
+                  <TouchableOpacity 
+                    onPress={() => copyToClipboard(translatedText)} 
+                    style={styles.actionBtn}
+                  >
+                    <Text style={styles.actionIcon}>📋</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+                <Animated.View style={{ transform: [{ scale: favoritePressAnim }] }}>
+                  <TouchableOpacity
+                    onPress={() => toggleFavorite({ 
+                      source: sourceText, 
+                      translated: translatedText, 
+                      sourceLang, 
+                      targetLang 
+                    })}
+                    style={styles.actionBtn}
+                  >
+                    <Text style={styles.actionIcon}>
+                      {favorites.find(f => f.source === sourceText && f.translated === translatedText) ? '⭐' : '☆'}
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
               </View>
             )}
           </View>
           <View style={styles.output}>
             {isTranslating ? (
               <View style={styles.loading}>
-                <ActivityIndicator size="large" color="#00F5FF" />
+                <LoadingDots />
                 <Text style={styles.loadingText}>Translating...</Text>
               </View>
             ) : translatedText ? (
-              <>
-                <Text style={styles.outputText}>{translatedText}</Text>
-                <QualityBadge />
-                {translationSource?.type === 'ai' && (
-                  <TouchableOpacity 
-                    style={styles.reportBtn}
-                    onPress={() => setShowReportModal(true)}
-                  >
-                    <Text style={styles.reportBtnText}>⚠️ Report Error</Text>
-                  </TouchableOpacity>
-                )}
-              </>
+              <Text style={styles.outputText}>{translatedText}</Text>
             ) : (
               <Text style={styles.placeholder}>Translation appears here...</Text>
             )}
           </View>
         </View>
       </ScrollView>
+
+      <ToastNotification />
     </KeyboardAvoidingView>
-  );
+  ), [sourceText, translatedText, isTranslating, sourceLang, targetLang, characterCount, favorites, isListening, showCopiedToast, toastAnim, speakPressAnim, copyPressAnim, favoritePressAnim, translationSource]);
 
   const HistoryTab = () => (
     <View style={styles.tabContainer}>
@@ -610,6 +758,7 @@ export default function App() {
         {history.length > 0 && (
           <TouchableOpacity
             onPress={() => {
+              hapticFeedback('medium');
               setHistory([]);
               AsyncStorage.removeItem('translation_history');
             }}
@@ -630,7 +779,11 @@ export default function App() {
           data={history}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.historyCard} onPress={() => loadHistoryItem(item)} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={styles.historyCard} 
+              onPress={() => loadHistoryItem(item)} 
+              activeOpacity={0.8}
+            >
               <View style={styles.historyTop}>
                 <Text style={styles.historyLang}>
                   {getLanguageInfo(item.sourceLang)?.flag} → {getLanguageInfo(item.targetLang)?.flag}
@@ -658,62 +811,6 @@ export default function App() {
     </View>
   );
 
-  const PhrasesTab = () => {
-    const categories = [...new Set(COMMON_PHRASES.map(p => p.category))];
-    
-    return (
-      <ScrollView style={styles.tabContainer} contentContainerStyle={styles.tabContent}>
-        <View style={styles.tabHeaderBar}>
-          <Text style={styles.tabHeaderTitle}>Quick Phrases</Text>
-        </View>
-        
-        {categories.map(category => (
-          <View key={category} style={styles.phraseSection}>
-            <Text style={styles.phraseCategory}>{category}</Text>
-            {COMMON_PHRASES.filter(p => p.category === category).map((phrase, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.phraseCard}
-                onPress={() => translatePhrase(phrase.en)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.phraseContent}>
-                  <Text style={styles.phraseText}>{phrase.en}</Text>
-                  {isVerified(phrase.en, 'en', targetLang) && (
-                    <View style={styles.verifiedBadgeSmall}>
-                      <Text style={styles.verifiedBadgeSmallText}>✅ Verified</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.phraseArrow}>→</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
-        
-        {favorites.length > 0 && (
-          <View style={styles.phraseSection}>
-            <Text style={styles.phraseCategory}>⭐ Favorites</Text>
-            {favorites.map((item, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.phraseCard}
-                onPress={() => loadHistoryItem(item)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.phraseContent}>
-                  <Text style={styles.phraseText}>{item.source}</Text>
-                  <Text style={styles.phraseTrans}>{item.translated}</Text>
-                </View>
-                <Text style={styles.phraseArrow}>→</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-    );
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -723,7 +820,7 @@ export default function App() {
         style={styles.header}
       >
         <Animated.View style={[styles.headerContent, { opacity: fadeAnim }]}>
-          <Text style={styles.logo}>GRIOT</Text>
+          <Text style={styles.logo}>SANFOKA</Text>
           <Animated.View style={[styles.logoGlow, {
             opacity: glowAnim.interpolate({
               inputRange: [0, 1],
@@ -734,35 +831,45 @@ export default function App() {
       </LinearGradient>
 
       <View style={styles.tabBar}>
+        {/* Animated tab indicator */}
+        <Animated.View style={[
+          styles.tabIndicator,
+          {
+            transform: [{
+              translateX: tabIndicatorAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, width / 2],
+              })
+            }]
+          }
+        ]} />
+        
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'translate' && styles.tabActive]}
-          onPress={() => setActiveTab('translate')}
+          style={styles.tab}
+          onPress={() => {
+            hapticFeedback('light');
+            setActiveTab('translate');
+          }}
           activeOpacity={0.8}
         >
           <Text style={[styles.tabText, activeTab === 'translate' && styles.tabTextActive]}>Translate</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'history' && styles.tabActive]}
-          onPress={() => setActiveTab('history')}
+          style={styles.tab}
+          onPress={() => {
+            hapticFeedback('light');
+            setActiveTab('history');
+          }}
           activeOpacity={0.8}
         >
           <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>History</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'phrases' && styles.tabActive]}
-          onPress={() => setActiveTab('phrases')}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabText, activeTab === 'phrases' && styles.tabTextActive]}>Phrases</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
-        {activeTab === 'translate' && <TranslateTab />}
+        {activeTab === 'translate' && TranslateTab}
         {activeTab === 'history' && <HistoryTab />}
-        {activeTab === 'phrases' && <PhrasesTab />}
       </View>
 
       <LanguagePicker
@@ -780,8 +887,6 @@ export default function App() {
         onSelect={setTargetLang}
         title="Translate To"
       />
-
-      <ReportModal />
     </View>
   );
 }
@@ -794,7 +899,6 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: 20,
-    marginTop: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -824,15 +928,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#1A1A1A',
     paddingTop: 8,
+    position: 'relative',
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: width / 2,
+    height: 2,
+    backgroundColor: '#00F5FF',
   },
   tab: {
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#00F5FF',
   },
   tabText: {
     fontSize: 14,
@@ -854,12 +963,12 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     padding: 20,
+    paddingBottom: 100,
   },
   languageSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 15,
+    marginBottom: 24,
     gap: 12,
   },
   langButton: {
@@ -897,22 +1006,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#FFFFFF',
   },
-  verifiedCountBadge: {
-    backgroundColor: '#00FF9420',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#00FF9440',
-  },
-  verifiedCountText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#00FF94',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
   card: {
     backgroundColor: '#1A1A1A',
     borderRadius: 20,
@@ -943,6 +1036,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  actionBtnActive: {
+    backgroundColor: '#FF008040',
+  },
   actionIcon: {
     fontSize: 14,
   },
@@ -953,6 +1049,13 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 12,
+  },
+  charCount: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'right',
+    fontWeight: '600',
   },
   output: {
     minHeight: 80,
@@ -980,6 +1083,17 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: '600',
   },
+  loadingDotsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  loadingDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#00F5FF',
+  },
   qualityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1000,18 +1114,47 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
   },
-  reportBtn: {
-    marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,107,53,0.2)',
-    alignSelf: 'flex-start',
+  toast: {
+    position: 'absolute',
+    top: 20,
+    alignSelf: 'center',
+    backgroundColor: '#00FF94',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+    shadowColor: '#00FF94',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  reportBtnText: {
-    fontSize: 12,
+  toastText: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#FF6B35',
+    color: '#000',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    shadowColor: '#FF0080',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  fabGradient: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fabIcon: {
+    fontSize: 28,
   },
   reportOverlay: {
     flex: 1,
@@ -1083,9 +1226,11 @@ const styles = StyleSheet.create({
   },
   reportSubmitBtn: {
     flex: 1,
-    paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: '#FF6B35',
+    overflow: 'hidden',
+  },
+  reportSubmitGradient: {
+    paddingVertical: 14,
     alignItems: 'center',
   },
   reportSubmitText: {
@@ -1181,43 +1326,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
-  },
-  phraseSection: {
-    marginBottom: 28,
-  },
-  phraseCategory: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#00F5FF',
-    marginBottom: 12,
-    letterSpacing: 1,
-  },
-  phraseCard: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  phraseText: {
-    fontSize: 15,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  phraseContent: {
-    flex: 1,
-  },
-  phraseTrans: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 4,
-  },
-  phraseArrow: {
-    fontSize: 18,
-    color: '#00F5FF',
-    fontWeight: '700',
   },
   pickerOverlay: {
     flex: 1,
