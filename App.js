@@ -1435,7 +1435,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
@@ -1507,33 +1508,38 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   categoryScroll: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16, 
+    paddingTop: 6,         
+    paddingBottom: 6,
+    marginBottom: 450,      
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   categoryChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: 12,   
+    paddingVertical: 6,      
+    borderRadius: 14,        
+    backgroundColor: 'rgba(255,255,255,0.08)',
     marginRight: 8,
+  },
+  categoryChipText: {
+    fontSize: 12,            
+    fontWeight: '600',
+    color: '#999',
   },
   categoryChipActive: {
     backgroundColor: '#00F5FF',
   },
-  categoryChipText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#999',
-  },
   categoryChipTextActive: {
     color: '#000',
+    fontWeight: '700',
   },
   phrasebookScroll: {
     flex: 1,
-    padding: 20,
+    padding: 16,
+    paddingTop: 20,
   },
+
   phraseItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1542,24 +1548,29 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 10,
   },
+
   phraseIcon: {
     fontSize: 24,
     marginRight: 12,
   },
+
   phraseInfo: {
     flex: 1,
   },
+
   phraseText: {
     fontSize: 15,
     color: '#FFFFFF',
     fontWeight: '600',
     marginBottom: 4,
   },
+
   phraseCategory: {
     fontSize: 11,
     color: '#666',
     fontWeight: '600',
   },
+  
   phraseArrow: {
     fontSize: 18,
     color: '#00F5FF',
