@@ -284,103 +284,108 @@ export default function App() {
         colors={['#0A0A0A', '#1A1A1A', '#0A0A0A']}
         style={styles.gradient}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.logo}>GRIOT</Text>
-          <Text style={styles.subtitle}>Africa Voice Translator</Text>
-        </View>
-
-        {/* Language Display */}
-        <View style={styles.langDisplay}>
-          <View style={styles.langInfo}>
-            <Text style={styles.langFlag}>{getLanguageInfo(sourceLang)?.flag}</Text>
-            <Text style={styles.langName}>{getLanguageInfo(sourceLang)?.name}</Text>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.logo}>GRIOT</Text>
+            <Text style={styles.subtitle}>Africa Voice Translator</Text>
           </View>
-          
-          <TouchableOpacity style={styles.swapBtn} onPress={swapLanguages} activeOpacity={0.7}>
-            <Text style={styles.swapText}>⇄</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.langInfo} 
-            onPress={() => setShowLangPicker(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.langFlag}>{getLanguageInfo(targetLang)?.flag}</Text>
-            <Text style={styles.langName}>{getLanguageInfo(targetLang)?.name}</Text>
-            <Text style={styles.langChange}>TAP TO CHANGE</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Main Voice Button */}
-        <View style={styles.mainContent}>
-          <Animated.View style={{
-            transform: [{ scale: isListening ? pulseAnim : 1 }]
-          }}>
-            <TouchableOpacity
-              style={[
-                styles.voiceButton,
-                isListening && styles.voiceButtonActive
-              ]}
-              onPress={startVoiceInput}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={isListening ? ['#FF0080', '#00F5FF'] : ['#00F5FF', '#FF0080']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
-                style={styles.voiceGradient}
-              >
-                <Animated.View style={{
-                  opacity: glowAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.3, 0.8]
-                  })
-                }}>
-                  <View style={styles.voiceGlow} />
-                </Animated.View>
-                <Text style={styles.voiceIcon}>🎤</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
-
-          <Text style={styles.voiceInstruction}>
-            {isListening ? 'Listening...' : isTranslating ? 'Translating...' : 'TAP TO SPEAK'}
-          </Text>
-        </View>
-
-        {/* Translation Display */}
-        {(sourceText || translatedText) && (
-          <Animated.View style={[styles.translationCard, { opacity: fadeAnim }]}>
-            {sourceText && (
-              <View style={styles.textBlock}>
-                <Text style={styles.textLabel}>You said:</Text>
-                <Text style={styles.textContent}>{sourceText}</Text>
-              </View>
-            )}
+          {/* Language Display */}
+          <View style={styles.langDisplay}>
+            <View style={styles.langInfo}>
+              <Text style={styles.langFlag}>{getLanguageInfo(sourceLang)?.flag}</Text>
+              <Text style={styles.langName}>{getLanguageInfo(sourceLang)?.name}</Text>
+            </View>
             
-            {translatedText && (
-              <View style={styles.textBlock}>
-                <Text style={styles.textLabel}>Translation:</Text>
-                <Text style={[styles.textContent, styles.translatedText]}>{translatedText}</Text>
-                <TouchableOpacity 
-                  style={styles.replayBtn}
-                  onPress={() => Speech.speak(translatedText, { language: targetLang })}
-                >
-                  <Text style={styles.replayIcon}>🔊</Text>
-                  <Text style={styles.replayText}>Play Again</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </Animated.View>
-        )}
+            <TouchableOpacity style={styles.swapBtn} onPress={swapLanguages} activeOpacity={0.7}>
+              <Text style={styles.swapText}>⇄</Text>
+            </TouchableOpacity>
 
-        {/* Quick Instructions */}
-        <View style={styles.instructions}>
-          <Text style={styles.instructionText}>1. Choose target language above</Text>
-          <Text style={styles.instructionText}>2. Tap mic and speak</Text>
-          <Text style={styles.instructionText}>3. Listen to instant translation</Text>
-        </View>
+            <TouchableOpacity 
+              style={styles.langInfo} 
+              onPress={() => setShowLangPicker(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.langFlag}>{getLanguageInfo(targetLang)?.flag}</Text>
+              <Text style={styles.langName}>{getLanguageInfo(targetLang)?.name}</Text>
+              <Text style={styles.langChange}>TAP TO CHANGE</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Main Voice Button */}
+          <View style={styles.mainContent}>
+            <Animated.View style={{
+              transform: [{ scale: isListening ? pulseAnim : 1 }]
+            }}>
+              <TouchableOpacity
+                style={[
+                  styles.voiceButton,
+                  isListening && styles.voiceButtonActive
+                ]}
+                onPress={startVoiceInput}
+                activeOpacity={0.9}
+              >
+                <LinearGradient
+                  colors={isListening ? ['#FF0080', '#9D00FF'] : ['#00F5FF', '#0066FF']}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 1}}
+                  style={styles.voiceGradient}
+                >
+                  <Animated.View style={{
+                    opacity: glowAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.8]
+                    })
+                  }}>
+                    <View style={styles.voiceGlow} />
+                  </Animated.View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+
+            <Text style={styles.voiceInstruction}>
+              {isListening ? 'Listening...' : isTranslating ? 'Translating...' : 'TAP TO SPEAK'}
+            </Text>
+          </View>
+
+          {/* Translation Display */}
+          {(sourceText || translatedText) && (
+            <Animated.View style={[styles.translationCard, { opacity: fadeAnim }]}>
+              {sourceText && (
+                <View style={styles.textBlock}>
+                  <Text style={styles.textLabel}>You said:</Text>
+                  <Text style={styles.textContent}>{sourceText}</Text>
+                </View>
+              )}
+              
+              {translatedText && (
+                <View style={styles.textBlock}>
+                  <Text style={styles.textLabel}>Translation:</Text>
+                  <Text style={[styles.textContent, styles.translatedText]}>{translatedText}</Text>
+                  <TouchableOpacity 
+                    style={styles.replayBtn}
+                    onPress={() => Speech.speak(translatedText, { language: targetLang })}
+                  >
+                    <Text style={styles.replayIcon}>🔊</Text>
+                    <Text style={styles.replayText}>Play Again</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </Animated.View>
+          )}
+
+          {/* Quick Instructions */}
+          <View style={styles.instructions}>
+            <Text style={styles.instructionText}>1. Choose target language above</Text>
+            <Text style={styles.instructionText}>2. Tap circle and speak</Text>
+            <Text style={styles.instructionText}>3. Listen to instant translation</Text>
+          </View>
+        </ScrollView>
 
         {!isOnline && (
           <View style={styles.offlineBar}>
@@ -402,13 +407,19 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
   header: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: 20,
-    marginTop: 25,
     alignItems: 'center',
   },
   logo: {
+    marginTop: 25,
     fontSize: 36,
     fontWeight: '900',
     color: '#FFFFFF',
@@ -498,6 +509,7 @@ const styles = StyleSheet.create({
   },
   voiceIcon: {
     fontSize: 72,
+    display: 'none',
   },
   voiceInstruction: {
     fontSize: 18,
