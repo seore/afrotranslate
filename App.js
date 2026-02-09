@@ -14,12 +14,9 @@ import {
   Vibration,
 } from 'react-native';
 import * as Speech from 'expo-speech';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from "expo-speech-recognition";
+import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
+import { EventEmitter } from 'expo-modules-core';
 
 const { width, height } = Dimensions.get('window');
 
@@ -51,9 +48,7 @@ export default function App() {
   const [isOnline, setIsOnline] = useState(true);
   const [recognizing, setRecognizing] = useState(false);
   const [interimResults, setInterimResults] = useState('');
-  const [permissionGranted, setPermissionGranted] = useState(false);
   
-  // Animations
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
   const [fadeAnim] = useState(new Animated.Value(1));
@@ -63,46 +58,79 @@ export default function App() {
     startGlowAnimation();
     checkNetwork();
     requestPermissions();
+    
     const interval = setInterval(checkNetwork, 10000);
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
-  // Speech recognition event listeners
-  useSpeechRecognitionEvent("start", () => {
-    setRecognizing(true);
-    setIsListening(true);
-  });
+  // Separate effect for speech recognition listeners that updates when languages change
+  useEffect(() => {
+    const eventEmitter = new EventEmitter(ExpoSpeechRecognitionModule);
+    
+    const startListener = eventEmitter.addListener('start', () => {
+      console.log("Speech recognition started");
+      setRecognizing(true);
+      setIsListening(true);
+    });
 
-  useSpeechRecognitionEvent("end", () => {
-    setRecognizing(false);
-    setIsListening(false);
-  });
+    const audioStartListener = eventEmitter.addListener('audiostart', () => {
+      console.log("Audio started");
+    });
 
-  useSpeechRecognitionEvent("result", (event) => {
-    const results = event.results[0];
-    if (results && results.transcript) {
-      setInterimResults(results.transcript);
+    const resultListener = eventEmitter.addListener('result', (event) => {
+      console.log("Speech result:", event);
+      console.log("Current target language:", targetLang); // Debug log
       
-      // If final result, translate it
-      if (results.isFinal) {
-        setSourceText(results.transcript);
-        translateText(results.transcript);
-        setInterimResults('');
+      if (event.results && event.results.length > 0) {
+        const result = event.results[0];
+        const transcript = result.transcript || result;
+        
+        if (transcript) {
+          setInterimResults(transcript);
+          
+          if (result.isFinal || event.isFinal) {
+            setSourceText(transcript);
+            // Call translate with current state
+            translateText(transcript);
+            setInterimResults('');
+          }
+        }
       }
-    }
-  });
+    });
 
-  useSpeechRecognitionEvent("error", (event) => {
-    console.error("Speech recognition error:", event.error);
-    Alert.alert("Error", `Speech recognition failed: ${event.error}`);
-    setIsListening(false);
-    setRecognizing(false);
-  });
+    const errorListener = eventEmitter.addListener('error', (event) => {
+      console.error("Speech recognition error:", event);
+      Alert.alert("Error", `Speech recognition failed: ${event.error || 'Unknown error'}`);
+      setIsListening(false);
+      setRecognizing(false);
+    });
+
+    const audioEndListener = eventEmitter.addListener('audioend', () => {
+      console.log("Audio ended");
+    });
+
+    const endListener = eventEmitter.addListener('end', () => {
+      console.log("Speech recognition ended");
+      setRecognizing(false);
+      setIsListening(false);
+    });
+    
+    return () => {
+      startListener.remove();
+      audioStartListener.remove();
+      resultListener.remove();
+      errorListener.remove();
+      audioEndListener.remove();
+      endListener.remove();
+    };
+  }, [sourceLang, targetLang]); // Re-register listeners when languages change
 
   const requestPermissions = async () => {
     try {
       const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      setPermissionGranted(result.granted);
       
       if (!result.granted) {
         Alert.alert(
@@ -176,17 +204,10 @@ export default function App() {
   const startVoiceInput = async () => {
     hapticFeedback();
     
-    if (!permissionGranted) {
-      await requestPermissions();
-      return;
-    }
-
     try {
       // Stop if already listening
       if (recognizing) {
         await ExpoSpeechRecognitionModule.stop();
-        setIsListening(false);
-        setRecognizing(false);
         return;
       }
 
@@ -197,24 +218,19 @@ export default function App() {
               sourceLang === 'ar' ? 'ar-SA' : 
               sourceLang === 'pt' ? 'pt-PT' : 
               sourceLang === 'sw' ? 'sw-KE' : 
-              sourceLang,
+              'en-US',
         interimResults: true,
         maxAlternatives: 1,
         continuous: false,
         requiresOnDeviceRecognition: false,
       });
       
-      setIsListening(true);
     } catch (error) {
       console.error("Speech recognition start error:", error);
       Alert.alert("Error", "Could not start voice recognition. Please try again.");
       setIsListening(false);
+      setRecognizing(false);
     }
-  };
-
-  const simulateVoiceInput = async () => {
-    setSourceText('Hello, how are you?');
-    await translateText('Hello, how are you?');
   };
 
   const translateText = async (text) => {
@@ -360,13 +376,11 @@ export default function App() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.logo}>GRIOT</Text>
             <Text style={styles.subtitle}>Africa Voice Translator</Text>
           </View>
 
-          {/* Language Display */}
           <View style={styles.langDisplay}>
             <View style={styles.langInfo}>
               <Text style={styles.langFlag}>{getLanguageInfo(sourceLang)?.flag}</Text>
@@ -388,16 +402,12 @@ export default function App() {
             </TouchableOpacity>
           </View>
 
-          {/* Main Voice Button */}
           <View style={styles.mainContent}>
             <Animated.View style={{
               transform: [{ scale: isListening ? pulseAnim : 1 }]
             }}>
               <TouchableOpacity
-                style={[
-                  styles.voiceButton,
-                  isListening && styles.voiceButtonActive
-                ]}
+                style={styles.voiceButton}
                 onPress={startVoiceInput}
                 activeOpacity={0.9}
               >
@@ -428,7 +438,6 @@ export default function App() {
             </Text>
           </View>
 
-          {/* Translation Display */}
           {(sourceText || translatedText || interimResults) && (
             <Animated.View style={[styles.translationCard, { opacity: fadeAnim }]}>
               {(interimResults && isListening) && (
@@ -461,7 +470,6 @@ export default function App() {
             </Animated.View>
           )}
 
-          {/* Quick Instructions */}
           <View style={styles.instructions}>
             <Text style={styles.instructionText}>1. Choose target language above</Text>
             <Text style={styles.instructionText}>2. Tap circle and speak</Text>
@@ -581,10 +589,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     opacity: 0.2,
   },
-  voiceIcon: {
-    fontSize: 72,
-    display: 'none',
-  },
   voiceInstruction: {
     fontSize: 18,
     fontWeight: '800',
@@ -600,7 +604,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   textBlock: {
-    marginBottom: 16,
+    marginTop: 10,
   },
   textLabel: {
     fontSize: 12,
