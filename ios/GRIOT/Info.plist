@@ -45,9 +45,9 @@
       <true/>
     </dict>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Allow GRIOT to access your microphone.</string>
+    <string>Allow GRIOT to access your microphone for voice translation.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>Allow GRIOT to recognize your speech.</string>
+    <string>Allow GRIOT to recognize your speech for instant translation.</string>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>
