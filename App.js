@@ -20,20 +20,20 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width, height } = Dimensions.get('window');
 
 const AFRICAN_LANGUAGES = [
-  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#00F5FF' },
-  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#FF0080' },
-  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#00FF94' },
-  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#FFD700' },
-  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#FF6B35' },
-  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#9D00FF' },
-  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#FF3366' },
-  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#00FFD1' },
+  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#e70505' },
+  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#35912d' },
+  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#35912d' },
+  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#35912d' },
+  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#2133fb' },
+  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#2133fb' },
+  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#2133fb' },
+  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#e8fc0c' },
   { code: 'so', name: 'Somali', native: 'Soomaali', flag: '🇸🇴', popular: false, color: '#4D9FFF' },
-  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#FF0066' },
-  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#1E90FF' },
-  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#FF69B4' },
-  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#00E5FF' },
-  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#FF4444' },
+  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#bfc20d' },
+  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#054a8f' },
+  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#ffffff' },
+  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#06ae46' },
+  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#d45a5a' },
 ];
 
 export default function App() {
@@ -331,7 +331,11 @@ export default function App() {
                 activeOpacity={0.9}
               >
                 <LinearGradient
-                  colors={isListening ? ['#FF0080', '#9D00FF'] : ['#00F5FF', '#0066FF']}
+                  colors={
+                    isListening 
+                      ? [getLanguageInfo(targetLang)?.color || '#6f6469', '#bbb4bf'] 
+                      : [getLanguageInfo(targetLang)?.color || '#9b9e9e', '#4d4e50']
+                  }
                   start={{x: 0, y: 0}}
                   end={{x: 1, y: 1}}
                   style={styles.voiceGradient}
@@ -419,7 +423,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    marginTop: 25,
+    marginTop: 20,
     fontSize: 36,
     fontWeight: '900',
     color: '#FFFFFF',
@@ -484,13 +488,6 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     overflow: 'hidden',
     elevation: 20,
-    shadowColor: '#00F5FF',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-  },
-  voiceButtonActive: {
-    shadowColor: '#FF0080',
   },
   voiceGradient: {
     width: '100%',
