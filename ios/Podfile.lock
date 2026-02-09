@@ -22,6 +22,8 @@ PODS:
     - ReactCommon/turbomodule/core
   - ExpoSpeech (11.7.0):
     - ExpoModulesCore
+  - ExpoSpeechRecognition (3.1.0):
+    - ExpoModulesCore
   - FBLazyVector (0.73.6)
   - FBReactNativeSpec (0.73.6):
     - RCT-Folly (= 2022.05.16.00)
@@ -1090,6 +1092,7 @@ DEPENDENCIES:
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSpeech (from `../node_modules/expo-speech/ios`)
+  - ExpoSpeechRecognition (from `../node_modules/expo-speech-recognition/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -1168,6 +1171,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSpeech:
     :path: "../node_modules/expo-speech/ios"
+  ExpoSpeechRecognition:
+    :path: "../node_modules/expo-speech-recognition/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
@@ -1275,6 +1280,7 @@ SPEC CHECKSUMS:
   ExpoKeepAwake: 3b8cf8533b9212500565a1e41fb080fc5af29918
   ExpoModulesCore: 43ebd65adf2c0e6ffb0de24a41f8f7de12829331
   ExpoSpeech: 46ddff772c2157828e439c1f74a07f10ec20ff5a
+  ExpoSpeechRecognition: d8dfddcc6d998399f57803a9547aa7a0c63777b9
   FBLazyVector: f64d1e2ea739b4d8f7e4740cde18089cd97fe864
   FBReactNativeSpec: 9f2b8b243131565335437dba74923a8d3015e780
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
