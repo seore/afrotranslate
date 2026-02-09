@@ -16,24 +16,28 @@ import {
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
 
 const { width, height } = Dimensions.get('window');
 
 const AFRICAN_LANGUAGES = [
-  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#e70505' },
-  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#35912d' },
-  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#35912d' },
-  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#35912d' },
-  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#2133fb' },
-  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#2133fb' },
-  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#2133fb' },
-  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#e8fc0c' },
+  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#00F5FF' },
+  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#FF0080' },
+  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#00FF94' },
+  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#FFD700' },
+  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#FF6B35' },
+  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#9D00FF' },
+  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#FF3366' },
+  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#00FFD1' },
   { code: 'so', name: 'Somali', native: 'Soomaali', flag: '🇸🇴', popular: false, color: '#4D9FFF' },
-  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#bfc20d' },
-  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#054a8f' },
-  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#ffffff' },
-  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#06ae46' },
-  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#d45a5a' },
+  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#FF0066' },
+  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#1E90FF' },
+  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#FF69B4' },
+  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#00E5FF' },
+  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#FF4444' },
 ];
 
 export default function App() {
@@ -45,6 +49,9 @@ export default function App() {
   const [translatedText, setTranslatedText] = useState('');
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [recognizing, setRecognizing] = useState(false);
+  const [interimResults, setInterimResults] = useState('');
+  const [permissionGranted, setPermissionGranted] = useState(false);
   
   // Animations
   const [pulseAnim] = useState(new Animated.Value(1));
@@ -55,9 +62,59 @@ export default function App() {
     startPulseAnimation();
     startGlowAnimation();
     checkNetwork();
+    requestPermissions();
     const interval = setInterval(checkNetwork, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  // Speech recognition event listeners
+  useSpeechRecognitionEvent("start", () => {
+    setRecognizing(true);
+    setIsListening(true);
+  });
+
+  useSpeechRecognitionEvent("end", () => {
+    setRecognizing(false);
+    setIsListening(false);
+  });
+
+  useSpeechRecognitionEvent("result", (event) => {
+    const results = event.results[0];
+    if (results && results.transcript) {
+      setInterimResults(results.transcript);
+      
+      // If final result, translate it
+      if (results.isFinal) {
+        setSourceText(results.transcript);
+        translateText(results.transcript);
+        setInterimResults('');
+      }
+    }
+  });
+
+  useSpeechRecognitionEvent("error", (event) => {
+    console.error("Speech recognition error:", event.error);
+    Alert.alert("Error", `Speech recognition failed: ${event.error}`);
+    setIsListening(false);
+    setRecognizing(false);
+  });
+
+  const requestPermissions = async () => {
+    try {
+      const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      setPermissionGranted(result.granted);
+      
+      if (!result.granted) {
+        Alert.alert(
+          "Microphone Permission",
+          "Please enable microphone access in settings to use voice translation.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error("Permission error:", error);
+    }
+  };
 
   const checkNetwork = async () => {
     try {
@@ -116,29 +173,43 @@ export default function App() {
     }
   };
 
-  const startVoiceInput = () => {
+  const startVoiceInput = async () => {
     hapticFeedback();
-    setIsListening(true);
     
-    // This is a placeholder - real implementation would use expo-speech-recognition
-    Alert.alert(
-      '🎤 Voice Input Active', 
-      'Speak now... (Voice recognition requires additional setup)',
-      [
-        { 
-          text: 'Simulate Translation', 
-          onPress: () => {
-            setIsListening(false);
-            simulateVoiceInput();
-          }
-        },
-        { 
-          text: 'Cancel', 
-          onPress: () => setIsListening(false),
-          style: 'cancel'
-        }
-      ]
-    );
+    if (!permissionGranted) {
+      await requestPermissions();
+      return;
+    }
+
+    try {
+      // Stop if already listening
+      if (recognizing) {
+        await ExpoSpeechRecognitionModule.stop();
+        setIsListening(false);
+        setRecognizing(false);
+        return;
+      }
+
+      // Start speech recognition
+      await ExpoSpeechRecognitionModule.start({
+        lang: sourceLang === 'en' ? 'en-US' : 
+              sourceLang === 'fr' ? 'fr-FR' : 
+              sourceLang === 'ar' ? 'ar-SA' : 
+              sourceLang === 'pt' ? 'pt-PT' : 
+              sourceLang === 'sw' ? 'sw-KE' : 
+              sourceLang,
+        interimResults: true,
+        maxAlternatives: 1,
+        continuous: false,
+        requiresOnDeviceRecognition: false,
+      });
+      
+      setIsListening(true);
+    } catch (error) {
+      console.error("Speech recognition start error:", error);
+      Alert.alert("Error", "Could not start voice recognition. Please try again.");
+      setIsListening(false);
+    }
   };
 
   const simulateVoiceInput = async () => {
@@ -292,7 +363,7 @@ export default function App() {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.logo}>GRIOT</Text>
-            <Text style={styles.subtitle}>African Voice Translator</Text>
+            <Text style={styles.subtitle}>Africa Voice Translator</Text>
           </View>
 
           {/* Language Display */}
@@ -333,8 +404,8 @@ export default function App() {
                 <LinearGradient
                   colors={
                     isListening 
-                      ? [getLanguageInfo(targetLang)?.color || '#6f6469', '#bbb4bf'] 
-                      : [getLanguageInfo(targetLang)?.color || '#9b9e9e', '#4d4e50']
+                      ? [getLanguageInfo(targetLang)?.color || '#FF0080', '#9D00FF'] 
+                      : [getLanguageInfo(targetLang)?.color || '#00F5FF', '#0066FF']
                   }
                   start={{x: 0, y: 0}}
                   end={{x: 1, y: 1}}
@@ -358,9 +429,16 @@ export default function App() {
           </View>
 
           {/* Translation Display */}
-          {(sourceText || translatedText) && (
+          {(sourceText || translatedText || interimResults) && (
             <Animated.View style={[styles.translationCard, { opacity: fadeAnim }]}>
-              {sourceText && (
+              {(interimResults && isListening) && (
+                <View style={styles.textBlock}>
+                  <Text style={styles.textLabel}>Listening...</Text>
+                  <Text style={[styles.textContent, styles.interimText]}>{interimResults}</Text>
+                </View>
+              )}
+              
+              {sourceText && !isListening && (
                 <View style={styles.textBlock}>
                   <Text style={styles.textLabel}>You said:</Text>
                   <Text style={styles.textContent}>{sourceText}</Text>
@@ -423,7 +501,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    marginTop: 20,
     fontSize: 36,
     fontWeight: '900',
     color: '#FFFFFF',
@@ -540,6 +617,10 @@ const styles = StyleSheet.create({
   translatedText: {
     color: '#00F5FF',
     fontWeight: '600',
+  },
+  interimText: {
+    color: '#999',
+    fontStyle: 'italic',
   },
   replayBtn: {
     flexDirection: 'row',

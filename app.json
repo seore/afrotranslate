@@ -36,7 +36,13 @@
       }
     },
     "plugins": [
-      "expo-speech-recognition"
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow GRIOT to access your microphone.",
+          "speechRecognitionPermission": "Allow GRIOT to recognize your speech."
+        }
+      ]
     ]
   }
 }
