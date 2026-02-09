@@ -292,7 +292,7 @@ export default function App() {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.logo}>GRIOT</Text>
-            <Text style={styles.subtitle}>Africa Voice Translator</Text>
+            <Text style={styles.subtitle}>African Voice Translator</Text>
           </View>
 
           {/* Language Display */}

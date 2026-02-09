@@ -34,6 +34,9 @@
       "eas": {
         "projectId": "1062ba67-97ff-489e-a21d-bfb076d46505"
       }
-    }
+    },
+    "plugins": [
+      "expo-speech-recognition"
+    ]
   }
 }
