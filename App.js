@@ -21,21 +21,110 @@ import { EventEmitter } from 'expo-modules-core';
 const { width, height } = Dimensions.get('window');
 
 const AFRICAN_LANGUAGES = [
-  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#202121' },
-  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#4f9a15' },
-  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#04804c' },
-  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#00ff2f' },
-  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#ffffff' },
-  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#ffffff' },
-  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#ffffff' },
-  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#f9da10' },
+  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#00F5FF' },
+  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#FF0080' },
+  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#00FF94' },
+  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#FFD700' },
+  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#FF6B35' },
+  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#9D00FF' },
+  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#FF3366' },
+  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#00FFD1' },
   { code: 'so', name: 'Somali', native: 'Soomaali', flag: '🇸🇴', popular: false, color: '#4D9FFF' },
-  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#c3d72b' },
-  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#0663bf' },
+  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#FF0066' },
+  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#1E90FF' },
   { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#FF69B4' },
-  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#037042' },
-  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#e10202' },
+  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#00E5FF' },
+  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#FF4444' },
 ];
+
+// Offline translation packs - common phrases that work without internet
+const OFFLINE_PACKS = {
+  'sw': {
+    'Hello': 'Habari',
+    'Good morning': 'Habari ya asubuhi',
+    'Good evening': 'Habari ya jioni',
+    'Thank you': 'Asante',
+    'Please': 'Tafadhali',
+    'Yes': 'Ndiyo',
+    'No': 'Hapana',
+    'How are you?': 'Habari yako?',
+    'Goodbye': 'Kwaheri',
+    'I need help': 'Nahitaji msaada',
+    'Where is the bathroom?': 'Choo kiko wapi?',
+    'How much?': 'Bei gani?',
+    'Water': 'Maji',
+    'Food': 'Chakula',
+    'Help': 'Msaada',
+  },
+  'yo': {
+    'Hello': 'Bawo',
+    'Good morning': 'E kaaro',
+    'Good evening': 'E kaasan',
+    'Thank you': 'E se',
+    'Please': 'Jọwọ',
+    'Yes': 'Bẹẹni',
+    'No': 'Rara',
+    'How are you?': 'Bawo ni?',
+    'Goodbye': 'O dabo',
+    'I need help': 'Mo nilo iranlọwọ',
+    'Where is the bathroom?': 'Nibo ni baluwe wa?',
+    'How much?': 'Elo ni?',
+    'Water': 'Omi',
+    'Food': 'Ounjẹ',
+    'Help': 'Iranlọwọ',
+  },
+  'ha': {
+    'Hello': 'Sannu',
+    'Good morning': 'Ina kwana',
+    'Good evening': 'Ina yamma',
+    'Thank you': 'Na gode',
+    'Please': 'Don Allah',
+    'Yes': 'Eh',
+    'No': 'A\'a',
+    'How are you?': 'Yaya dai?',
+    'Goodbye': 'Sai an jima',
+    'I need help': 'Ina buƙatar taimako',
+    'Where is the bathroom?': 'Ina toilet?',
+    'How much?': 'Nawa ne?',
+    'Water': 'Ruwa',
+    'Food': 'Abinci',
+    'Help': 'Taimako',
+  },
+  'zu': {
+    'Hello': 'Sawubona',
+    'Good morning': 'Sawubona ekuseni',
+    'Good evening': 'Sawubona ntambama',
+    'Thank you': 'Ngiyabonga',
+    'Please': 'Ngiyacela',
+    'Yes': 'Yebo',
+    'No': 'Cha',
+    'How are you?': 'Unjani?',
+    'Goodbye': 'Sala kahle',
+    'I need help': 'Ngidinga usizo',
+    'Where is the bathroom?': 'Ikuphi indlu yangasese?',
+    'How much?': 'Malini?',
+    'Water': 'Amanzi',
+    'Food': 'Ukudla',
+    'Help': 'Usizo',
+  },
+  'ig': {
+    'Hello': 'Ndewo',
+    'Good morning': 'Ụtụtụ ọma',
+    'Good evening': 'Mgbede ọma',
+    'Thank you': 'Daalụ',
+    'Please': 'Biko',
+    'Yes': 'Ee',
+    'No': 'Mba',
+    'How are you?': 'Kedu ka ị mere?',
+    'Goodbye': 'Ka ọ dị',
+    'I need help': 'Achọrọ m enyemaka',
+    'Where is the bathroom?': 'Olee ebe ụlọ mposi dị?',
+    'How much?': 'Ego ole?',
+    'Water': 'Mmiri',
+    'Food': 'Nri',
+    'Help': 'Enyemaka',
+  },
+};
 
 export default function App() {
   const [sourceLang, setSourceLang] = useState('en');
@@ -48,6 +137,9 @@ export default function App() {
   const [isOnline, setIsOnline] = useState(true);
   const [recognizing, setRecognizing] = useState(false);
   const [interimResults, setInterimResults] = useState('');
+  const [conversationMode, setConversationMode] = useState(false);
+  const [downloadedPacks, setDownloadedPacks] = useState(['sw', 'yo', 'ha', 'zu', 'ig']); // Pre-loaded packs
+  const [conversationHistory, setConversationHistory] = useState([]);
   
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
@@ -239,8 +331,37 @@ export default function App() {
     setIsTranslating(true);
 
     try {
+      // Try offline translation first if offline or pack is downloaded
+      if (!isOnline || downloadedPacks.includes(targetLang)) {
+        const offlinePack = OFFLINE_PACKS[targetLang];
+        if (offlinePack && offlinePack[text]) {
+          const translated = offlinePack[text];
+          setTranslatedText(translated);
+          
+          // Add to conversation history if in conversation mode
+          if (conversationMode) {
+            setConversationHistory(prev => [...prev, {
+              source: text,
+              translated,
+              sourceLang,
+              targetLang,
+              timestamp: new Date(),
+            }]);
+          }
+          
+          // Auto-play translation
+          setTimeout(() => {
+            speakWithAfricanVoice(translated, targetLang);
+          }, 500);
+          
+          setIsTranslating(false);
+          return;
+        }
+      }
+
+      // Fall back to online translation
       if (!isOnline) {
-        Alert.alert('Offline', 'No internet connection.');
+        Alert.alert('Offline', 'No internet connection and phrase not in offline pack.');
         setIsTranslating(false);
         return;
       }
@@ -256,13 +377,20 @@ export default function App() {
       
       setTranslatedText(translated);
       
+      // Add to conversation history if in conversation mode
+      if (conversationMode) {
+        setConversationHistory(prev => [...prev, {
+          source: text,
+          translated,
+          sourceLang,
+          targetLang,
+          timestamp: new Date(),
+        }]);
+      }
+      
       // Auto-play translation
       setTimeout(() => {
-        Speech.speak(translated, { 
-          language: targetLang, 
-          pitch: 1.0, 
-          rate: 0.85 
-        });
+        speakWithAfricanVoice(translated, targetLang);
       }, 500);
 
     } catch (error) {
@@ -270,6 +398,14 @@ export default function App() {
       console.error('Translation error:', error);
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  const toggleConversationMode = () => {
+    setConversationMode(!conversationMode);
+    hapticFeedback('medium');
+    if (!conversationMode) {
+      setConversationHistory([]);
     }
   };
 
@@ -281,6 +417,68 @@ export default function App() {
   };
 
   const getLanguageInfo = (code) => AFRICAN_LANGUAGES.find(l => l.code === code);
+
+  const speakWithAfricanVoice = async (text, langCode) => {
+    if (!text.trim()) return;
+
+    try {
+      // Get available voices
+      const voices = await Speech.getAvailableVoicesAsync();
+      
+      // Voice preferences for African languages and African English
+      const voicePreferences = {
+        'en': ['en-NG', 'en-ZA', 'en-KE', 'en-GH'], // Nigerian, South African, Kenyan, Ghanaian English
+        'sw': ['sw-KE', 'sw-TZ'], // Swahili (Kenya, Tanzania)
+        'yo': ['yo-NG'], // Yoruba (Nigeria)
+        'ha': ['ha-NG'], // Hausa (Nigeria)
+        'ig': ['ig-NG'], // Igbo (Nigeria)
+        'zu': ['zu-ZA'], // Zulu (South Africa)
+        'xh': ['xh-ZA'], // Xhosa (South Africa)
+        'af': ['af-ZA'], // Afrikaans (South Africa)
+        'am': ['am-ET'], // Amharic (Ethiopia)
+        'so': ['so-SO'], // Somali
+        'fr': ['fr-SN', 'fr-CI', 'fr-ML'], // French (Senegal, Ivory Coast, Mali)
+        'ar': ['ar-EG', 'ar-MA'], // Arabic (Egypt, Morocco)
+        'pt': ['pt-AO', 'pt-MZ'], // Portuguese (Angola, Mozambique)
+      };
+
+      const preferredLocales = voicePreferences[langCode] || [langCode];
+      let selectedVoice = null;
+
+      // Try to find a voice matching preferred locales
+      for (const locale of preferredLocales) {
+        selectedVoice = voices.find(voice => 
+          voice.language.toLowerCase().includes(locale.toLowerCase())
+        );
+        if (selectedVoice) break;
+      }
+
+      // If no specific African voice found, use default for language
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => 
+          voice.language.toLowerCase().startsWith(langCode.toLowerCase())
+        );
+      }
+
+      console.log('Selected voice:', selectedVoice?.name, selectedVoice?.language);
+
+      // Speak with the selected voice
+      await Speech.speak(text, {
+        language: langCode,
+        voice: selectedVoice?.identifier,
+        pitch: 1.0,
+        rate: 0.80, // Slightly slower for clarity
+      });
+    } catch (error) {
+      console.error('Voice selection error:', error);
+      // Fallback to default voice
+      Speech.speak(text, { 
+        language: langCode, 
+        pitch: 1.0, 
+        rate: 0.80 
+      });
+    }
+  };
 
   const LanguagePicker = () => {
     if (!showLangPicker) return null;
@@ -436,6 +634,18 @@ export default function App() {
             <Text style={styles.voiceInstruction}>
               {isListening ? 'Listening...' : isTranslating ? 'Translating...' : 'TAP TO SPEAK'}
             </Text>
+            
+            {/* Conversation Mode Toggle */}
+            <TouchableOpacity 
+              style={[styles.conversationToggle, conversationMode && styles.conversationToggleActive]}
+              onPress={toggleConversationMode}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.conversationToggleIcon}>💬</Text>
+              <Text style={[styles.conversationToggleText, conversationMode && styles.conversationToggleTextActive]}>
+                {conversationMode ? 'Conversation Mode ON' : 'Tap for Conversation Mode'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {(sourceText || translatedText || interimResults) && (
@@ -458,9 +668,14 @@ export default function App() {
                 <View style={styles.textBlock}>
                   <Text style={styles.textLabel}>Translation:</Text>
                   <Text style={[styles.textContent, styles.translatedText]}>{translatedText}</Text>
+                  {downloadedPacks.includes(targetLang) && (
+                    <View style={styles.offlinePackBadge}>
+                      <Text style={styles.offlinePackText}>📦 Works Offline</Text>
+                    </View>
+                  )}
                   <TouchableOpacity 
                     style={styles.replayBtn}
-                    onPress={() => Speech.speak(translatedText, { language: targetLang })}
+                    onPress={() => speakWithAfricanVoice(translatedText, targetLang)}
                   >
                     <Text style={styles.replayIcon}>🔊</Text>
                     <Text style={styles.replayText}>Play Again</Text>
@@ -468,6 +683,25 @@ export default function App() {
                 </View>
               )}
             </Animated.View>
+          )}
+
+          {/* Conversation History */}
+          {conversationMode && conversationHistory.length > 0 && (
+            <View style={styles.conversationHistory}>
+              <Text style={styles.conversationHistoryTitle}>💬 Recent Exchanges</Text>
+              {conversationHistory.slice(-5).reverse().map((item, index) => (
+                <View key={index} style={styles.conversationItem}>
+                  <View style={styles.conversationBubbleYou}>
+                    <Text style={styles.conversationLabel}>You</Text>
+                    <Text style={styles.conversationSource}>{item.source}</Text>
+                  </View>
+                  <View style={styles.conversationBubbleThem}>
+                    <Text style={styles.conversationLabel}>Translation</Text>
+                    <Text style={styles.conversationTranslated}>{item.translated}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
           )}
 
           <View style={styles.instructions}>
@@ -596,6 +830,33 @@ const styles = StyleSheet.create({
     marginTop: 30,
     letterSpacing: 2,
   },
+  conversationToggle: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.1)',
+    gap: 8,
+  },
+  conversationToggleActive: {
+    backgroundColor: 'rgba(0,245,255,0.15)',
+    borderColor: '#00F5FF',
+  },
+  conversationToggleIcon: {
+    fontSize: 20,
+  },
+  conversationToggleText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#666',
+  },
+  conversationToggleTextActive: {
+    color: '#00F5FF',
+  },
   translationCard: {
     marginHorizontal: 20,
     backgroundColor: '#1A1A1A',
@@ -604,7 +865,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   textBlock: {
-    marginTop: 10,
+    marginBottom: 16,
   },
   textLabel: {
     fontSize: 12,
@@ -625,6 +886,20 @@ const styles = StyleSheet.create({
   interimText: {
     color: '#999',
     fontStyle: 'italic',
+  },
+  offlinePackBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0,255,148,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  offlinePackText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#00FF94',
   },
   replayBtn: {
     flexDirection: 'row',
@@ -761,5 +1036,53 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#000',
     fontWeight: '900',
+  },
+  conversationHistory: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 20,
+    padding: 16,
+  },
+  conversationHistoryTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#00F5FF',
+    marginBottom: 12,
+  },
+  conversationItem: {
+    marginBottom: 16,
+    gap: 8,
+  },
+  conversationBubbleYou: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    padding: 12,
+    borderRadius: 12,
+    maxWidth: '80%',
+  },
+  conversationBubbleThem: {
+    alignSelf: 'flex-end',
+    backgroundColor: 'rgba(0,245,255,0.15)',
+    padding: 12,
+    borderRadius: 12,
+    maxWidth: '80%',
+  },
+  conversationLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#666',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  conversationSource: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  conversationTranslated: {
+    fontSize: 14,
+    color: '#00F5FF',
+    fontWeight: '600',
   },
 });
