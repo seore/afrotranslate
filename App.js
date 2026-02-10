@@ -21,20 +21,20 @@ import { EventEmitter } from 'expo-modules-core';
 const { width, height } = Dimensions.get('window');
 
 const AFRICAN_LANGUAGES = [
-  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#00F5FF' },
-  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#FF0080' },
-  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#00FF94' },
-  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#FFD700' },
-  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#FF6B35' },
-  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#9D00FF' },
+  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#ff7b00' },
+  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#058924' },
+  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#0ac82a' },
+  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#1eff00' },
+  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#ed4e14' },
+  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#ec7907' },
   { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#FF3366' },
-  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#00FFD1' },
+  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#ffdd00' },
   { code: 'so', name: 'Somali', native: 'Soomaali', flag: '🇸🇴', popular: false, color: '#4D9FFF' },
-  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#FF0066' },
+  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#f6ff00' },
   { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#1E90FF' },
-  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#FF69B4' },
-  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#00E5FF' },
-  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#FF4444' },
+  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#ffffff' },
+  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#73ff00' },
+  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#ec0404' },
 ];
 
 // Offline translation packs - common phrases that work without internet
@@ -139,7 +139,10 @@ export default function App() {
   const [interimResults, setInterimResults] = useState('');
   const [conversationMode, setConversationMode] = useState(false);
   const [downloadedPacks, setDownloadedPacks] = useState(['sw', 'yo', 'ha', 'zu', 'ig']); // Pre-loaded packs
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
+  const [missingVoice, setMissingVoice] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState([]);
   
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
@@ -295,6 +298,8 @@ export default function App() {
 
   const startVoiceInput = async () => {
     hapticFeedback();
+
+    setHasInteracted(true);
     
     try {
       // Stop if already listening
@@ -422,60 +427,96 @@ export default function App() {
     if (!text.trim()) return;
 
     try {
-      // Get available voices
-      const voices = await Speech.getAvailableVoicesAsync();
+      // Get available voices (cache if not already loaded)
+      let voices = availableVoices;
+      if (voices.length === 0) {
+        voices = await Speech.getAvailableVoicesAsync();
+        setAvailableVoices(voices);
+        console.log('Total voices available:', voices.length);
+      }
       
-      // Voice preferences for African languages and African English
+      // Voice preferences - realistic based on iOS availability
       const voicePreferences = {
-        'en': ['en-NG', 'en-ZA', 'en-KE', 'en-GH'], // Nigerian, South African, Kenyan, Ghanaian English
-        'sw': ['sw-KE', 'sw-TZ'], // Swahili (Kenya, Tanzania)
-        'yo': ['yo-NG'], // Yoruba (Nigeria)
-        'ha': ['ha-NG'], // Hausa (Nigeria)
-        'ig': ['ig-NG'], // Igbo (Nigeria)
-        'zu': ['zu-ZA'], // Zulu (South Africa)
-        'xh': ['xh-ZA'], // Xhosa (South Africa)
-        'af': ['af-ZA'], // Afrikaans (South Africa)
-        'am': ['am-ET'], // Amharic (Ethiopia)
-        'so': ['so-SO'], // Somali
-        'fr': ['fr-SN', 'fr-CI', 'fr-ML'], // French (Senegal, Ivory Coast, Mali)
-        'ar': ['ar-EG', 'ar-MA'], // Arabic (Egypt, Morocco)
-        'pt': ['pt-AO', 'pt-MZ'], // Portuguese (Angola, Mozambique)
+        'en': ['en-ZA', 'en-GB', 'en-AU', 'en-IE', 'en-IN', 'en-US'], // Prioritize South African English
+        'sw': ['sw-KE', 'sw-TZ', 'sw'], // Swahili (might be available)
+        'yo': ['en-ZA', 'en-NG', 'en-GB'], // Yoruba - fallback to South African English
+        'ha': ['en-ZA', 'en-NG', 'en-GB'], // Hausa - fallback to South African English
+        'ig': ['en-ZA', 'en-NG', 'en-GB'], // Igbo - fallback to South African English
+        'zu': ['zu-ZA', 'en-ZA'], // Zulu (might be available)
+        'xh': ['xh-ZA', 'en-ZA'], // Xhosa (might be available)
+        'af': ['af-ZA', 'en-ZA'], // Afrikaans (usually available)
+        'am': ['am-ET', 'en-ET', 'en-ZA'], // Amharic
+        'so': ['so-SO', 'en-ZA'], // Somali
+        'fr': ['fr-FR', 'fr-CA'], // French
+        'ar': ['ar-SA', 'ar-EG', 'ar'], // Arabic
+        'pt': ['pt-PT', 'pt-BR'], // Portuguese
       };
 
       const preferredLocales = voicePreferences[langCode] || [langCode];
       let selectedVoice = null;
+      let foundNativeVoice = false;
 
       // Try to find a voice matching preferred locales
       for (const locale of preferredLocales) {
         selectedVoice = voices.find(voice => 
-          voice.language.toLowerCase().includes(locale.toLowerCase())
+          voice.language && voice.language.toLowerCase().startsWith(locale.toLowerCase())
         );
-        if (selectedVoice) break;
+        if (selectedVoice) {
+          // Check if we found the actual language (not fallback)
+          const baseLocale = locale.split('-')[0];
+          const voiceBase = selectedVoice.language.split('-')[0];
+          foundNativeVoice = (baseLocale === voiceBase);
+          console.log(`Found voice for ${locale}:`, selectedVoice.name, selectedVoice.language);
+          break;
+        }
       }
 
-      // If no specific African voice found, use default for language
-      if (!selectedVoice) {
-        selectedVoice = voices.find(voice => 
-          voice.language.toLowerCase().startsWith(langCode.toLowerCase())
-        );
+      // Only show hint for languages that actually have downloadable voices on iOS
+      // These are: Afrikaans, Arabic, some Asian languages - NOT Yoruba, Hausa, Igbo
+      const languagesWithiOSVoices = ['af', 'ar', 'zh', 'hi', 'ja', 'ko', 'th', 'vi'];
+      if (languagesWithiOSVoices.includes(langCode) && !foundNativeVoice) {
+        setMissingVoice(true);
       }
-
-      console.log('Selected voice:', selectedVoice?.name, selectedVoice?.language);
 
       // Speak with the selected voice
-      await Speech.speak(text, {
-        language: langCode,
-        voice: selectedVoice?.identifier,
-        pitch: 1.0,
-        rate: 0.80, // Slightly slower for clarity
-      });
+      if (selectedVoice && selectedVoice.identifier) {
+        console.log('Speaking with voice:', selectedVoice.name, '(', selectedVoice.language, ')');
+        console.log('Text to speak:', text);
+        console.log('Voice identifier:', selectedVoice.identifier);
+
+        await Speech.speak(text, {
+          language: selectedVoice.language,
+          voice: selectedVoice.identifier,
+          pitch: 1.0,
+          rate: 0.75, // Slower for better pronunciation
+
+          onStart: () => console.log('Speech STARTED playing'),
+          onDone: () => console.log('Speech FINISHED playing'),
+          onStopped: () => console.log('Speech STOPPED'),
+          onError: (error) => console.error('Speech ERROR:', error),
+        });
+        console.log('Speech.speak() was called');
+      } else {
+        // Ultimate fallback - use system default
+        console.log(`No specific voice found. Using system default for: ${langCode}`);
+        console.log('Text to speak:', text);
+        
+        await Speech.speak(text, {
+          language: langCode,
+          pitch: 1.0,
+          rate: 0.75,
+
+          onStart: () => console.log('Default speech STARTED'),
+          onDone: () => console.log('Default speech FINISHED'),
+          onError: (error) => console.error('Default speech ERROR:', error),
+        });
+      }
     } catch (error) {
       console.error('Voice selection error:', error);
-      // Fallback to default voice
       Speech.speak(text, { 
         language: langCode, 
         pitch: 1.0, 
-        rate: 0.80 
+        rate: 0.75 
       });
     }
   };
@@ -612,8 +653,8 @@ export default function App() {
                 <LinearGradient
                   colors={
                     isListening 
-                      ? [getLanguageInfo(targetLang)?.color || '#FF0080', '#9D00FF'] 
-                      : [getLanguageInfo(targetLang)?.color || '#00F5FF', '#0066FF']
+                      ? [getLanguageInfo(targetLang)?.color || '#373737', '#c0c0c0'] 
+                      : [getLanguageInfo(targetLang)?.color || '#595959', '#fafafa']
                   }
                   start={{x: 0, y: 0}}
                   end={{x: 1, y: 1}}
@@ -704,16 +745,28 @@ export default function App() {
             </View>
           )}
 
-          <View style={styles.instructions}>
+          {/* Instructions - only shown before */}
+          {!hasInteracted && (
+            <View style={styles.instructions}>
             <Text style={styles.instructionText}>1. Choose target language above</Text>
             <Text style={styles.instructionText}>2. Tap circle and speak</Text>
             <Text style={styles.instructionText}>3. Listen to instant translation</Text>
           </View>
+          )}
         </ScrollView>
 
         {!isOnline && (
           <View style={styles.offlineBar}>
             <Text style={styles.offlineText}>📡 Offline</Text>
+          </View>
+        )}
+
+        {missingVoice && (
+          <View style={styles.voiceHintBar}>
+            <Text style={styles.voiceHintText}>💡 Download {getLanguageInfo(targetLang)?.name} voice in Settings for better accent</Text>
+            <TouchableOpacity onPress={() => setMissingVoice(false)} style={styles.voiceHintClose}>
+              <Text style={styles.voiceHintCloseText}>✕</Text>
+            </TouchableOpacity>
           </View>
         )}
       </LinearGradient>
@@ -743,6 +796,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
+    marginTop: 25,
     fontSize: 36,
     fontWeight: '900',
     color: '#FFFFFF',
@@ -761,6 +815,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: 20,
     paddingVertical: 30,
+    marginBottom: 20
   },
   langInfo: {
     alignItems: 'center',
@@ -799,7 +854,7 @@ const styles = StyleSheet.create({
   mainContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 8,
   },
   voiceButton: {
     width: 200,
@@ -827,7 +882,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#00F5FF',
-    marginTop: 30,
+    marginTop: 15,
     letterSpacing: 2,
   },
   conversationToggle: {
@@ -943,6 +998,40 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '800',
+  },
+  voiceHintBar: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,245,255,0.15)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#00F5FF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  voiceHintText: {
+    flex: 1,
+    color: '#00F5FF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  voiceHintClose: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  voiceHintCloseText: {
+    color: '#00F5FF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   pickerOverlay: {
     flex: 1,
