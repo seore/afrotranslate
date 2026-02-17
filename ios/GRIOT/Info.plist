@@ -44,6 +44,8 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>GRIOT uses your photo library to share translation screenshots.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow GRIOT to access your microphone for voice translation.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
