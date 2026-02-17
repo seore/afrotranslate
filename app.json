@@ -18,6 +18,7 @@
       "bundleIdentifier": "com.seore.afrotranslate",
       "buildNumber": "1.0.0",
       "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "GRIOT uses your photo library to allow you to share translation screenshots.",
         "NSMicrophoneUsageDescription": "This app uses the microphone for voice translation features.",
         "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice input.",
         "ITSAppUsesNonExemptEncryption": false
