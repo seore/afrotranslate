@@ -728,7 +728,7 @@ export default function App() {
           )}
 
           {/* Conversation Mode Modal */}
-          {showConverstion && (
+          {showConversation && (
             <Modal 
               visible={showConversation}
               animationType="slide"
