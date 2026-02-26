@@ -1,7 +1,4 @@
 PODS:
-  - EXAV (13.10.6):
-    - ExpoModulesCore
-    - ReactCommon/turbomodule/core
   - EXConstants (55.0.7):
     - ExpoModulesCore
   - EXJSONUtils (55.0.0)
@@ -182,7 +179,7 @@ PODS:
     - Yoga
   - ExpoAsset (55.0.7):
     - ExpoModulesCore
-  - ExpoClipboard (5.0.1):
+  - ExpoClipboard (55.0.8):
     - ExpoModulesCore
   - ExpoDomWebView (55.0.3):
     - ExpoModulesCore
@@ -192,7 +189,7 @@ PODS:
     - ExpoModulesCore
   - ExpoKeepAwake (55.0.4):
     - ExpoModulesCore
-  - ExpoLinearGradient (12.7.2):
+  - ExpoLinearGradient (55.0.8):
     - ExpoModulesCore
   - ExpoLogBox (55.0.7):
     - React-Core
@@ -225,7 +222,7 @@ PODS:
     - React-Core
     - React-runtimescheduler
     - ReactCommon
-  - ExpoSpeech (11.7.0):
+  - ExpoSpeech (55.0.8):
     - ExpoModulesCore
   - ExpoSpeechRecognition (3.1.1):
     - ExpoModulesCore
@@ -2012,7 +2009,7 @@ PODS:
     - React-utils (= 0.83.2)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.83.2)
-  - RNCAsyncStorage (1.21.0):
+  - RNCAsyncStorage (2.2.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2037,7 +2034,6 @@ PODS:
   - Yoga (0.0.0)
 
 DEPENDENCIES:
-  - EXAV (from `../node_modules/expo-av/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXJSONUtils (from `../node_modules/expo-json-utils/ios`)
   - EXManifests (from `../node_modules/expo-manifests/ios`)
@@ -2136,8 +2132,6 @@ DEPENDENCIES:
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 EXTERNAL SOURCES:
-  EXAV:
-    :path: "../node_modules/expo-av/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   EXJSONUtils:
@@ -2331,7 +2325,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EXAV: e160fec51bf6bc41c3b6f7e4c72ea9fd36860cd6
   EXConstants: b3c63be5f8648e4ab8e6ff5099b62f629247f969
   EXJSONUtils: 0080c14b673cfa9a6be5e3fe429768ffe3d42dfb
   EXManifests: 2b53302deb6d7275ae26005b8014f5a1aee42a0e
@@ -2341,16 +2334,16 @@ SPEC CHECKSUMS:
   expo-dev-menu: 33bb2fda7eaf4e2812ee17dc903243883f6773b4
   expo-dev-menu-interface: bf6f816d29b45bec038080790963c635e8d588c2
   ExpoAsset: 7701a5ed7df0170d280b29af4b9e5e570cab29b2
-  ExpoClipboard: 24cc2b881ab6ca2e5b431b1f6d9d4a302adbf9d0
+  ExpoClipboard: 6bb321d2991652e6736d400f1d7c073aa02c41a0
   ExpoDomWebView: f101fb3db4b6eec4163fca51f7507189b7e48661
   ExpoFileSystem: dc9723a0962262b8e485805d2064e3d4cf90ff47
   ExpoFont: 1aa465cf9f8ac6b670405becba8b15473581b2dd
   ExpoKeepAwake: 7f3b28c361c37389b18841bb52a58003b39fcb33
-  ExpoLinearGradient: 501f9bbd83f3ec1d0e0425862b9ef4693605fc1c
+  ExpoLinearGradient: 499856f296f83c05279d18447bdb57ab0e06d294
   ExpoLogBox: 89b634d5a8a64c4a6a7caad8f9985a28463c7002
   ExpoModulesCore: d7e7c240eea9a2b922dc31a216f71bf644526188
   ExpoModulesJSI: 001c28d8d17151d827b6f98e627d8f3aaccf6926
-  ExpoSpeech: 46ddff772c2157828e439c1f74a07f10ec20ff5a
+  ExpoSpeech: 6c886d439ddd971be4ca8c78df50b9d4df1d8fa4
   ExpoSpeechRecognition: 46c21b61638bcf3478066886b52579b2f9f56ab5
   EXUpdatesInterface: d48f288b92900bd95a27c6cf92a7b9aff826d49a
   FBLazyVector: 32e9ed0301d0fcbc1b2b341dd7fcbf291f51eb83
@@ -2425,7 +2418,7 @@ SPEC CHECKSUMS:
   ReactCodegen: e67cb698a2107da1da9efa55174861d724666a3e
   ReactCommon: 8868269b67561136a7970be188b40738135af077
   ReactNativeDependencies: 7dd025faef38f21a2ef780f983aeaf2cb671badd
-  RNCAsyncStorage: 4f2f92ab4032b1a7db2914ee157b10f10f32b053
+  RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
   Yoga: dd994d8c85dca5cc9b10f5df8c01f9ef1d0da191
 
 PODFILE CHECKSUM: 718b4fb1554af23bca8f7b4d711cd6be1442fdc5
