@@ -17,6 +17,7 @@ import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
+import ConversationMode from './ConversationMode';
 
 const { width, height } = Dimensions.get('window');
 
@@ -143,6 +144,7 @@ export default function App() {
   const [conversationHistory, setConversationHistory] = useState([]);
   const [missingVoice, setMissingVoice] = useState(false);
   const [availableVoices, setAvailableVoices] = useState([]);
+  const [showConversation, setShowConversationMode] = useState(false);
   
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
@@ -177,7 +179,7 @@ export default function App() {
 
     const resultListener = eventEmitter.addListener('result', (event) => {
       console.log("Speech result:", event);
-      console.log("Current target language:", targetLang); // Debug log
+      console.log("Current target language:", targetLang); 
       
       if (event.results && event.results.length > 0) {
         const result = event.results[0];
@@ -437,8 +439,7 @@ export default function App() {
       
       // Voice preferences - realistic based on iOS availability
       const voicePreferences = {
-        'en': ['en-ZA', 'en-GB', 'en-AU', 'en-IE', 'en-IN', 'en-US'], // Prioritize South African English
-        'sw': ['sw-KE', 'sw-TZ', 'sw'], // Swahili (might be available)
+        'en': ['en-ZA', 'en-GB', 'en-AU', 'en-IE', 'en-IN', 'en-US'], 
         'yo': ['en-ZA', 'en-NG', 'en-GB'], // Yoruba - fallback to South African English
         'ha': ['en-ZA', 'en-NG', 'en-GB'], // Hausa - fallback to South African English
         'ig': ['en-ZA', 'en-NG', 'en-GB'], // Igbo - fallback to South African English
@@ -724,6 +725,42 @@ export default function App() {
                 </View>
               )}
             </Animated.View>
+          )}
+
+          {/* Conversation Mode Modal */}
+          {showConverstion && (
+            <Modal 
+              visible={showConversation}
+              animationType="slide"
+              presentationStyle="fullscreen"
+            >
+              <ConversationMode
+                sourceLang={sourceLang}
+                targetLang={targetLang}
+                onExit={() => setShowConversationMode(false)}
+                translateFunction={async (text, from, to) => {
+                  try {
+                    if (!isOnline || downloadedPacks.includes(to)) {
+                      const offlinePack = OFFLINE_PACKS[to];
+                      if (offlinePack && offlinePack[text]) {
+                        return offlinePack[text];
+                      }
+                    }
+
+                    const response = await fetch(
+                      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`
+                    );
+                    const data = await response.json();
+                    const translated = data[0].map(item => item[0]).join('');
+                    return translated;
+                  } catch (error) {
+                    console.error('Translation error:', error);
+                    return null;
+                  }
+                }}
+                speakFunction={speakWithAfricanVoice}
+              />
+            </Modal>
           )}
 
           {/* Conversation History */}
