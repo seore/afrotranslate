@@ -670,4 +670,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AdvancedConversationMode;
+export default ConversationMode;
