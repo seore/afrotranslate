@@ -679,13 +679,16 @@ export default function App() {
             
             {/* Conversation Mode Toggle */}
             <TouchableOpacity 
-              style={[styles.conversationToggle, conversationMode && styles.conversationToggleActive]}
-              onPress={toggleConversationMode}
+              style={styles.conversationToggle}
+              onPress={() => {
+                hapticFeedback();
+                setShowConversationMode(true);
+              }}
               activeOpacity={0.8}
             >
               <Text style={styles.conversationToggleIcon}>💬</Text>
-              <Text style={[styles.conversationToggleText, conversationMode && styles.conversationToggleTextActive]}>
-                {conversationMode ? 'Conversation Mode ON' : 'Tap for Conversation Mode'}
+              <Text style={styles.conversationToggleText}>
+                Conversation Mode
               </Text>
             </TouchableOpacity>
           </View>
