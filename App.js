@@ -17,7 +17,7 @@ import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
-import ConversationMode from './ConversationMode.JS';
+import AdvancedConversationMode from './AdvancedConversationMode.js';
 
 const { width, height } = Dimensions.get('window');
 
@@ -737,7 +737,7 @@ export default function App() {
               animationType="slide"
               presentationStyle="fullscreen"
             >
-              <ConversationMode
+              <AdvancedConversationMode
                 sourceLang={sourceLang}
                 targetLang={targetLang}
                 onExit={() => setShowConversationMode(false)}
