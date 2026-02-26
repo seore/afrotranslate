@@ -735,7 +735,7 @@ export default function App() {
             <Modal 
               visible={showConversation}
               animationType="slide"
-              presentationStyle="fullscreen"
+              //presentationStyle="fullscreen"
             >
               <AdvancedConversationMode
                 sourceLang={sourceLang}

@@ -1,3 +1,6 @@
+// ADVANCED CONVERSATION MODE FOR GRIOT
+// Features: Auto language detection, speaker identification, continuous mode, export
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -9,6 +12,51 @@ import {
   Alert,
   Share,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
+import { EventEmitter } from 'expo-modules-core';
+
+/*
+ADVANCED CONVERSATION MODE FEATURES:
+=====================================
+
+1. AUTO LANGUAGE DETECTION
+   - Detects which speaker is speaking based on language
+   - Automatically switches translation direction
+   - "Person A speaks English → Swahili"
+   - "Person B speaks Swahili → English"
+
+2. SPEAKER IDENTIFICATION
+   - Two speakers: "You" and "Them"
+   - Different colored bubbles
+   - Shows who said what
+
+3. CONTINUOUS MODE
+   - Keep mic open after each translation
+   - Seamless back-and-forth
+   - No need to tap button repeatedly
+
+4. CONVERSATION HISTORY
+   - Shows all exchanges in chronological order
+   - Scrollable list
+   - Can replay any previous translation
+
+5. EXPORT CONVERSATION
+   - Share full conversation via text
+   - Copy to clipboard
+   - Send via WhatsApp, SMS, email
+
+6. VISUAL INDICATORS
+   - Who's turn to speak
+   - Active speaker highlight
+   - Language detection feedback
+
+7. SMART FEATURES
+   - Pause/Resume conversation
+   - Clear conversation
+   - Timestamp each exchange
+   - Word count tracker
+*/
 
 const AdvancedConversationMode = ({
   sourceLang,
@@ -17,20 +65,22 @@ const AdvancedConversationMode = ({
   translateFunction,
   speakFunction,
 }) => {
+  // State management
   const [isActive, setIsActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [conversation, setConversation] = useState([]);
-  const [currentSpeaker, setCurrentSpeaker] = useState('you'); 
+  const [currentSpeaker, setCurrentSpeaker] = useState('you'); // 'you' or 'them'
   const [interimText, setInterimText] = useState('');
   const [continuousMode, setContinuousMode] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-
-  const scrollViewRef = useRef(null);
-  const conversationStartTime = useRef(new Date());
   
   // Animations
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  
+  // Refs
+  const scrollViewRef = useRef(null);
+  const conversationStartTime = useRef(new Date());
 
   // Speech recognition event listeners
   useEffect(() => {
@@ -161,7 +211,7 @@ const AdvancedConversationMode = ({
       if (continuousMode && !isPaused) {
         setTimeout(() => {
           startListening();
-        }, 1500); 
+        }, 1500); // Small delay before next listening
       }
     }
   };
@@ -371,8 +421,24 @@ const AdvancedConversationMode = ({
             isListening && styles.micButtonActive
           ]}
           onPress={isListening ? () => setIsListening(false) : startListening}
+          activeOpacity={0.9}
         >
-          <Text style={styles.micIcon}>🎤</Text>
+          <LinearGradient
+            colors={
+              isListening 
+                ? ['#FF0080', '#c0c0c0'] 
+                : ['#00F5FF', '#fafafa']
+            }
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
+            style={styles.micGradient}
+          >
+            <Animated.View style={{
+              opacity: isListening ? 0.8 : 0.3
+            }}>
+              <View style={styles.micGlow} />
+            </Animated.View>
+          </LinearGradient>
         </TouchableOpacity>
 
         {/* Clear conversation */}
@@ -414,40 +480,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     paddingTop: 60,
     backgroundColor: '#1A1A1A',
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
   backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 8,
+    minWidth: 70,
   },
   backText: {
-    fontSize: 16,
+    fontSize: 17,
     color: '#00F5FF',
     fontWeight: '600',
   },
   headerCenter: {
     flex: 1,
     alignItems: 'center',
+    paddingHorizontal: 8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#00F5FF',
     marginTop: 2,
+    fontWeight: '600',
   },
   exportButton: {
     padding: 8,
+    minWidth: 70,
+    alignItems: 'flex-end',
   },
   exportText: {
-    fontSize: 20,
+    fontSize: 22,
   },
   conversationList: {
     flex: 1,
@@ -593,7 +666,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 30,
+    paddingHorizontal: 40,
     paddingVertical: 20,
     paddingBottom: 40,
     backgroundColor: '#1A1A1A',
@@ -602,15 +675,16 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     alignItems: 'center',
-    padding: 12,
+    padding: 8,
     borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    width: 80,
   },
   toggleButtonActive: {
     backgroundColor: 'rgba(0, 245, 255, 0.15)',
   },
   toggleIcon: {
-    fontSize: 20,
+    fontSize: 24,
     marginBottom: 4,
   },
   toggleLabel: {
@@ -619,27 +693,39 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   micButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    overflow: 'hidden',
+    elevation: 20,
+  },
+  micButtonActive: {
+    transform: [{ scale: 1.05 }],
+  },
+  micGradient: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  micGlow: {
+    position: 'absolute',
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: 'rgba(0, 245, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#00F5FF',
-  },
-  micButtonActive: {
-    backgroundColor: 'rgba(255, 0, 128, 0.2)',
-    borderColor: '#FF0080',
+    backgroundColor: '#FFFFFF',
+    opacity: 0.2,
   },
   micIcon: {
     fontSize: 32,
   },
   clearButton: {
     alignItems: 'center',
-    padding: 12,
+    padding: 8,
     borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    width: 80,
   },
   clearIcon: {
     fontSize: 20,
