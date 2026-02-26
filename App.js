@@ -135,6 +135,7 @@ export default function App() {
   const [sourceText, setSourceText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
   const [showLangPicker, setShowLangPicker] = useState(false);
+  const [showSourceLangPicker, setShowSourceLangPicker] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [recognizing, setRecognizing] = useState(false);
   const [interimResults, setInterimResults] = useState('');
@@ -145,6 +146,7 @@ export default function App() {
   const [missingVoice, setMissingVoice] = useState(false);
   const [availableVoices, setAvailableVoices] = useState([]);
   const [showConversation, setShowConversationMode] = useState(false);
+  const [autoDetectMode, setAutoDetectMode] = useState(false);
   
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
@@ -310,14 +312,17 @@ export default function App() {
         return;
       }
 
+      const recognitionLang = autoDetectMode ? 'en-US' 
+                                : sourceLang === 'en' ? 'en-US' :
+                                  sourceLang === 'fr' ? 'fr-FR' : 
+                                  sourceLang === 'ar' ? 'ar-SA' : 
+                                  sourceLang === 'pt' ? 'pt-PT' : 
+                                  sourceLang === 'sw' ? 'sw-KE' : 
+                                  'en-US';
+
       // Start speech recognition
       await ExpoSpeechRecognitionModule.start({
-        lang: sourceLang === 'en' ? 'en-US' : 
-              sourceLang === 'fr' ? 'fr-FR' : 
-              sourceLang === 'ar' ? 'ar-SA' : 
-              sourceLang === 'pt' ? 'pt-PT' : 
-              sourceLang === 'sw' ? 'sw-KE' : 
-              'en-US',
+        lang: recognitionLang,
         interimResults: true,
         maxAlternatives: 1,
         continuous: false,
@@ -338,6 +343,16 @@ export default function App() {
     setIsTranslating(true);
 
     try {
+      let fromLang = sourceLang;
+
+      if (autoDetectMode) {
+        const detected = await detectLanguage(text);
+        if (detected) {
+          fromLang = detected;
+          console.log('Auto detected language:', fromLang);
+        }
+      }
+
       // Try offline translation first if offline or pack is downloaded
       if (!isOnline || downloadedPacks.includes(targetLang)) {
         const offlinePack = OFFLINE_PACKS[targetLang];
@@ -350,7 +365,7 @@ export default function App() {
             setConversationHistory(prev => [...prev, {
               source: text,
               translated,
-              sourceLang,
+              sourceLang: fromLang,
               targetLang,
               timestamp: new Date(),
             }]);
@@ -389,9 +404,10 @@ export default function App() {
         setConversationHistory(prev => [...prev, {
           source: text,
           translated,
-          sourceLang,
+          sourceLang: fromLang,
           targetLang,
           timestamp: new Date(),
+          autoDetected: autoDetectMode,
         }]);
       }
       
@@ -421,6 +437,28 @@ export default function App() {
     const temp = sourceLang;
     setSourceLang(targetLang);
     setTargetLang(temp);
+  };
+
+  const detectLanguage = async (text) => {
+    try {
+      const response = await fetch(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`
+      );
+      
+      const data = await response.json();
+    
+      // The detected language is in data[2]
+      if (data && data[2]) {
+        const detectedLang = data[2];
+        console.log('Detected language:', detectedLang);
+        return detectedLang;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Language detection error:', error);
+      return null;
+    }
   };
 
   const getLanguageInfo = (code) => AFRICAN_LANGUAGES.find(l => l.code === code);
@@ -522,6 +560,115 @@ export default function App() {
     }
   };
 
+  const SourceLanguagePicker = () => {
+  if (!showSourceLangPicker) return null;
+
+  const popularLangs = AFRICAN_LANGUAGES.filter(l => l.popular);
+  const otherLangs = AFRICAN_LANGUAGES.filter(l => !l.popular);
+
+  return (
+    <Modal visible={showSourceLangPicker} transparent animationType="slide" onRequestClose={() => setShowSourceLangPicker(false)}>
+      <View style={styles.pickerOverlay}>
+        <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowSourceLangPicker(false)} />
+        <View style={styles.pickerContainer}>
+          <View style={styles.pickerHeader}>
+            <Text style={styles.pickerTitle}>Speak From</Text>
+            <TouchableOpacity onPress={() => setShowSourceLangPicker(false)} style={styles.pickerClose}>
+              <Text style={styles.pickerCloseText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
+            {/* Auto-Detect Option */}
+            <TouchableOpacity
+              style={[
+                styles.pickerItem,
+                styles.autoDetectItem,
+                autoDetectMode && { borderColor: '#00F5FF', backgroundColor: 'rgba(0,245,255,0.15)' },
+              ]}
+              onPress={() => {
+                hapticFeedback();
+                setAutoDetectMode(true);
+                setShowSourceLangPicker(false);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.pickerFlag}>🔍</Text>
+              <View style={styles.pickerInfo}>
+                <Text style={styles.pickerName}>Auto-Detect</Text>
+                <Text style={styles.pickerNative}>Detects language automatically</Text>
+              </View>
+              {autoDetectMode && (
+                <View style={[styles.pickerCheck, { backgroundColor: '#00F5FF' }]}>
+                  <Text style={styles.pickerCheckText}>✓</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.pickerSectionTitle}>POPULAR</Text>
+            {popularLangs.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.pickerItem,
+                  sourceLang === lang.code && !autoDetectMode && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                ]}
+                onPress={() => {
+                  hapticFeedback();
+                  setSourceLang(lang.code);
+                  setAutoDetectMode(false);
+                  setShowSourceLangPicker(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                <View style={styles.pickerInfo}>
+                  <Text style={styles.pickerName}>{lang.name}</Text>
+                  <Text style={styles.pickerNative}>{lang.native}</Text>
+                </View>
+                {sourceLang === lang.code && !autoDetectMode && (
+                  <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                    <Text style={styles.pickerCheckText}>✓</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+            
+            <Text style={styles.pickerSectionTitle}>ALL LANGUAGES</Text>
+            {otherLangs.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.pickerItem,
+                  sourceLang === lang.code && !autoDetectMode && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                ]}
+                onPress={() => {
+                  hapticFeedback();
+                  setSourceLang(lang.code);
+                  setAutoDetectMode(false);
+                  setShowSourceLangPicker(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                <View style={styles.pickerInfo}>
+                  <Text style={styles.pickerName}>{lang.name}</Text>
+                  <Text style={styles.pickerNative}>{lang.native}</Text>
+                </View>
+                {sourceLang === lang.code && !autoDetectMode && (
+                  <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                    <Text style={styles.pickerCheckText}>✓</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
   const LanguagePicker = () => {
     if (!showLangPicker) return null;
 
@@ -622,15 +769,24 @@ export default function App() {
           </View>
 
           <View style={styles.langDisplay}>
-            <View style={styles.langInfo}>
-              <Text style={styles.langFlag}>{getLanguageInfo(sourceLang)?.flag}</Text>
-              <Text style={styles.langName}>{getLanguageInfo(sourceLang)?.name}</Text>
-            </View>
+            <TouchableOpacity 
+              style={styles.langInfo}
+              onPress={() => setShowSourceLangPicker(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.langFlag}>
+                {autoDetectMode ? '🔍' : getLanguageInfo(sourceLang)?.flag}
+              </Text>
+              <Text style={styles.langName}>
+                {autoDetectMode ? 'Auto-Detect' : getLanguageInfo(sourceLang)?.name}
+              </Text>
+              <Text style={styles.langChange}>TAP TO CHANGE</Text>
+            </TouchableOpacity>
             
             <TouchableOpacity style={styles.swapBtn} onPress={swapLanguages} activeOpacity={0.7}>
               <Text style={styles.swapText}>⇄</Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity 
               style={styles.langInfo} 
               onPress={() => setShowLangPicker(true)}
@@ -812,6 +968,7 @@ export default function App() {
       </LinearGradient>
 
       <LanguagePicker />
+      <SourceLanguagePicker />
     </View>
   );
 }
@@ -924,6 +1081,10 @@ const styles = StyleSheet.create({
     color: '#00F5FF',
     marginTop: 15,
     letterSpacing: 2,
+  },
+  autoDetectItem: {
+    borderWidth: 2,
+    borderStyle: 'dashed',
   },
   conversationToggle: {
     marginTop: 20,
