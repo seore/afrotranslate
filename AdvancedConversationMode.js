@@ -10,7 +10,7 @@ import {
   Share,
 } from 'react-native';
 
-const ConversationMode = ({
+const AdvancedConversationMode = ({
   sourceLang,
   targetLang,
   onExit,
@@ -670,4 +670,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ConversationMode;
+export default AdvancedConversationMode;

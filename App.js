@@ -17,7 +17,7 @@ import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
-import ConversationMode from '../../../ConversationMode.js';
+import ConversationMode from './ConversationMode.JS';
 
 const { width, height } = Dimensions.get('window');
 
