@@ -13,11 +13,11 @@ import {
   Modal,
   Vibration,
 } from 'react-native';
-import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
+import { API_KEY } from '@env';
 import AdvancedConversationMode from './AdvancedConversationMode.js';
 
 const { width, height } = Dimensions.get('window');
@@ -463,158 +463,159 @@ export default function App() {
   };
 
   const getLanguageInfo = (code) => AFRICAN_LANGUAGES.find(l => l.code === code);
-
-  const speakWithGoogleCloudTTS = async (text, langCode) => {
-    try {
-      const API_KEY = '';
-
-      const googleLangCodes = {
-        'sw': 'sw-KE', 
-        'yo': 'en-NG', 
-        'ha': 'en-NG', 
-        'ig': 'en-NG', 
-        'zu': 'zu-ZA', 
-        'af': 'af-ZA', 
-        'en': 'en-ZA', 
-        'fr': 'fr-FR', 
-        'ar': 'ar-SA', 
-        'pt': 'pt-PT', 
-      };
-
-      const languageCode = googleLangCodes[langCode] || 'en-US';
-      const response = await fetch (
-        `https://texttospeech.googleapis.com/v1/text:sythesize?key${API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            input: { text },
-            voice: {
-              languageCode: languageCode,
-              ssmlGender: 'NEUTRAL', 
-            },
-            audioConfig: {
-              audioEncoding: 'MP3',
-              pitch: 0,
-              speakingRate: 0.9,
-            },
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.audioContent) {
-        const sound = new Audio.Sound();
-        await sound.loadAsync({
-          uri: `data:audio/mp3;base64,${data.audioContent}`,
-        });
-        await sound.playAsync();
-      }
-    } catch (error) {
-      console.error('Google TTS error:', error);
-      Speech.speak(text, {language: langCode});
-    }
-  }
   
   const speakWithAfricanVoice = async (text, langCode) => {
-    if (!text.trim()) return;
+  if (!text.trim()) return;
 
-    try {
-      // Get available voices (cache if not already loaded)
-      let voices = availableVoices;
-      if (voices.length === 0) {
-        voices = await Speech.getAvailableVoicesAsync();
-        setAvailableVoices(voices);
-        console.log('Total voices available:', voices.length);
-      }
-      
-      // Voice preferences - realistic based on iOS availability
-      const voicePreferences = {
-        'en': ['en-ZA', 'en-GB', 'en-AU', 'en-IE', 'en-IN', 'en-US'], 
-        'yo': ['en-ZA', 'en-NG', 'en-GB'],
-        'ha': ['en-ZA', 'en-NG', 'en-GB'], 
-        'ig': ['en-ZA', 'en-NG', 'en-GB'], 
-        'zu': ['zu-ZA', 'en-ZA'], 
-        'xh': ['xh-ZA', 'en-ZA'], 
-        'af': ['af-ZA', 'en-ZA'], 
-        'am': ['am-ET', 'en-ET', 'en-ZA'], 
-        'so': ['so-SO', 'en-ZA'],
-        'fr': ['fr-FR', 'fr-CA'], 
-        'ar': ['ar-SA', 'ar-EG', 'ar'], 
-        'pt': ['pt-PT', 'pt-BR'], 
-      };
-
-      const preferredLocales = voicePreferences[langCode] || [langCode];
-      let selectedVoice = null;
-      let foundNativeVoice = false;
-
-      // Try to find a voice matching preferred locales
-      for (const locale of preferredLocales) {
-        selectedVoice = voices.find(voice => 
-          voice.language && voice.language.toLowerCase().startsWith(locale.toLowerCase())
-        );
-        if (selectedVoice) {
-          // Check if we found the actual language (not fallback)
-          const baseLocale = locale.split('-')[0];
-          const voiceBase = selectedVoice.language.split('-')[0];
-          foundNativeVoice = (baseLocale === voiceBase);
-          console.log(`Found voice for ${locale}:`, selectedVoice.name, selectedVoice.language);
-          break;
-        }
-      }
-
-      // Only show hint for languages that actually have downloadable voices on iOS
-      // These are: Afrikaans, Arabic, some Asian languages - NOT Yoruba, Hausa, Igbo
-      const languagesWithiOSVoices = ['af', 'ar', 'zh', 'hi', 'ja', 'ko', 'th', 'vi'];
-      if (languagesWithiOSVoices.includes(langCode) && !foundNativeVoice) {
-        setMissingVoice(true);
-      }
-
-      // Speak with the selected voice
-      if (selectedVoice && selectedVoice.identifier) {
-        console.log('Speaking with voice:', selectedVoice.name, '(', selectedVoice.language, ')');
-        console.log('Text to speak:', text);
-        console.log('Voice identifier:', selectedVoice.identifier);
-
-        await Speech.speak(text, {
-          language: selectedVoice.language,
-          voice: selectedVoice.identifier,
-          pitch: 1.0,
-          rate: 0.7, 
-
-          onStart: () => console.log('Speech STARTED playing'),
-          onDone: () => console.log('Speech FINISHED playing'),
-          onStopped: () => console.log('Speech STOPPED'),
-          onError: (error) => console.error('Speech ERROR:', error),
-        });
-        console.log('Speech.speak() was called');
-      } else {
-        // Ultimate fallback - use system default
-        console.log(`No specific voice found. Using system default for: ${langCode}`);
-        console.log('Text to speak:', text);
-        
-        await Speech.speak(text, {
-          language: langCode,
-          pitch: 1.0,
-          rate: 0.75,
-
-          onStart: () => console.log('Default speech STARTED'),
-          onDone: () => console.log('Default speech FINISHED'),
-          onError: (error) => console.error('Default speech ERROR:', error),
-        });
-      }
-    } catch (error) {
-      console.error('Voice selection error:', error);
-      Speech.speak(text, { 
-        language: langCode, 
-        pitch: 1.0, 
-        rate: 0.75 
-      });
+  try {
+    // Check if API key is available
+    if (!API_KEY) {
+      console.warn('Google TTS API key not found, using fallback');
+      fallbackToExpoSpeech(text, langCode);
+      return;
     }
+
+    // Map language codes to Google Cloud language codes
+    const googleLangCodes = {
+      'sw': 'sw-KE',  // Swahili - NATIVE
+      'af': 'af-ZA',  // Afrikaans - NATIVE
+      'fr': 'fr-FR',  // French - NATIVE
+      'ar': 'ar-XA',  // Arabic - NATIVE
+      'pt': 'pt-PT',  // Portuguese - NATIVE
+      'en': 'en-ZA',  // English - South African accent
+      
+      // Fallback to South African English (best African accent available) 🇿🇦
+      'yo': 'en-ZA',  // Yoruba → SA English
+      'ha': 'en-ZA',  // Hausa → SA English
+      'ig': 'en-ZA',  // Igbo → SA English
+      'zu': 'en-ZA',  // Zulu → SA English
+      'xh': 'en-ZA',  // Xhosa → SA English
+      'am': 'en-ZA',  // Amharic → SA English
+      'so': 'en-ZA',  // Somali → SA English
+      'rw': 'en-ZA',  // Kinyarwanda → SA English
+    };
+
+    const languageCode = googleLangCodes[langCode] || 'en-US';
+    
+    console.log(`🗣️ Speaking "${text}" in ${languageCode} using Google TTS`);
+
+    // Call Google Cloud TTS API
+    const response = await fetch(
+      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          input: { text },
+          voice: {
+            languageCode: languageCode,
+            name: getVoiceName(languageCode),
+          },
+          audioConfig: {
+            audioEncoding: 'MP3',
+            pitch: 0,
+            speakingRate: 0.85,
+            volumeGainDb: 0,
+          },
+        }),
+      }
+    );
+
+    const data = await response.json();
+    
+    if (data.error) {
+      console.error('❌ Google TTS API error:', data.error);
+      fallbackToExpoSpeech(text, langCode);
+      return;
+    }
+
+    if (data.audioContent) {
+      console.log('✅ Got audio from Google TTS');
+      
+      // Since we don't have expo-av, we'll use expo-speech as fallback
+      // The API call succeeded, so we know the backend works
+      // When expo-av is fixed, we can play the actual audio
+      
+      // For now, use expo-speech with improved settings
+      fallbackToExpoSpeech(text, langCode);
+      
+      console.log('🔊 Audio playback (using fallback until expo-av is fixed)');
+    }
+  } catch (error) {
+    console.error('❌ Google TTS error:', error);
+    fallbackToExpoSpeech(text, langCode);
+  }
+};
+
+
+  const getVoiceName = (languageCode) => {
+  const voiceNames = {
+    'sw-KE': 'sw-KE-Standard-A',
+    'zu-ZA': 'zu-ZA-Standard-A',
+    'af-ZA': 'af-ZA-Standard-A',
+    'en-NG': 'en-NG-Standard-A',
+    'en-ZA': 'en-ZA-Standard-A',
+    'fr-FR': 'fr-FR-Neural2-A',
+    'ar-SA': 'ar-XA-Standard-A',
+    'pt-PT': 'pt-PT-Standard-A',
   };
+
+  return voiceNames[languageCode] || null;
+};
+
+// Fallback to expo-speech if Google TTS fails
+const fallbackToExpoSpeech = async (text, langCode) => {
+  try {
+    console.log('🔄 Using fallback expo-speech');
+    
+    // Get available voices
+    const voices = await Speech.getAvailableVoicesAsync();
+    
+    // Voice preferences - prioritize African accents
+    const voicePreferences = {
+      'sw': ['sw-KE', 'en-ZA', 'en-GB'],
+      'yo': ['en-ZA', 'en-GB'],
+      'ha': ['en-ZA', 'en-GB'],
+      'ig': ['en-ZA', 'en-GB'],
+      'zu': ['zu-ZA', 'en-ZA'],
+      'xh': ['xh-ZA', 'en-ZA'],
+      'af': ['af-ZA', 'en-ZA'],
+      'am': ['en-ZA', 'en-GB'],
+      'so': ['en-ZA', 'en-GB'],
+      'rw': ['en-ZA', 'en-GB'],
+      'en': ['en-ZA', 'en-GB', 'en-AU'],
+      'fr': ['fr-FR', 'fr-CA'],
+      'ar': ['ar-SA', 'ar-EG'],
+      'pt': ['pt-PT', 'pt-BR'],
+    };
+
+    const preferredLocales = voicePreferences[langCode] || [langCode];
+    let selectedVoice = null;
+
+    for (const locale of preferredLocales) {
+      selectedVoice = voices.find(voice => 
+        voice.language && voice.language.toLowerCase().startsWith(locale.toLowerCase())
+      );
+      if (selectedVoice) {
+        console.log(`✅ Found voice: ${selectedVoice.name} (${selectedVoice.language})`);
+        break;
+      }
+    }
+
+    await Speech.speak(text, {
+      language: selectedVoice?.language || langCode,
+      voice: selectedVoice?.identifier,
+      pitch: 1.0,
+      rate: 0.7, // Slower for better pronunciation
+    });
+    
+    console.log('🔊 Expo-speech playback started');
+  } catch (error) {
+    console.error('❌ Fallback speech error:', error);
+  }
+};
 
   const SourceLanguagePicker = () => {
   if (!showSourceLangPicker) return null;
