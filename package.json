@@ -8,8 +8,10 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@google-cloud/text-to-speech": "^6.4.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "^55.0.2",
+    "expo-av": "^16.0.8",
     "expo-clipboard": "~55.0.8",
     "expo-dev-client": "^55.0.9",
     "expo-linear-gradient": "~55.0.8",
@@ -17,7 +19,8 @@
     "expo-speech-recognition": "^3.1.1",
     "expo-status-bar": "~55.0.4",
     "react": "19.2.0",
-    "react-native": "0.83.2"
+    "react-native": "0.83.2",
+    "react-native-dotenv": "^3.4.11"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

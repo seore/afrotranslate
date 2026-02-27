@@ -13,6 +13,7 @@ import {
   Modal,
   Vibration,
 } from 'react-native';
+import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
@@ -463,6 +464,61 @@ export default function App() {
 
   const getLanguageInfo = (code) => AFRICAN_LANGUAGES.find(l => l.code === code);
 
+  const speakWithGoogleCloudTTS = async (text, langCode) => {
+    try {
+      const API_KEY = '';
+
+      const googleLangCodes = {
+        'sw': 'sw-KE', 
+        'yo': 'en-NG', 
+        'ha': 'en-NG', 
+        'ig': 'en-NG', 
+        'zu': 'zu-ZA', 
+        'af': 'af-ZA', 
+        'en': 'en-ZA', 
+        'fr': 'fr-FR', 
+        'ar': 'ar-SA', 
+        'pt': 'pt-PT', 
+      };
+
+      const languageCode = googleLangCodes[langCode] || 'en-US';
+      const response = await fetch (
+        `https://texttospeech.googleapis.com/v1/text:sythesize?key${API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            input: { text },
+            voice: {
+              languageCode: languageCode,
+              ssmlGender: 'NEUTRAL', 
+            },
+            audioConfig: {
+              audioEncoding: 'MP3',
+              pitch: 0,
+              speakingRate: 0.9,
+            },
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.audioContent) {
+        const sound = new Audio.Sound();
+        await sound.loadAsync({
+          uri: `data:audio/mp3;base64,${data.audioContent}`,
+        });
+        await sound.playAsync();
+      }
+    } catch (error) {
+      console.error('Google TTS error:', error);
+      Speech.speak(text, {language: langCode});
+    }
+  }
+  
   const speakWithAfricanVoice = async (text, langCode) => {
     if (!text.trim()) return;
 
@@ -478,17 +534,17 @@ export default function App() {
       // Voice preferences - realistic based on iOS availability
       const voicePreferences = {
         'en': ['en-ZA', 'en-GB', 'en-AU', 'en-IE', 'en-IN', 'en-US'], 
-        'yo': ['en-ZA', 'en-NG', 'en-GB'], // Yoruba - fallback to South African English
-        'ha': ['en-ZA', 'en-NG', 'en-GB'], // Hausa - fallback to South African English
-        'ig': ['en-ZA', 'en-NG', 'en-GB'], // Igbo - fallback to South African English
-        'zu': ['zu-ZA', 'en-ZA'], // Zulu (might be available)
-        'xh': ['xh-ZA', 'en-ZA'], // Xhosa (might be available)
-        'af': ['af-ZA', 'en-ZA'], // Afrikaans (usually available)
-        'am': ['am-ET', 'en-ET', 'en-ZA'], // Amharic
-        'so': ['so-SO', 'en-ZA'], // Somali
-        'fr': ['fr-FR', 'fr-CA'], // French
-        'ar': ['ar-SA', 'ar-EG', 'ar'], // Arabic
-        'pt': ['pt-PT', 'pt-BR'], // Portuguese
+        'yo': ['en-ZA', 'en-NG', 'en-GB'],
+        'ha': ['en-ZA', 'en-NG', 'en-GB'], 
+        'ig': ['en-ZA', 'en-NG', 'en-GB'], 
+        'zu': ['zu-ZA', 'en-ZA'], 
+        'xh': ['xh-ZA', 'en-ZA'], 
+        'af': ['af-ZA', 'en-ZA'], 
+        'am': ['am-ET', 'en-ET', 'en-ZA'], 
+        'so': ['so-SO', 'en-ZA'],
+        'fr': ['fr-FR', 'fr-CA'], 
+        'ar': ['ar-SA', 'ar-EG', 'ar'], 
+        'pt': ['pt-PT', 'pt-BR'], 
       };
 
       const preferredLocales = voicePreferences[langCode] || [langCode];
@@ -527,7 +583,7 @@ export default function App() {
           language: selectedVoice.language,
           voice: selectedVoice.identifier,
           pitch: 1.0,
-          rate: 0.75, // Slower for better pronunciation
+          rate: 0.7, 
 
           onStart: () => console.log('Speech STARTED playing'),
           onDone: () => console.log('Speech FINISHED playing'),
