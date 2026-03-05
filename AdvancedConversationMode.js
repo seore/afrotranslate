@@ -12,6 +12,7 @@ import {
   Alert,
   Share,
 } from 'react-native';
+import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
@@ -65,20 +66,17 @@ const AdvancedConversationMode = ({
   translateFunction,
   speakFunction,
 }) => {
-  // State management
   const [isActive, setIsActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [conversation, setConversation] = useState([]);
-  const [currentSpeaker, setCurrentSpeaker] = useState('you'); // 'you' or 'them'
+  const [currentSpeaker, setCurrentSpeaker] = useState('you'); 
   const [interimText, setInterimText] = useState('');
   const [continuousMode, setContinuousMode] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   
-  // Animations
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   
-  // Refs
   const scrollViewRef = useRef(null);
   const conversationStartTime = useRef(new Date());
 
@@ -127,14 +125,12 @@ const AdvancedConversationMode = ({
     };
   }, [currentSpeaker, sourceLang, targetLang, continuousMode]);
 
-  // Auto-scroll to bottom when new message
   useEffect(() => {
     if (conversation.length > 0 && scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: true });
     }
   }, [conversation]);
 
-  // Pulse animation for active listening
   useEffect(() => {
     if (isListening) {
       Animated.loop(
@@ -156,7 +152,6 @@ const AdvancedConversationMode = ({
     }
   }, [isListening]);
 
-  // Start conversation mode
   const startConversation = () => {
     setIsActive(true);
     conversationStartTime.current = new Date();
@@ -167,7 +162,6 @@ const AdvancedConversationMode = ({
     }).start();
   };
 
-  // Add message to conversation
   const addMessage = (originalText, translatedText, speaker, fromLang, toLang) => {
     const message = {
       id: Date.now(),
@@ -181,47 +175,38 @@ const AdvancedConversationMode = ({
     
     setConversation(prev => [...prev, message]);
     
-    // Auto-switch speaker for next turn
     if (continuousMode) {
       setCurrentSpeaker(speaker === 'you' ? 'them' : 'you');
     }
   };
 
-  // Handle voice input
   const handleVoiceInput = async (text) => {
     if (!text.trim()) return;
     
     setIsListening(false);
     
-    // Determine translation direction based on current speaker
     const fromLang = currentSpeaker === 'you' ? sourceLang : targetLang;
     const toLang = currentSpeaker === 'you' ? targetLang : sourceLang;
     
-    // Translate
     const translated = await translateFunction(text, fromLang, toLang);
     
     if (translated) {
-      // Add to conversation
       addMessage(text, translated, currentSpeaker, fromLang, toLang);
       
-      // Speak translation
       await speakFunction(translated, toLang);
       
-      // If continuous mode, start listening for next speaker
       if (continuousMode && !isPaused) {
         setTimeout(() => {
           startListening();
-        }, 1500); // Small delay before next listening
+        }, 1500); 
       }
     }
   };
 
-  // Start listening
   const startListening = async () => {
     setIsListening(true);
     
     try {
-      // Determine which language to listen for based on current speaker
       const listenLang = currentSpeaker === 'you' ? sourceLang : targetLang;
       
       // Start expo-speech-recognition
@@ -250,7 +235,6 @@ const AdvancedConversationMode = ({
       return;
     }
 
-    // Format conversation as text
     let exportText = `GRIOT Conversation\n`;
     exportText += `Started: ${conversationStartTime.current.toLocaleString()}\n`;
     exportText += `Duration: ${Math.floor((new Date() - conversationStartTime.current) / 60000)} minutes\n`;
@@ -294,7 +278,6 @@ const AdvancedConversationMode = ({
     );
   };
 
-  // Replay message audio
   const replayMessage = async (message) => {
     await speakFunction(message.translated, message.toLang);
   };
@@ -315,7 +298,7 @@ const AdvancedConversationMode = ({
         </View>
         
         <TouchableOpacity onPress={exportConversation} style={styles.exportButton}>
-          <Text style={styles.exportText}>📤</Text>
+          <Ionicons name="share-outline" size={24} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -327,7 +310,7 @@ const AdvancedConversationMode = ({
       >
         {conversation.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>💬</Text>
+            <Ionicons name="chatbubbles" size={22} color="#00F5FF" />
             <Text style={styles.emptyTitle}>Start a Conversation</Text>
             <Text style={styles.emptySubtitle}>
               Tap the microphone to begin translating
@@ -353,7 +336,7 @@ const AdvancedConversationMode = ({
                 
                 {/* Translation */}
                 <View style={styles.translationBox}>
-                  <Text style={styles.translationArrow}>→</Text>
+                  <Ionicons name="arrow-forward" size={24} color="#fff" />
                   <Text style={styles.translatedText}>{msg.translated}</Text>
                 </View>
                 
@@ -369,7 +352,7 @@ const AdvancedConversationMode = ({
                     onPress={() => replayMessage(msg)}
                     style={styles.replayButton}
                   >
-                    <Text style={styles.replayIcon}>🔊</Text>
+                    <Ionicons name="volume-high" size={22} color="#fff" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -385,7 +368,7 @@ const AdvancedConversationMode = ({
             styles.listeningPulse,
             { transform: [{ scale: pulseAnim }] }
           ]}>
-            <Text style={styles.listeningIcon}>🎤</Text>
+            <Ionicons name="mic-circle" size={36} color="#ff3b30" />
           </Animated.View>
           <Text style={styles.listeningText}>
             Listening to {currentSpeaker === 'you' ? 'You' : 'Them'}...
@@ -406,9 +389,11 @@ const AdvancedConversationMode = ({
           ]}
           onPress={() => setContinuousMode(!continuousMode)}
         >
-          <Text style={styles.toggleIcon}>
-            {continuousMode ? '🔄' : '⏸️'}
-          </Text>
+          <Ionicons 
+            name={continuousMode ? 'infinite' : 'pause'}
+            size={20}
+            style={styles.toggleIcon}
+          />
           <Text style={styles.toggleLabel}>
             {continuousMode ? 'Continuous' : 'Manual'}
           </Text>
@@ -447,12 +432,14 @@ const AdvancedConversationMode = ({
           onPress={clearConversation}
           disabled={conversation.length === 0}
         >
-          <Text style={[
-            styles.clearIcon,
-            conversation.length === 0 && styles.clearIconDisabled
-          ]}>
-            🗑️
-          </Text>
+          <Ionicons 
+            name='trash-outline'
+            size={20}
+            style={[
+              styles.clearIcon,
+              conversation.length === 0 && styles.clearIconDisabled
+            ]}
+          />
           <Text style={styles.clearLabel}>Clear</Text>
         </TouchableOpacity>
       </View>
@@ -686,6 +673,7 @@ const styles = StyleSheet.create({
   toggleIcon: {
     fontSize: 24,
     marginBottom: 4,
+    color: '#ffffff',
   },
   toggleLabel: {
     fontSize: 10,
@@ -730,6 +718,7 @@ const styles = StyleSheet.create({
   clearIcon: {
     fontSize: 20,
     marginBottom: 4,
+    color: "#fff"
   },
   clearIconDisabled: {
     opacity: 0.3,

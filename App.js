@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import {
   Modal,
   Vibration,
 } from 'react-native';
+import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
@@ -149,6 +150,7 @@ export default function App() {
   const [showConversation, setShowConversationMode] = useState(false);
   const [autoDetectMode, setAutoDetectMode] = useState(false);
   
+  const pulseAnim1 = useRef(new Animated.Value(1)).current;
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
   const [fadeAnim] = useState(new Animated.Value(1));
@@ -165,6 +167,27 @@ export default function App() {
       clearInterval(interval);
     };
   }, []);
+
+  useEffect(() => {
+    if (isOnline) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim1, {
+            toValue: 1.4,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim1, {
+            toValue: 1,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim1.setValue(1);
+    }
+  }, [isOnline]);
 
   // Separate effect for speech recognition listeners that updates when languages change
   useEffect(() => {
@@ -307,7 +330,6 @@ export default function App() {
     setHasInteracted(true);
     
     try {
-      // Stop if already listening
       if (recognizing) {
         await ExpoSpeechRecognitionModule.stop();
         return;
@@ -468,23 +490,20 @@ export default function App() {
   if (!text.trim()) return;
 
   try {
-    // Check if API key is available
     if (!API_KEY) {
       console.warn('Google TTS API key not found, using fallback');
       fallbackToExpoSpeech(text, langCode);
       return;
     }
 
-    // Map language codes to Google Cloud language codes
     const googleLangCodes = {
-      'sw': 'sw-KE',  // Swahili - NATIVE
-      'af': 'af-ZA',  // Afrikaans - NATIVE
-      'fr': 'fr-FR',  // French - NATIVE
-      'ar': 'ar-XA',  // Arabic - NATIVE
-      'pt': 'pt-PT',  // Portuguese - NATIVE
-      'en': 'en-ZA',  // English - South African accent
+      'sw': 'sw-KE',  // Swahili 
+      'af': 'af-ZA',  // Afrikaans 
+      'fr': 'fr-FR',  // French 
+      'ar': 'ar-XA',  // Arabic 
+      'pt': 'pt-PT',  // Portuguese
+      'en': 'en-ZA',  // English 
       
-      // Fallback to South African English (best African accent available) 🇿🇦
       'yo': 'en-ZA',  // Yoruba → SA English
       'ha': 'en-ZA',  // Hausa → SA English
       'ig': 'en-ZA',  // Igbo → SA English
@@ -497,7 +516,7 @@ export default function App() {
 
     const languageCode = googleLangCodes[langCode] || 'en-US';
     
-    console.log(`🗣️ Speaking "${text}" in ${languageCode} using Google TTS`);
+    console.log(`Speaking "${text}" in ${languageCode} using Google TTS`);
 
     // Call Google Cloud TTS API
     const response = await fetch(
@@ -526,13 +545,13 @@ export default function App() {
     const data = await response.json();
     
     if (data.error) {
-      console.error('❌ Google TTS API error:', data.error);
+      console.error('Google TTS API error:', data.error);
       fallbackToExpoSpeech(text, langCode);
       return;
     }
 
     if (data.audioContent) {
-      console.log('✅ Got audio from Google TTS');
+      console.log('Got audio from Google TTS');
       
       // Since we don't have expo-av, we'll use expo-speech as fallback
       // The API call succeeded, so we know the backend works
@@ -541,10 +560,10 @@ export default function App() {
       // For now, use expo-speech with improved settings
       fallbackToExpoSpeech(text, langCode);
       
-      console.log('🔊 Audio playback (using fallback until expo-av is fixed)');
+      console.log('Audio playback (using fallback until expo-av is fixed)');
     }
   } catch (error) {
-    console.error('❌ Google TTS error:', error);
+    console.error('Google TTS error:', error);
     fallbackToExpoSpeech(text, langCode);
   }
 };
@@ -565,10 +584,9 @@ export default function App() {
   return voiceNames[languageCode] || null;
 };
 
-// Fallback to expo-speech if Google TTS fails
 const fallbackToExpoSpeech = async (text, langCode) => {
   try {
-    console.log('🔄 Using fallback expo-speech');
+    console.log('Using fallback expo-speech');
     
     // Get available voices
     const voices = await Speech.getAvailableVoicesAsync();
@@ -599,7 +617,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
         voice.language && voice.language.toLowerCase().startsWith(locale.toLowerCase())
       );
       if (selectedVoice) {
-        console.log(`✅ Found voice: ${selectedVoice.name} (${selectedVoice.language})`);
+        console.log(`Found voice: ${selectedVoice.name} (${selectedVoice.language})`);
         break;
       }
     }
@@ -608,12 +626,12 @@ const fallbackToExpoSpeech = async (text, langCode) => {
       language: selectedVoice?.language || langCode,
       voice: selectedVoice?.identifier,
       pitch: 1.0,
-      rate: 0.7, // Slower for better pronunciation
+      rate: 0.75, 
     });
     
-    console.log('🔊 Expo-speech playback started');
+    console.log('Expo-speech playback started');
   } catch (error) {
-    console.error('❌ Fallback speech error:', error);
+    console.error('Fallback speech error:', error);
   }
 };
 
@@ -631,7 +649,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
           <View style={styles.pickerHeader}>
             <Text style={styles.pickerTitle}>Speak From</Text>
             <TouchableOpacity onPress={() => setShowSourceLangPicker(false)} style={styles.pickerClose}>
-              <Text style={styles.pickerCloseText}>✕</Text>
+              <Ionicons name="close" size={22} color={"#fff"}/>
             </TouchableOpacity>
           </View>
           
@@ -650,14 +668,14 @@ const fallbackToExpoSpeech = async (text, langCode) => {
               }}
               activeOpacity={0.8}
             >
-              <Text style={styles.pickerFlag}>🔍</Text>
+              <MaterialIcons name='auto-awesome' size={22} color={"#00F5FF"}/>
               <View style={styles.pickerInfo}>
                 <Text style={styles.pickerName}>Auto-Detect</Text>
                 <Text style={styles.pickerNative}>Detects language automatically</Text>
               </View>
               {autoDetectMode && (
                 <View style={[styles.pickerCheck, { backgroundColor: '#00F5FF' }]}>
-                  <Text style={styles.pickerCheckText}>✓</Text>
+                  <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
                 </View>
               )}
             </TouchableOpacity>
@@ -685,7 +703,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                 </View>
                 {sourceLang === lang.code && !autoDetectMode && (
                   <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                    <Text style={styles.pickerCheckText}>✓</Text>
+                    <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
                   </View>
                 )}
               </TouchableOpacity>
@@ -714,7 +732,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                 </View>
                 {sourceLang === lang.code && !autoDetectMode && (
                   <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                    <Text style={styles.pickerCheckText}>✓</Text>
+                    <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
                   </View>
                 )}
               </TouchableOpacity>
@@ -740,7 +758,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             <View style={styles.pickerHeader}>
               <Text style={styles.pickerTitle}>Translate To</Text>
               <TouchableOpacity onPress={() => setShowLangPicker(false)} style={styles.pickerClose}>
-                <Text style={styles.pickerCloseText}>✕</Text>
+                <Ionicons name="close" size={22} color={"#fff"}/>
               </TouchableOpacity>
             </View>
             
@@ -767,7 +785,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   </View>
                   {targetLang === lang.code && (
                     <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                      <Text style={styles.pickerCheckText}>✓</Text>
+                      <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -795,7 +813,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   </View>
                   {targetLang === lang.code && (
                     <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                      <Text style={styles.pickerCheckText}>✓</Text>
+                      <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -822,7 +840,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
         >
           <View style={styles.header}>
             <Text style={styles.logo}>GRIOT</Text>
-            <Text style={styles.subtitle}>Africa Voice Translator</Text>
+            <Text style={styles.subtitle}>African Voice Translator</Text>
           </View>
 
           <View style={styles.langDisplay}>
@@ -841,7 +859,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.swapBtn} onPress={swapLanguages} activeOpacity={0.7}>
-              <Text style={styles.swapText}>⇄</Text>
+              <Ionicons name='swap-horizontal' size={24} color={"#fff"}/>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -899,7 +917,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
               }}
               activeOpacity={0.8}
             >
-              <Text style={styles.conversationToggleIcon}>💬</Text>
+              <Ionicons name='chatbubble-ellipses' size={24} color={"#ffffff"}/>
               <Text style={styles.conversationToggleText}>
                 Conversation Mode
               </Text>
@@ -928,14 +946,14 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   <Text style={[styles.textContent, styles.translatedText]}>{translatedText}</Text>
                   {downloadedPacks.includes(targetLang) && (
                     <View style={styles.offlinePackBadge}>
-                      <Text style={styles.offlinePackText}>📦 Works Offline</Text>
+                      <Text style={styles.offlinePackText}>Works Offline</Text>
                     </View>
                   )}
                   <TouchableOpacity 
                     style={styles.replayBtn}
                     onPress={() => speakWithAfricanVoice(translatedText, targetLang)}
                   >
-                    <Text style={styles.replayIcon}>🔊</Text>
+                    <Ionicons name='volume-high' size={22} color={"#fff"}/>
                     <Text style={styles.replayText}>Play Again</Text>
                   </TouchableOpacity>
                 </View>
@@ -948,7 +966,6 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             <Modal 
               visible={showConversation}
               animationType="slide"
-              //presentationStyle="fullscreen"
             >
               <AdvancedConversationMode
                 sourceLang={sourceLang}
@@ -982,7 +999,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
           {/* Conversation History */}
           {conversationMode && conversationHistory.length > 0 && (
             <View style={styles.conversationHistory}>
-              <Text style={styles.conversationHistoryTitle}>💬 Recent Exchanges</Text>
+              <Text style={styles.conversationHistoryTitle}>Recent Exchanges</Text>
               {conversationHistory.slice(-5).reverse().map((item, index) => (
                 <View key={index} style={styles.conversationItem}>
                   <View style={styles.conversationBubbleYou}>
@@ -1008,17 +1025,26 @@ const fallbackToExpoSpeech = async (text, langCode) => {
           )}
         </ScrollView>
 
-        {!isOnline && (
-          <View style={styles.offlineBar}>
-            <Text style={styles.offlineText}>📡 Offline</Text>
-          </View>
-        )}
+        <View style={styles.connectionStatus}>
+          <Animated.View 
+            style={[
+              styles.statusDot, 
+              { 
+                backgroundColor: isOnline ? "#22c55e" : "#ef4444", 
+                transform: [{ scale: pulseAnim1 }],
+              }
+            ]}
+          />
+          <Text style={styles.statusText}>
+            {isOnline ? "Online" : "Offline"}
+          </Text>
+        </View>
 
         {missingVoice && (
           <View style={styles.voiceHintBar}>
-            <Text style={styles.voiceHintText}>💡 Download {getLanguageInfo(targetLang)?.name} voice in Settings for better accent</Text>
+            <Text style={styles.voiceHintText}>Download {getLanguageInfo(targetLang)?.name} voice in Settings for better accent</Text>
             <TouchableOpacity onPress={() => setMissingVoice(false)} style={styles.voiceHintClose}>
-              <Text style={styles.voiceHintCloseText}>✕</Text>
+              <Ionicons name='close' size={22} color={"#fff"}/>
             </TouchableOpacity>
           </View>
         )}
@@ -1224,10 +1250,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,245,255,0.1)',
     borderRadius: 20,
   },
-  replayIcon: {
-    fontSize: 16,
-    marginRight: 6,
-  },
   replayText: {
     fontSize: 13,
     fontWeight: '700',
@@ -1243,19 +1265,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontWeight: '600',
   },
-  offlineBar: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 40 : 20,
-    alignSelf: 'center',
-    backgroundColor: '#FF6B35',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  connectionStatus: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 50 : 25,
+    left: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 20,
   },
-  offlineText: {
-    color: '#FFFFFF',
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5, 
+    marginRight: 6,
+    shadowColor: "#000",
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.8,
+    shadowRadius: 6, 
+    elevation: 6,
+  },
+  statusText: {
+    color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "700",
   },
   voiceHintBar: {
     position: 'absolute',
@@ -1330,10 +1365,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pickerCloseText: {
-    fontSize: 18,
-    color: '#FFFFFF',
-  },
   pickerScroll: {
     padding: 20,
   },
@@ -1378,11 +1409,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  pickerCheckText: {
-    fontSize: 12,
-    color: '#000',
-    fontWeight: '900',
   },
   conversationHistory: {
     marginHorizontal: 20,
