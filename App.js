@@ -670,8 +670,8 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             >
               <MaterialIcons name='auto-awesome' size={22} color={"#00F5FF"}/>
               <View style={styles.pickerInfo}>
-                <Text style={styles.pickerName}>Auto-Detect</Text>
-                <Text style={styles.pickerNative}>Detects language automatically</Text>
+                <Text style={styles.pickerName}> Auto-Detect</Text>
+                <Text style={styles.pickerNative}> Detects language automatically</Text>
               </View>
               {autoDetectMode && (
                 <View style={[styles.pickerCheck, { backgroundColor: '#00F5FF' }]}>
@@ -950,11 +950,10 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                     </View>
                   )}
                   <TouchableOpacity 
-                    style={styles.replayBtn}
+                    style={styles.playAgainBtn}
                     onPress={() => speakWithAfricanVoice(translatedText, targetLang)}
                   >
                     <Ionicons name='volume-high' size={22} color={"#fff"}/>
-                    <Text style={styles.replayText}>Play Again</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -1000,6 +999,11 @@ const fallbackToExpoSpeech = async (text, langCode) => {
           {conversationMode && conversationHistory.length > 0 && (
             <View style={styles.conversationHistory}>
               <Text style={styles.conversationHistoryTitle}>Recent Exchanges</Text>
+              <ScrollView
+                style={styles.conversationScroll}
+                contentContainerStyle={{ paddingBottom: 20 }}
+                showsVerticalScrollIndicator={ false }
+              >
               {conversationHistory.slice(-5).reverse().map((item, index) => (
                 <View key={index} style={styles.conversationItem}>
                   <View style={styles.conversationBubbleYou}>
@@ -1012,6 +1016,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   </View>
                 </View>
               ))}
+              </ScrollView>
             </View>
           )}
 
@@ -1049,7 +1054,6 @@ const fallbackToExpoSpeech = async (text, langCode) => {
           </View>
         )}
       </LinearGradient>
-
       <LanguagePicker />
       <SourceLanguagePicker />
     </View>
@@ -1196,6 +1200,9 @@ const styles = StyleSheet.create({
   conversationToggleTextActive: {
     color: '#00F5FF',
   },
+  conversationScroll: {
+    flex: 1,
+  },
   translationCard: {
     marginHorizontal: 20,
     backgroundColor: '#1A1A1A',
@@ -1227,18 +1234,28 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   offlinePackBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0,255,148,0.15)',
+    //alignSelf: 'flex-start',
+    position: 'absolute',
+    top: 50,
+    right: 10,
+    backgroundColor: '#22c55e',
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    marginTop: 8,
-    marginBottom: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+    zIndex: 10,
+    //marginTop: 8,
+    //marginBottom: 8,
   },
   offlinePackText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: '#00FF94',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
   replayBtn: {
     flexDirection: 'row',
@@ -1411,51 +1428,73 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   conversationHistory: {
-    marginHorizontal: 20,
+    marginHorizontal: 16,
     marginTop: 20,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121212',
     borderRadius: 20,
     padding: 16,
+    maxHeight: height * 0.35,
   },
   conversationHistoryTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#00F5FF',
-    marginBottom: 12,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   conversationItem: {
-    marginBottom: 16,
-    gap: 8,
+    marginBottom: 12,
+    //gap: 8,
   },
   conversationBubbleYou: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#1E1E1E',
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 16,
+    marginBottom: 6,
     maxWidth: '80%',
   },
   conversationBubbleThem: {
     alignSelf: 'flex-end',
-    backgroundColor: 'rgba(0,245,255,0.15)',
+    backgroundColor: '#222222',
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     maxWidth: '80%',
+    marginBottom: 12,
+    position: 'relative',
   },
   conversationLabel: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#666',
+    fontWeight: '600',
+    color: '#888',
     marginBottom: 4,
-    textTransform: 'uppercase',
+    //textTransform: 'uppercase',
   },
   conversationSource: {
     fontSize: 14,
     color: '#FFFFFF',
     fontWeight: '500',
+    lineHeight: 20,
   },
   conversationTranslated: {
     fontSize: 14,
     color: '#00F5FF',
     fontWeight: '600',
+    lineHeight: 20,
+    paddingRight: 36,
+  },
+  playAgainBtn: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: '#00F5FF',
+    padding: 6,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#00F5FF',
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
   },
 });
