@@ -62,6 +62,8 @@
 	<string>Allow GRIOT to access your microphone for voice translation.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Allow GRIOT to recognize your speech for instant translation.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>GRIOT does not access your photo library. This permission is required by a development framework but is not used.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
