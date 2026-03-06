@@ -60,8 +60,6 @@
 	<string>Expo Dev Launcher uses the local network to discover and connect to development servers running on your computer.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Allow GRIOT to access your microphone for voice translation.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>GRIOT uses your photo library to allow you to share translation screenshots.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Allow GRIOT to recognize your speech for instant translation.</string>
 	<key>RCTNewArchEnabled</key>
