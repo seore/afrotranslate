@@ -1,6 +1,3 @@
-// ADVANCED CONVERSATION MODE FOR GRIOT
-// Features: Auto language detection, speaker identification, continuous mode, export
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -12,52 +9,11 @@ import {
   Alert,
   Share,
 } from 'react-native';
-import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import { Svg, Defs, LinearGradient as SvgLinearGradient, Stop, Mask, Rect } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
-
-/*
-ADVANCED CONVERSATION MODE FEATURES:
-=====================================
-
-1. AUTO LANGUAGE DETECTION
-   - Detects which speaker is speaking based on language
-   - Automatically switches translation direction
-   - "Person A speaks English → Swahili"
-   - "Person B speaks Swahili → English"
-
-2. SPEAKER IDENTIFICATION
-   - Two speakers: "You" and "Them"
-   - Different colored bubbles
-   - Shows who said what
-
-3. CONTINUOUS MODE
-   - Keep mic open after each translation
-   - Seamless back-and-forth
-   - No need to tap button repeatedly
-
-4. CONVERSATION HISTORY
-   - Shows all exchanges in chronological order
-   - Scrollable list
-   - Can replay any previous translation
-
-5. EXPORT CONVERSATION
-   - Share full conversation via text
-   - Copy to clipboard
-   - Send via WhatsApp, SMS, email
-
-6. VISUAL INDICATORS
-   - Who's turn to speak
-   - Active speaker highlight
-   - Language detection feedback
-
-7. SMART FEATURES
-   - Pause/Resume conversation
-   - Clear conversation
-   - Timestamp each exchange
-   - Word count tracker
-*/
 
 const AdvancedConversationMode = ({
   sourceLang,
@@ -136,13 +92,13 @@ const AdvancedConversationMode = ({
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.2,
-            duration: 1000,
+            toValue: 1.1,
+            duration: 800,
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 1000,
+            duration: 800,
             useNativeDriver: true,
           }),
         ])
@@ -287,7 +243,7 @@ const AdvancedConversationMode = ({
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onExit} style={styles.backButton}>
-          <Text style={styles.backText}>← Back</Text>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         
         <View style={styles.headerCenter}>
@@ -336,7 +292,7 @@ const AdvancedConversationMode = ({
                 
                 {/* Translation */}
                 <View style={styles.translationBox}>
-                  <Ionicons name="arrow-forward" size={24} color="#fff" />
+                  <Ionicons name="arrow-forward" size={15} color="#fff" />
                   <Text style={styles.translatedText}>{msg.translated}</Text>
                 </View>
                 
@@ -368,7 +324,7 @@ const AdvancedConversationMode = ({
             styles.listeningPulse,
             { transform: [{ scale: pulseAnim }] }
           ]}>
-            <Ionicons name="mic-circle" size={36} color="#ff3b30" />
+            <Ionicons name="mic-circle" size={36} color="#00F5FF" />
           </Animated.View>
           <Text style={styles.listeningText}>
             Listening to {currentSpeaker === 'you' ? 'You' : 'Them'}...
@@ -408,22 +364,17 @@ const AdvancedConversationMode = ({
           onPress={isListening ? () => setIsListening(false) : startListening}
           activeOpacity={0.9}
         >
-          <LinearGradient
-            colors={
-              isListening 
-                ? ['#FF0080', '#c0c0c0'] 
-                : ['#00F5FF', '#fafafa']
-            }
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
-            style={styles.micGradient}
-          >
-            <Animated.View style={{
-              opacity: isListening ? 0.8 : 0.3
-            }}>
-              <View style={styles.micGlow} />
-            </Animated.View>
-          </LinearGradient>
+          <Animated.View 
+            style={[
+              styles.micGlow,
+              { opacity: isListening ? 0.6 : 0.3, transform: [{ scale: pulseAnim }] },
+            ]}
+          />
+          <Ionicons
+            name='mic'
+            size={50}
+            color={ isListening ? '#41f1f7' : '#FFFFFF'}
+          />
         </TouchableOpacity>
 
         {/* Clear conversation */}
@@ -554,12 +505,14 @@ const styles = StyleSheet.create({
   bubbleYou: {
     alignSelf: 'flex-end',
     backgroundColor: 'rgba(0, 245, 255, 0.15)',
-    borderWidth: 1,
+    borderWidth: 2,
+    width: 150,
     borderColor: 'rgba(0, 245, 255, 0.3)',
   },
   bubbleThem: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    width: 150,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
@@ -581,11 +534,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 6,
-  },
-  translationArrow: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
   },
   translatedText: {
     flex: 1,
@@ -684,29 +632,26 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
+    alignItems: 'center',
     overflow: 'hidden',
-    elevation: 20,
+    justifyContent: 'center',
+    //elevation: 20,
   },
   micButtonActive: {
     transform: [{ scale: 1.05 }],
-  },
-  micGradient: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
   },
   micGlow: {
     position: 'absolute',
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.2,
-  },
-  micIcon: {
-    fontSize: 32,
+    backgroundColor: '#1ff1f8',
+    shadowColor: '#16ceb2',
+    blurRadius: 20,
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 15,
   },
   clearButton: {
     alignItems: 'center',
