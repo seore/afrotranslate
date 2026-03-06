@@ -944,6 +944,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                 <View style={styles.textBlock}>
                   <Text style={styles.textLabel}>Translation:</Text>
                   <Text style={[styles.textContent, styles.translatedText]}>{translatedText}</Text>
+                  <View style={styles.cardBottomRow}>
                   {downloadedPacks.includes(targetLang) && (
                     <View style={styles.offlinePackBadge}>
                       <Text style={styles.offlinePackText}>Works Offline</Text>
@@ -955,6 +956,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   >
                     <Ionicons name='volume-high' size={22} color={"#fff"}/>
                   </TouchableOpacity>
+                </View>
                 </View>
               )}
             </Animated.View>
@@ -1212,6 +1214,7 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     marginBottom: 16,
+    //paddingRight: 10,
   },
   textLabel: {
     fontSize: 12,
@@ -1233,11 +1236,19 @@ const styles = StyleSheet.create({
     color: '#999',
     fontStyle: 'italic',
   },
+  cardBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    flexWrap: 'wrap',
+    gap: 10,
+  },
   offlinePackBadge: {
     //alignSelf: 'flex-start',
-    position: 'absolute',
-    top: 50,
-    right: 10,
+    //position: 'absolute',
+    //top: 10,
+    //right: 10,
     backgroundColor: '#22c55e',
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -1247,7 +1258,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
-    zIndex: 10,
+    //zIndex: 10,
     //marginTop: 8,
     //marginBottom: 8,
   },
@@ -1484,17 +1495,18 @@ const styles = StyleSheet.create({
     paddingRight: 36,
   },
   playAgainBtn: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
+    //position: 'absolute',
+    //bottom: 10,
+    //right: 10,
+    flexDirection: 'row',
     backgroundColor: '#00F5FF',
     padding: 6,
     borderRadius: 20,
     alignItems: 'center',
-    justifyContent: 'center',
+    //justifyContent: 'center',
     shadowColor: '#00F5FF',
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
+    //elevation: 5,
   },
 });
