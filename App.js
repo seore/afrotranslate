@@ -13,9 +13,11 @@ import {
   Modal,
   Vibration,
 } from 'react-native';
-import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as FileSystem from 'expo-file-system/legacy';
+import { useAudioPlayer } from 'expo-audio';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
 import { API_KEY } from '@env';
@@ -129,6 +131,158 @@ const OFFLINE_PACKS = {
   },
 };
 
+const convertToSSML = (text, langCode) => {
+  let ssml = '<speak>';
+
+  switch(langCode) {
+    case 'yo': // Yoruba
+      ssml += applyYorubaTones(text);
+      break;
+    case 'ha': // Hausa
+      ssml += applyHausaPronunciation(text);
+      break;
+    case 'ig': // Igbo
+      ssml += applyIgboTones(text);
+      break;
+    case 'sw': // Swahili
+      ssml += applySwahiliPronunciation(text);
+      break;
+    case 'zu': // Zulu
+      ssml += applyZuluPronunciation(text);
+      break;
+    default:
+      ssml += text;
+  }
+  ssml += '</speak>';
+  return ssml;
+}
+
+// Yoruba pronunciation with tonal markings
+const applyYorubaTones = (text) => {
+  const pronunciationMap = {
+    'Bawo': '<phoneme alphabet="ipa" ph="baː.wɔ">Bawo</phoneme>',
+    'E kaaro': '<phoneme alphabet="ipa" ph="ɛ kaː.ɾɔ">E kaaro</phoneme>',
+    'E se': '<phoneme alphabet="ipa" ph="ɛ ʃɛ">E se</phoneme>',
+    'Jọwọ': '<phoneme alphabet="ipa" ph="dʒɔ.wɔ">Jọwọ</phoneme>',
+    'Bẹẹni': '<phoneme alphabet="ipa" ph="bɛː.ni">Bẹẹni</phoneme>',
+    'Rara': '<phoneme alphabet="ipa" ph="ɾa.ɾa">Rara</phoneme>',
+    'O dabo': '<phoneme alphabet="ipa" ph="ɔ da.bɔ">O dabo</phoneme>',
+    'Mo nilo iranlọwọ': '<phoneme alphabet="ipa" ph="mɔ ní.lɔ i.ɾan.lɔ.wɔ">Mo nilo iranlọwọ</phoneme>',
+  };
+  
+  let result = text;
+  for (const [word, pronunciation] of Object.entries(pronunciationMap)) {
+    const regex = new RegExp(word, 'gi');
+    result = result.replace(regex, pronunciation);
+  }
+  
+  result = `<emphasis level="moderate">${result}</emphasis>`;
+  return result;
+};
+
+// Hausa pronunciation
+const applyHausaPronunciation = (text) => {
+  const pronunciationMap = {
+    'Sannu': '<phoneme alphabet="ipa" ph="sän.nú">Sannu</phoneme>',
+    'Ina kwana': '<phoneme alphabet="ipa" ph="i.na kwa.na">Ina kwana</phoneme>',
+    'Na gode': '<phoneme alphabet="ipa" ph="na gɔ.dɛ">Na gode</phoneme>',
+    'Don Allah': '<phoneme alphabet="ipa" ph="dɔn al.lah">Don Allah</phoneme>',
+    'Yaya dai': '<phoneme alphabet="ipa" ph="ja.ja daɪ">Yaya dai</phoneme>',
+  };
+  
+  let result = text;
+  for (const [word, pronunciation] of Object.entries(pronunciationMap)) {
+    const regex = new RegExp(word, 'gi');
+    result = result.replace(regex, pronunciation);
+  }
+  
+  return result;
+};
+
+// Igbo pronunciation with tones
+const applyIgboTones = (text) => {
+  const pronunciationMap = {
+    'Ndewo': '<phoneme alphabet="ipa" ph="n̩.dé.wò">Ndewo</phoneme>',
+    'Ụtụtụ ọma': '<phoneme alphabet="ipa" ph="ʊ̀.tʊ̀.tʊ̀ ɔ̀.má">Ụtụtụ ọma</phoneme>',
+    'Daalụ': '<phoneme alphabet="ipa" ph="dàː.lʊ́">Daalụ</phoneme>',
+    'Biko': '<phoneme alphabet="ipa" ph="bí.kò">Biko</phoneme>',
+    'Kedu': '<phoneme alphabet="ipa" ph="kè.dù">Kedu</phoneme>',
+  };
+  
+  let result = text;
+  for (const [word, pronunciation] of Object.entries(pronunciationMap)) {
+    const regex = new RegExp(word, 'gi');
+    result = result.replace(regex, pronunciation);
+  }
+  
+  result = `<prosody pitch="+5%">${result}</prosody>`;
+  return result;
+};
+
+// Swahili pronunciation
+const applySwahiliPronunciation = (text) => {
+  const pronunciationMap = {
+    'Habari': '<phoneme alphabet="ipa" ph="ha.ba.ɾi">Habari</phoneme>',
+    'Asante': '<phoneme alphabet="ipa" ph="a.san.te">Asante</phoneme>',
+    'Tafadhali': '<phoneme alphabet="ipa" ph="ta.fa.ða.li">Tafadhali</phoneme>',
+    'Ndiyo': '<phoneme alphabet="ipa" ph="n̩.di.jɔ">Ndiyo</phoneme>',
+    'Hapana': '<phoneme alphabet="ipa" ph="ha.pa.na">Hapana</phoneme>',
+    'Kwaheri': '<phoneme alphabet="ipa" ph="kwa.he.ɾi">Kwaheri</phoneme>',
+  };
+  
+  let result = text;
+  for (const [word, pronunciation] of Object.entries(pronunciationMap)) {
+    const regex = new RegExp(word, 'gi');
+    result = result.replace(regex, pronunciation);
+  }
+  
+  result = `<prosody rate="0.9">${result}</prosody>`;
+  return result;
+};
+
+// Zulu pronunciation
+const applyZuluPronunciation = (text) => {
+  const pronunciationMap = {
+    'Sawubona': '<phoneme alphabet="ipa" ph="sa.wu.bo.na">Sawubona</phoneme>',
+    'Ngiyabonga': '<phoneme alphabet="ipa" ph="ŋi.ja.bo.ŋa">Ngiyabonga</phoneme>',
+    'Ngiyacela': '<phoneme alphabet="ipa" ph="ŋi.ja.t͡ʃɛ.la">Ngiyacela</phoneme>',
+    'Yebo': '<phoneme alphabet="ipa" ph="jɛ.bo">Yebo</phoneme>',
+    'Cha': '<phoneme alphabet="ipa" ph="t͡ʃa">Cha</phoneme>',
+  };
+  
+  let result = text;
+  for (const [word, pronunciation] of Object.entries(pronunciationMap)) {
+    const regex = new RegExp(word, 'gi');
+    result = result.replace(regex, pronunciation);
+  }
+  
+  return result;
+};
+
+// Language-specific pitch
+const getPitchForLanguage = (langCode) => {
+  const pitchMap = {
+    'yo': 5,   // Yoruba - higher for tones
+    'ig': 5,   // Igbo - higher for tones
+    'ha': 0,   // Hausa - neutral
+    'sw': -2,  // Swahili - slightly lower
+    'zu': 0,   // Zulu - neutral
+  };
+  return pitchMap[langCode] || 0;
+};
+
+// Language-specific speaking rate
+const getRateForLanguage = (langCode) => {
+  const rateMap = {
+    'yo': 0.8,   // Yoruba - slower for clarity
+    'ig': 0.8,   // Igbo - slower for clarity
+    'ha': 0.85,  // Hausa - moderate
+    'sw': 0.9,   // Swahili - moderate
+    'zu': 0.85,  // Zulu - moderate
+  };
+  return rateMap[langCode] || 0.85;
+};
+
 export default function App() {
   const [sourceLang, setSourceLang] = useState('en');
   const [targetLang, setTargetLang] = useState('sw');
@@ -154,6 +308,8 @@ export default function App() {
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
   const [fadeAnim] = useState(new Animated.Value(1));
+
+  const audioPlayer = useAudioPlayer();
 
   useEffect(() => {
     startPulseAnimation();
@@ -497,26 +653,28 @@ export default function App() {
     }
 
     const googleLangCodes = {
-      'sw': 'sw-KE',  // Swahili 
-      'af': 'af-ZA',  // Afrikaans 
-      'fr': 'fr-FR',  // French 
-      'ar': 'ar-XA',  // Arabic 
-      'pt': 'pt-PT',  // Portuguese
-      'en': 'en-ZA',  // English 
-      
-      'yo': 'en-ZA',  // Yoruba → SA English
-      'ha': 'en-ZA',  // Hausa → SA English
-      'ig': 'en-ZA',  // Igbo → SA English
-      'zu': 'en-ZA',  // Zulu → SA English
-      'xh': 'en-ZA',  // Xhosa → SA English
-      'am': 'en-ZA',  // Amharic → SA English
-      'so': 'en-ZA',  // Somali → SA English
-      'rw': 'en-ZA',  // Kinyarwanda → SA English
+      'sw': 'sw-KE',  // Swahili - HAS native voice
+      'af': 'af-ZA',  // Afrikaans - HAS native voice
+      'fr': 'fr-FR',  // French - HAS native voice
+      'ar': 'ar-XA',  // Arabic - HAS native voice (use ar-XA not ar-SA)
+      'pt': 'pt-PT',  // Portuguese - HAS native voice
+      'en': 'en-US',  // English - use US English
+      'yo': 'en-US',  // Yoruba → US English (no native voice)
+      'ha': 'en-US',  // Hausa → US English (no native voice)
+      'ig': 'en-US',  // Igbo → US English (no native voice)
+      'zu': 'en-US',  // Zulu → US English (no native voice)
+      'xh': 'en-US',  // Xhosa → US English (no native voice)
+      'am': 'en-US',  // Amharic → US English (no native voice)
+      'so': 'en-US',  // Somali → US English (no native voice)
+      'rw': 'en-US',  // Kinyarwanda → US English (no native voice)
     };
 
     const languageCode = googleLangCodes[langCode] || 'en-US';
+
+    const ssml = convertToSSML(text, langCode);
+    const voiceName = getVoiceName(languageCode);
     
-    console.log(`Speaking "${text}" in ${languageCode} using Google TTS`);
+    console.log(`Speaking with SSML pronounciation in ${languageCode}`);
 
     // Call Google Cloud TTS API
     const response = await fetch(
@@ -527,15 +685,17 @@ export default function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          input: { text },
+          input: { 
+            ssml: ssml
+          },
           voice: {
-            languageCode: languageCode,
-            name: getVoiceName(languageCode),
+            languageCode: languageCode, ...(voiceName && {name: voiceName}),
+            ssmlGender: 'FEMALE',
           },
           audioConfig: {
             audioEncoding: 'MP3',
-            pitch: 0,
-            speakingRate: 0.85,
+            pitch: getPitchForLanguage(langCode),
+            speakingRate: getRateForLanguage(langCode),
             volumeGainDb: 0,
           },
         }),
@@ -551,16 +711,31 @@ export default function App() {
     }
 
     if (data.audioContent) {
-      console.log('Got audio from Google TTS');
+      console.log('✅ Got SSML audio from Google! Playing now...');
       
-      // Since we don't have expo-av, we'll use expo-speech as fallback
-      // The API call succeeded, so we know the backend works
-      // When expo-av is fixed, we can play the actual audio
-      
-      // For now, use expo-speech with improved settings
-      fallbackToExpoSpeech(text, langCode);
-      
-      console.log('Audio playback (using fallback until expo-av is fixed)');
+      try {
+        const fileUri = `${FileSystem.cacheDirectory}tts_${Date.now()}.mp3`;
+        await FileSystem.writeAsStringAsync(fileUri, data.audioContent, {
+          encoding: 'base64',
+        });
+
+        console.log('💾 Audio saved, playing...');
+
+        // Load and play with expo-audio
+        audioPlayer.replace({ uri: fileUri });
+        audioPlayer.play();
+
+        console.log('Playing Google TTS with SSML pronunciation!');
+
+        // Cleanup after playback
+        setTimeout(() => {
+          FileSystem.deleteAsync(fileUri, { idempotent: true });
+        }, 10000);
+      } catch (audioError) {
+        console.error('Audio playback error:', audioError);
+        console.log('Falling back to expo-speech...');
+        fallbackToExpoSpeech(text, langCode);
+      }
     }
   } catch (error) {
     console.error('Google TTS error:', error);
@@ -568,20 +743,16 @@ export default function App() {
   }
 };
 
-
-  const getVoiceName = (languageCode) => {
+const getVoiceName = (languageCode) => {
   const voiceNames = {
-    'sw-KE': 'sw-KE-Standard-A',
-    'zu-ZA': 'zu-ZA-Standard-A',
-    'af-ZA': 'af-ZA-Standard-A',
-    'en-NG': 'en-NG-Standard-A',
-    'en-ZA': 'en-ZA-Standard-A',
-    'fr-FR': 'fr-FR-Neural2-A',
-    'ar-SA': 'ar-XA-Standard-A',
-    'pt-PT': 'pt-PT-Standard-A',
+    'sw-KE': 'sw-KE-Standard-A',   // Swahili - WORKS
+    'af-ZA': 'af-ZA-Standard-A',   // Afrikaans - WORKS
+    'fr-FR': 'fr-FR-Neural2-A',    // French - WORKS
+    'ar-XA': 'ar-XA-Standard-A',   // Arabic - WORKS
+    'pt-PT': 'pt-PT-Standard-A',   // Portuguese - WORKS
   };
 
-  return voiceNames[languageCode] || null;
+  return voiceNames[languageCode] || null;  // Return null for others
 };
 
 const fallbackToExpoSpeech = async (text, langCode) => {
