@@ -135,19 +135,19 @@ const convertToSSML = (text, langCode) => {
   let ssml = '<speak>';
 
   switch(langCode) {
-    case 'yo': // Yoruba
+    case 'yo': 
       ssml += applyYorubaTones(text);
       break;
-    case 'ha': // Hausa
+    case 'ha': 
       ssml += applyHausaPronunciation(text);
       break;
-    case 'ig': // Igbo
+    case 'ig': 
       ssml += applyIgboTones(text);
       break;
-    case 'sw': // Swahili
+    case 'sw': 
       ssml += applySwahiliPronunciation(text);
       break;
-    case 'zu': // Zulu
+    case 'zu': 
       ssml += applyZuluPronunciation(text);
       break;
     default:
@@ -259,26 +259,24 @@ const applyZuluPronunciation = (text) => {
   return result;
 };
 
-// Language-specific pitch
 const getPitchForLanguage = (langCode) => {
   const pitchMap = {
-    'yo': 5,   // Yoruba - higher for tones
-    'ig': 5,   // Igbo - higher for tones
-    'ha': 0,   // Hausa - neutral
-    'sw': -2,  // Swahili - slightly lower
-    'zu': 0,   // Zulu - neutral
+    'yo': 5,  
+    'ig': 5,   
+    'ha': 0,   
+    'sw': -2,  
+    'zu': 0,   
   };
   return pitchMap[langCode] || 0;
 };
 
-// Language-specific speaking rate
 const getRateForLanguage = (langCode) => {
   const rateMap = {
-    'yo': 0.8,   // Yoruba - slower for clarity
-    'ig': 0.8,   // Igbo - slower for clarity
-    'ha': 0.85,  // Hausa - moderate
-    'sw': 0.9,   // Swahili - moderate
-    'zu': 0.85,  // Zulu - moderate
+    'yo': 0.8,   
+    'ig': 0.8,   
+    'ha': 0.85,  
+    'sw': 0.9,   
+    'zu': 0.85,  
   };
   return rateMap[langCode] || 0.85;
 };
@@ -405,7 +403,7 @@ export default function App() {
       audioEndListener.remove();
       endListener.remove();
     };
-  }, [sourceLang, targetLang]); // Re-register listeners when languages change
+  }, [sourceLang, targetLang]); 
 
   const requestPermissions = async () => {
     try {
@@ -499,7 +497,6 @@ export default function App() {
                                   sourceLang === 'sw' ? 'sw-KE' : 
                                   'en-US';
 
-      // Start speech recognition
       await ExpoSpeechRecognitionModule.start({
         lang: recognitionLang,
         interimResults: true,
@@ -603,13 +600,14 @@ export default function App() {
     }
   };
 
+  /*
   const toggleConversationMode = () => {
     setConversationMode(!conversationMode);
     hapticFeedback('medium');
     if (!conversationMode) {
       setConversationHistory([]);
     }
-  };
+  };*/
 
   const swapLanguages = () => {
     hapticFeedback();
@@ -626,7 +624,6 @@ export default function App() {
       
       const data = await response.json();
     
-      // The detected language is in data[2]
       if (data && data[2]) {
         const detectedLang = data[2];
         console.log('Detected language:', detectedLang);
@@ -653,20 +650,20 @@ export default function App() {
     }
 
     const googleLangCodes = {
-      'sw': 'sw-KE',  // Swahili - HAS native voice
-      'af': 'af-ZA',  // Afrikaans - HAS native voice
-      'fr': 'fr-FR',  // French - HAS native voice
-      'ar': 'ar-XA',  // Arabic - HAS native voice (use ar-XA not ar-SA)
-      'pt': 'pt-PT',  // Portuguese - HAS native voice
-      'en': 'en-US',  // English - use US English
-      'yo': 'en-US',  // Yoruba → US English (no native voice)
-      'ha': 'en-US',  // Hausa → US English (no native voice)
-      'ig': 'en-US',  // Igbo → US English (no native voice)
-      'zu': 'en-US',  // Zulu → US English (no native voice)
-      'xh': 'en-US',  // Xhosa → US English (no native voice)
-      'am': 'en-US',  // Amharic → US English (no native voice)
-      'so': 'en-US',  // Somali → US English (no native voice)
-      'rw': 'en-US',  // Kinyarwanda → US English (no native voice)
+      'sw': 'sw-KE',  
+      'af': 'af-ZA',  
+      'fr': 'fr-FR',  
+      'ar': 'ar-XA',  
+      'pt': 'pt-PT',  
+      'en': 'en-US',  
+      'yo': 'en-US',  
+      'ha': 'en-US',  
+      'ig': 'en-US',  
+      'zu': 'en-US',  
+      'xh': 'en-US',  
+      'am': 'en-US',  
+      'so': 'en-US',  
+      'rw': 'en-US',  
     };
 
     const languageCode = googleLangCodes[langCode] || 'en-US';
@@ -676,7 +673,7 @@ export default function App() {
     
     console.log(`Speaking with SSML pronounciation in ${languageCode}`);
 
-    // Call Google Cloud TTS API
+    // Call Google Cloud TTS API with ssml
     const response = await fetch(
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`,
       {
@@ -711,7 +708,7 @@ export default function App() {
     }
 
     if (data.audioContent) {
-      console.log('✅ Got SSML audio from Google! Playing now...');
+      console.log('Got SSML audio from Google! Playing now...');
       
       try {
         const fileUri = `${FileSystem.cacheDirectory}tts_${Date.now()}.mp3`;
@@ -719,7 +716,7 @@ export default function App() {
           encoding: 'base64',
         });
 
-        console.log('💾 Audio saved, playing...');
+        console.log('Audio saved, playing...');
 
         // Load and play with expo-audio
         audioPlayer.replace({ uri: fileUri });
@@ -745,14 +742,14 @@ export default function App() {
 
 const getVoiceName = (languageCode) => {
   const voiceNames = {
-    'sw-KE': 'sw-KE-Standard-A',   // Swahili - WORKS
-    'af-ZA': 'af-ZA-Standard-A',   // Afrikaans - WORKS
-    'fr-FR': 'fr-FR-Neural2-A',    // French - WORKS
-    'ar-XA': 'ar-XA-Standard-A',   // Arabic - WORKS
-    'pt-PT': 'pt-PT-Standard-A',   // Portuguese - WORKS
+    'sw-KE': 'sw-KE-Standard-A',   
+    'af-ZA': 'af-ZA-Standard-A',   
+    'fr-FR': 'fr-FR-Neural2-A',    
+    'ar-XA': 'ar-XA-Standard-A',   
+    'pt-PT': 'pt-PT-Standard-A',   
   };
 
-  return voiceNames[languageCode] || null;  // Return null for others
+  return voiceNames[languageCode] || null;  
 };
 
 const fallbackToExpoSpeech = async (text, langCode) => {
