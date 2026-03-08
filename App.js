@@ -42,7 +42,6 @@ const AFRICAN_LANGUAGES = [
   { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#ec0404' },
 ];
 
-// Offline translation packs - common phrases that work without internet
 const OFFLINE_PACKS = {
   'sw': {
     'Hello': 'Habari',
@@ -157,17 +156,101 @@ const convertToSSML = (text, langCode) => {
   return ssml;
 }
 
-// Yoruba pronunciation with tonal markings
 const applyYorubaTones = (text) => {
   const pronunciationMap = {
+    // Greetings & Time of Day
     'Bawo': '<phoneme alphabet="ipa" ph="baː.wɔ">Bawo</phoneme>',
     'E kaaro': '<phoneme alphabet="ipa" ph="ɛ kaː.ɾɔ">E kaaro</phoneme>',
+    'E kaasan': '<phoneme alphabet="ipa" ph="ɛ kaː.san">E kaasan</phoneme>',
+    'E kale': '<phoneme alphabet="ipa" ph="ɛ ka.lɛ">E kale</phoneme>',
+    'E ku irole': '<phoneme alphabet="ipa" ph="ɛ ku i.ɾɔ.lɛ">E ku irole</phoneme>',
+    'E ku ọsan': '<phoneme alphabet="ipa" ph="ɛ ku ɔ.san">E ku ọsan</phoneme>',
+    'Pele': '<phoneme alphabet="ipa" ph="pɛ.lɛ">Pele</phoneme>',
+    
+    // Thank you / Please
     'E se': '<phoneme alphabet="ipa" ph="ɛ ʃɛ">E se</phoneme>',
+    'E se pupo': '<phoneme alphabet="ipa" ph="ɛ ʃɛ pú.pɔ̀">E se pupo</phoneme>',
+    'E se gan': '<phoneme alphabet="ipa" ph="ɛ ʃɛ gan">E se gan</phoneme>',
+    'O se': '<phoneme alphabet="ipa" ph="ɔ ʃɛ">O se</phoneme>',
     'Jọwọ': '<phoneme alphabet="ipa" ph="dʒɔ.wɔ">Jọwọ</phoneme>',
+    'Ejo': '<phoneme alphabet="ipa" ph="ɛ.dʒɔ">Ejo</phoneme>',
+    'Ejo ma': '<phoneme alphabet="ipa" ph="ɛ.dʒɔ ma">Ejo ma</phoneme>',
+    
+    // Yes/No
     'Bẹẹni': '<phoneme alphabet="ipa" ph="bɛː.ni">Bẹẹni</phoneme>',
+    'Beeni': '<phoneme alphabet="ipa" ph="bɛː.ni">Beeni</phoneme>',
     'Rara': '<phoneme alphabet="ipa" ph="ɾa.ɾa">Rara</phoneme>',
+    'Ko si': '<phoneme alphabet="ipa" ph="kɔ ʃi">Ko si</phoneme>',
+    'Bẹẹ': '<phoneme alphabet="ipa" ph="bɛː">Bẹẹ</phoneme>',
+    
+    // How are you / I am fine
+    'Bawo ni': '<phoneme alphabet="ipa" ph="baː.wɔ ni">Bawo ni</phoneme>',
+    'Se daadaa ni': '<phoneme alphabet="ipa" ph="ʃɛ daː.daː ni">Se daadaa ni</phoneme>',
+    'Mo wa daadaa': '<phoneme alphabet="ipa" ph="mɔ wa daː.daː">Mo wa daadaa</phoneme>',
+    'Daadaa': '<phoneme alphabet="ipa" ph="daː.daː">Daadaa</phoneme>',
+    'Mo wa dupe': '<phoneme alphabet="ipa" ph="mɔ wa du.pɛ">Mo wa dupe</phoneme>',
+    'Alafia': '<phoneme alphabet="ipa" ph="a.la.fi.a">Alafia</phoneme>',
+    
+    // Goodbye
     'O dabo': '<phoneme alphabet="ipa" ph="ɔ da.bɔ">O dabo</phoneme>',
+    'O da': '<phoneme alphabet="ipa" ph="ɔ da">O da</phoneme>',
+    'Ma a ri e': '<phoneme alphabet="ipa" ph="maː ɾi ɛ">Ma a ri e</phoneme>',
+    'O digba': '<phoneme alphabet="ipa" ph="ɔ di.gba">O digba</phoneme>',
+    
+    // Help / Emergency
     'Mo nilo iranlọwọ': '<phoneme alphabet="ipa" ph="mɔ ní.lɔ i.ɾan.lɔ.wɔ">Mo nilo iranlọwọ</phoneme>',
+    'E gba mi': '<phoneme alphabet="ipa" ph="ɛ gba mi">E gba mi</phoneme>',
+    'Iranlọwọ': '<phoneme alphabet="ipa" ph="i.ɾan.lɔ.wɔ">Iranlọwọ</phoneme>',
+    'Ran mi lọwọ': '<phoneme alphabet="ipa" ph="ɾan mi lɔ.wɔ">Ran mi lọwọ</phoneme>',
+    'Egba mi o': '<phoneme alphabet="ipa" ph="ɛ.gba mi ɔ">Egba mi o</phoneme>',
+    
+    // Questions
+    'Nibo ni': '<phoneme alphabet="ipa" ph="ní.bɔ ni">Nibo ni</phoneme>',
+    'Nibo ni baluwe wa': '<phoneme alphabet="ipa" ph="ní.bɔ ni ba.lu.wɛ wa">Nibo ni baluwe wa</phoneme>',
+    'Elo ni': '<phoneme alphabet="ipa" ph="ɛ.lɔ ni">Elo ni</phoneme>',
+    'Kini': '<phoneme alphabet="ipa" ph="kí.ni">Kini</phoneme>',
+    'Kilode': '<phoneme alphabet="ipa" ph="kí.lɔ.dɛ">Kilode</phoneme>',
+    'Nigbawo': '<phoneme alphabet="ipa" ph="ní.gba.wɔ">Nigbawo</phoneme>',
+    'Tani': '<phoneme alphabet="ipa" ph="tá.ni">Tani</phoneme>',
+    'Bawo ni o se': '<phoneme alphabet="ipa" ph="baː.wɔ ni ɔ ʃɛ">Bawo ni o se</phoneme>',
+    
+    // Food / Water / Basic Needs
+    'Omi': '<phoneme alphabet="ipa" ph="ɔ.mi">Omi</phoneme>',
+    'Ounjẹ': '<phoneme alphabet="ipa" ph="ɔ.un.dʒɛ">Ounjẹ</phoneme>',
+    'Mo wa ounjẹ': '<phoneme alphabet="ipa" ph="mɔ wa ɔ.un.dʒɛ">Mo wa ounjẹ</phoneme>',
+    'Ebi n pa mi': '<phoneme alphabet="ipa" ph="ɛ.bi n̩ pa mi">Ebi n pa mi</phoneme>',
+    'Mo feran': '<phoneme alphabet="ipa" ph="mɔ fɛ.ɾan">Mo feran</phoneme>',
+    'Mo fẹ': '<phoneme alphabet="ipa" ph="mɔ fɛ">Mo fẹ</phoneme>',
+    'Nkan mimu': '<phoneme alphabet="ipa" ph="n̩.kan mi.mu">Nkan mimu</phoneme>',
+    
+    // Common words
+    'Oruko': '<phoneme alphabet="ipa" ph="ɔ.ɾu.kɔ">Oruko</phoneme>',
+    'Orukọ mi ni': '<phoneme alphabet="ipa" ph="ɔ.ɾu.kɔ mi ni">Orukọ mi ni</phoneme>',
+    'Owo': '<phoneme alphabet="ipa" ph="ɔ.wɔ">Owo</phoneme>',
+    'Ile': '<phoneme alphabet="ipa" ph="i.lɛ">Ile</phoneme>',
+    'Oja': '<phoneme alphabet="ipa" ph="ɔ.dʒa">Oja</phoneme>',
+    'Aye': '<phoneme alphabet="ipa" ph="a.jɛ">Aye</phoneme>',
+    'Ọjọ': '<phoneme alphabet="ipa" ph="ɔ.dʒɔ">Ọjọ</phoneme>',
+    
+    // Direction / Location
+    'Apa ọtun': '<phoneme alphabet="ipa" ph="a.pa ɔ.tun">Apa ọtun</phoneme>',
+    'Apa osi': '<phoneme alphabet="ipa" ph="a.pa ɔ.si">Apa osi</phoneme>',
+    'Iwaju': '<phoneme alphabet="ipa" ph="i.wa.dʒu">Iwaju</phoneme>',
+    'Ehin': '<phoneme alphabet="ipa" ph="ɛ.hin">Ehin</phoneme>',
+    'Ninu': '<phoneme alphabet="ipa" ph="ní.nu">Ninu</phoneme>',
+    'Lode': '<phoneme alphabet="ipa" ph="lɔ.dɛ">Lode</phoneme>',
+    
+    // Numbers
+    'Ọkan': '<phoneme alphabet="ipa" ph="ɔ.kan">Ọkan</phoneme>',
+    'Meji': '<phoneme alphabet="ipa" ph="mɛ.dʒi">Meji</phoneme>',
+    'Meta': '<phoneme alphabet="ipa" ph="mɛ.ta">Meta</phoneme>',
+    'Merin': '<phoneme alphabet="ipa" ph="mɛ.ɾin">Merin</phoneme>',
+    'Marun': '<phoneme alphabet="ipa" ph="ma.ɾun">Marun</phoneme>',
+    'Mefa': '<phoneme alphabet="ipa" ph="mɛ.fa">Mefa</phoneme>',
+    'Meje': '<phoneme alphabet="ipa" ph="mɛ.dʒɛ">Meje</phoneme>',
+    'Mejo': '<phoneme alphabet="ipa" ph="mɛ.dʒɔ">Mejo</phoneme>',
+    'Mesan': '<phoneme alphabet="ipa" ph="mɛ.san">Mesan</phoneme>',
+    'Mẹwa': '<phoneme alphabet="ipa" ph="mɛ.wa">Mẹwa</phoneme>',
   };
   
   let result = text;
@@ -180,14 +263,106 @@ const applyYorubaTones = (text) => {
   return result;
 };
 
-// Hausa pronunciation
+// HAUSA - 65+ words
 const applyHausaPronunciation = (text) => {
   const pronunciationMap = {
+    // Greetings & Time of Day
     'Sannu': '<phoneme alphabet="ipa" ph="sän.nú">Sannu</phoneme>',
     'Ina kwana': '<phoneme alphabet="ipa" ph="i.na kwa.na">Ina kwana</phoneme>',
+    'Ina yamma': '<phoneme alphabet="ipa" ph="i.na jam.ma">Ina yamma</phoneme>',
+    'Barka da yamma': '<phoneme alphabet="ipa" ph="bar.ka da jam.ma">Barka da yamma</phoneme>',
+    'Barka da safe': '<phoneme alphabet="ipa" ph="bar.ka da sa.fɛ">Barka da safe</phoneme>',
+    'Ina wuni': '<phoneme alphabet="ipa" ph="i.na wu.ni">Ina wuni</phoneme>',
+    'Sanu da zuwa': '<phoneme alphabet="ipa" ph="sa.nu da zu.wa">Sanu da zuwa</phoneme>',
+    'Maraba': '<phoneme alphabet="ipa" ph="ma.ra.ba">Maraba</phoneme>',
+    
+    // Thank you / Please
     'Na gode': '<phoneme alphabet="ipa" ph="na gɔ.dɛ">Na gode</phoneme>',
+    'Na gode sosai': '<phoneme alphabet="ipa" ph="na gɔ.dɛ sɔ.saɪ">Na gode sosai</phoneme>',
+    'Godiya': '<phoneme alphabet="ipa" ph="gɔ.di.ja">Godiya</phoneme>',
     'Don Allah': '<phoneme alphabet="ipa" ph="dɔn al.lah">Don Allah</phoneme>',
+    'Allah ya ba da rahama': '<phoneme alphabet="ipa" ph="al.lah ja ba da ɾa.ha.ma">Allah ya ba da rahama</phoneme>',
+    'Ku yi hakuri': '<phoneme alphabet="ipa" ph="ku ji ha.ku.ɾi">Ku yi hakuri</phoneme>',
+    
+    // Yes/No
+    'Eh': '<phoneme alphabet="ipa" ph="ɛh">Eh</phoneme>',
+    "A'a": '<phoneme alphabet="ipa" ph="aʔa">A\'a</phoneme>',
+    'I': '<phoneme alphabet="ipa" ph="iː">I</phoneme>',
+    'Ba haka ba': '<phoneme alphabet="ipa" ph="ba ha.ka ba">Ba haka ba</phoneme>',
+    'Tabbas': '<phoneme alphabet="ipa" ph="tab.bas">Tabbas</phoneme>',
+    'To': '<phoneme alphabet="ipa" ph="tɔ">To</phoneme>',
+    
+    // How are you / I am fine
     'Yaya dai': '<phoneme alphabet="ipa" ph="ja.ja daɪ">Yaya dai</phoneme>',
+    'Yaya kake': '<phoneme alphabet="ipa" ph="ja.ja ka.kɛ">Yaya kake</phoneme>',
+    'Yaya kike': '<phoneme alphabet="ipa" ph="ja.ja ki.kɛ">Yaya kike</phoneme>',
+    'Lafiya lau': '<phoneme alphabet="ipa" ph="la.fi.ja laʊ">Lafiya lau</phoneme>',
+    'Lafiya': '<phoneme alphabet="ipa" ph="la.fi.ja">Lafiya</phoneme>',
+    'Alhamdulillah': '<phoneme alphabet="ipa" ph="al.ham.du.lil.lah">Alhamdulillah</phoneme>',
+    'Kalau dai': '<phoneme alphabet="ipa" ph="ka.laʊ daɪ">Kalau dai</phoneme>',
+    
+    // Goodbye
+    'Sai an jima': '<phoneme alphabet="ipa" ph="saɪ an dʒi.ma">Sai an jima</phoneme>',
+    'Sai gobe': '<phoneme alphabet="ipa" ph="saɪ gɔ.bɛ">Sai gobe</phoneme>',
+    'Sai wata rana': '<phoneme alphabet="ipa" ph="saɪ wa.ta ɾa.na">Sai wata rana</phoneme>',
+    'Allah ya kiyaye': '<phoneme alphabet="ipa" ph="al.lah ja ki.ja.jɛ">Allah ya kiyaye</phoneme>',
+    'Sai anjima': '<phoneme alphabet="ipa" ph="saɪ an.dʒi.ma">Sai anjima</phoneme>',
+    
+    // Help / Emergency
+    'Ina buƙatar taimako': '<phoneme alphabet="ipa" ph="i.na bu.ka.tar taɪ.ma.kɔ">Ina buƙatar taimako</phoneme>',
+    'Taimako': '<phoneme alphabet="ipa" ph="taɪ.ma.kɔ">Taimako</phoneme>',
+    'Ku taimake ni': '<phoneme alphabet="ipa" ph="ku taɪ.ma.kɛ ni">Ku taimake ni</phoneme>',
+    'Ku taimaki ni': '<phoneme alphabet="ipa" ph="ku taɪ.ma.ki ni">Ku taimaki ni</phoneme>',
+    'Taimaka': '<phoneme alphabet="ipa" ph="taɪ.ma.ka">Taimaka</phoneme>',
+    
+    // Questions
+    'Ina': '<phoneme alphabet="ipa" ph="i.na">Ina</phoneme>',
+    'Ina toilet': '<phoneme alphabet="ipa" ph="i.na tɔɪ.lɛt">Ina toilet</phoneme>',
+    'Ina wanka': '<phoneme alphabet="ipa" ph="i.na wan.ka">Ina wanka</phoneme>',
+    'Nawa ne': '<phoneme alphabet="ipa" ph="na.wa nɛ">Nawa ne</phoneme>',
+    'Me ne': '<phoneme alphabet="ipa" ph="mɛ nɛ">Me ne</phoneme>',
+    'Yaushe': '<phoneme alphabet="ipa" ph="jaʊ.ʃɛ">Yaushe</phoneme>',
+    'Don me': '<phoneme alphabet="ipa" ph="dɔn mɛ">Don me</phoneme>',
+    'Wa ne': '<phoneme alphabet="ipa" ph="wa nɛ">Wa ne</phoneme>',
+    'Yaya': '<phoneme alphabet="ipa" ph="ja.ja">Yaya</phoneme>',
+    
+    // Food / Water / Basic Needs
+    'Ruwa': '<phoneme alphabet="ipa" ph="ɾu.wa">Ruwa</phoneme>',
+    'Abinci': '<phoneme alphabet="ipa" ph="a.bin.t͡ʃi">Abinci</phoneme>',
+    'Ina jin yunwa': '<phoneme alphabet="ipa" ph="i.na dʒin jun.wa">Ina jin yunwa</phoneme>',
+    'Ina jin ƙishirwa': '<phoneme alphabet="ipa" ph="i.na dʒin ki.ʃiɾ.wa">Ina jin ƙishirwa</phoneme>',
+    'Ina son': '<phoneme alphabet="ipa" ph="i.na sɔn">Ina son</phoneme>',
+    'Ina so': '<phoneme alphabet="ipa" ph="i.na sɔ">Ina so</phoneme>',
+    'Abin sha': '<phoneme alphabet="ipa" ph="a.bin ʃa">Abin sha</phoneme>',
+    
+    // Common words
+    'Suna': '<phoneme alphabet="ipa" ph="su.na">Suna</phoneme>',
+    'Sunana': '<phoneme alphabet="ipa" ph="su.na.na">Sunana</phoneme>',
+    'Kuɗi': '<phoneme alphabet="ipa" ph="ku.ɗi">Kuɗi</phoneme>',
+    'Gida': '<phoneme alphabet="ipa" ph="gi.da">Gida</phoneme>',
+    'Kasuwa': '<phoneme alphabet="ipa" ph="ka.su.wa">Kasuwa</phoneme>',
+    'Duniya': '<phoneme alphabet="ipa" ph="du.ni.ja">Duniya</phoneme>',
+    'Rana': '<phoneme alphabet="ipa" ph="ɾa.na">Rana</phoneme>',
+    
+    // Direction / Location
+    'Dama': '<phoneme alphabet="ipa" ph="da.ma">Dama</phoneme>',
+    'Hagu': '<phoneme alphabet="ipa" ph="ha.gu">Hagu</phoneme>',
+    'Gaba': '<phoneme alphabet="ipa" ph="ga.ba">Gaba</phoneme>',
+    'Baya': '<phoneme alphabet="ipa" ph="ba.ja">Baya</phoneme>',
+    'Ciki': '<phoneme alphabet="ipa" ph="t͡ʃi.ki">Ciki</phoneme>',
+    'Waje': '<phoneme alphabet="ipa" ph="wa.dʒɛ">Waje</phoneme>',
+    
+    // Numbers
+    'Daya': '<phoneme alphabet="ipa" ph="da.ja">Daya</phoneme>',
+    'Biyu': '<phoneme alphabet="ipa" ph="bi.ju">Biyu</phoneme>',
+    'Uku': '<phoneme alphabet="ipa" ph="u.ku">Uku</phoneme>',
+    'Huɗu': '<phoneme alphabet="ipa" ph="hu.ɗu">Huɗu</phoneme>',
+    'Biyar': '<phoneme alphabet="ipa" ph="bi.jar">Biyar</phoneme>',
+    'Shida': '<phoneme alphabet="ipa" ph="ʃi.da">Shida</phoneme>',
+    'Bakwai': '<phoneme alphabet="ipa" ph="bak.waɪ">Bakwai</phoneme>',
+    'Takwas': '<phoneme alphabet="ipa" ph="tak.was">Takwas</phoneme>',
+    'Tara': '<phoneme alphabet="ipa" ph="ta.ɾa">Tara</phoneme>',
+    'Goma': '<phoneme alphabet="ipa" ph="gɔ.ma">Goma</phoneme>',
   };
   
   let result = text;
@@ -199,14 +374,103 @@ const applyHausaPronunciation = (text) => {
   return result;
 };
 
-// Igbo pronunciation with tones
+// IGBO - 60+ words with tones
 const applyIgboTones = (text) => {
   const pronunciationMap = {
+    // Greetings & Time of Day
     'Ndewo': '<phoneme alphabet="ipa" ph="n̩.dé.wò">Ndewo</phoneme>',
     'Ụtụtụ ọma': '<phoneme alphabet="ipa" ph="ʊ̀.tʊ̀.tʊ̀ ɔ̀.má">Ụtụtụ ọma</phoneme>',
+    'Ehihie ọma': '<phoneme alphabet="ipa" ph="è.hì.hìɛ̀ ɔ̀.má">Ehihie ọma</phoneme>',
+    'Mgbede ọma': '<phoneme alphabet="ipa" ph="m̩.ɡbé.dè ɔ̀.má">Mgbede ọma</phoneme>',
+    'Abalị ọma': '<phoneme alphabet="ipa" ph="à.bà.lì ɔ̀.má">Abalị ọma</phoneme>',
+    'Ọ dị mma': '<phoneme alphabet="ipa" ph="ɔ̀ dì m̩.mà">Ọ dị mma</phoneme>',
+    'Nnọọ': '<phoneme alphabet="ipa" ph="n̩.nɔ̀ː">Nnọọ</phoneme>',
+    
+    // Thank you / Please
     'Daalụ': '<phoneme alphabet="ipa" ph="dàː.lʊ́">Daalụ</phoneme>',
+    'Daalụ rinne': '<phoneme alphabet="ipa" ph="dàː.lʊ́ ɾìn.nè">Daalụ rinne</phoneme>',
+    'I meela': '<phoneme alphabet="ipa" ph="ì mèː.là">I meela</phoneme>',
+    'Imela': '<phoneme alphabet="ipa" ph="ì.mè.là">Imela</phoneme>',
     'Biko': '<phoneme alphabet="ipa" ph="bí.kò">Biko</phoneme>',
+    'Nna biko': '<phoneme alphabet="ipa" ph="n̩.nà bí.kò">Nna biko</phoneme>',
+    'Biko nwanne': '<phoneme alphabet="ipa" ph="bí.kò n̩.wàn.nè">Biko nwanne</phoneme>',
+    
+    // Yes/No
+    'Ee': '<phoneme alphabet="ipa" ph="èː">Ee</phoneme>',
+    'Mba': '<phoneme alphabet="ipa" ph="m̩.bà">Mba</phoneme>',
+    'Ọ dị mma': '<phoneme alphabet="ipa" ph="ɔ̀ dì m̩.mà">Ọ dị mma</phoneme>',
+    'Ọ dịghị': '<phoneme alphabet="ipa" ph="ɔ̀ dì.ɣì">Ọ dịghị</phoneme>',
+    'Eziokwu': '<phoneme alphabet="ipa" ph="è.zì.ò.kwù">Eziokwu</phoneme>',
+    
+    // How are you / I am fine
     'Kedu': '<phoneme alphabet="ipa" ph="kè.dù">Kedu</phoneme>',
+    'Kedu ka ị mere': '<phoneme alphabet="ipa" ph="kè.dù kà ì mè.ɾè">Kedu ka ị mere</phoneme>',
+    'Kedu ka ị dị': '<phoneme alphabet="ipa" ph="kè.dù kà ì dì">Kedu ka ị dị</phoneme>',
+    'A dị m mma': '<phoneme alphabet="ipa" ph="à dì m̩ m̩.mà">A dị m mma</phoneme>',
+    'Ka ọ dị': '<phoneme alphabet="ipa" ph="kà ɔ̀ dì">Ka ọ dị</phoneme>',
+    'Ọ dị mma': '<phoneme alphabet="ipa" ph="ɔ̀ dì m̩.mà">Ọ dị mma</phoneme>',
+    
+    // Goodbye
+    'Ka ọ dị': '<phoneme alphabet="ipa" ph="kà ɔ̀ dì">Ka ọ dị</phoneme>',
+    'Ka ọmesịa': '<phoneme alphabet="ipa" ph="kà ɔ̀.mè.sì.à">Ka ọmesịa</phoneme>',
+    'Ka chi fo': '<phoneme alphabet="ipa" ph="kà t͡ʃì fò">Ka chi fo</phoneme>',
+    'Nọdụ nke ọma': '<phoneme alphabet="ipa" ph="nɔ̀.dʊ̀ n̩.kè ɔ̀.má">Nọdụ nke ọma</phoneme>',
+    'Jee nke ọma': '<phoneme alphabet="ipa" ph="dʒèː n̩.kè ɔ̀.má">Jee nke ọma</phoneme>',
+    
+    // Help / Emergency
+    'Achọrọ m enyemaka': '<phoneme alphabet="ipa" ph="à.t͡ʃɔ́.ɾɔ́ m̩ è.ɲè.má.kà">Achọrọ m enyemaka</phoneme>',
+    'Nyere m aka': '<phoneme alphabet="ipa" ph="ɲè.ɾè m̩ à.kà">Nyere m aka</phoneme>',
+    'Enyemaka': '<phoneme alphabet="ipa" ph="è.ɲè.má.kà">Enyemaka</phoneme>',
+    'Nyere m aka': '<phoneme alphabet="ipa" ph="ɲè.ɾè m̩ à.kà">Nyere m aka</phoneme>',
+    'Biko nyere m aka': '<phoneme alphabet="ipa" ph="bí.kò ɲè.ɾè m̩ à.kà">Biko nyere m aka</phoneme>',
+    
+    // Questions
+    'Olee': '<phoneme alphabet="ipa" ph="ò.lèː">Olee</phoneme>',
+    'Olee ebe': '<phoneme alphabet="ipa" ph="ò.lèː è.bè">Olee ebe</phoneme>',
+    'Olee ebe ụlọ mposi dị': '<phoneme alphabet="ipa" ph="ò.lèː è.bè ʊ̀.lɔ̀ m̩.pò.sì dì">Olee ebe ụlọ mposi dị</phoneme>',
+    'Ego ole': '<phoneme alphabet="ipa" ph="è.ɡò ò.lè">Ego ole</phoneme>',
+    'Gịnị': '<phoneme alphabet="ipa" ph="ɡì.nì">Gịnị</phoneme>',
+    'Mgbe': '<phoneme alphabet="ipa" ph="m̩.ɡbè">Mgbe</phoneme>',
+    'Gịnị mere': '<phoneme alphabet="ipa" ph="ɡì.nì mè.ɾè">Gịnị mere</phoneme>',
+    'Ònye': '<phoneme alphabet="ipa" ph="ɔ̀.ɲè">Ònye</phoneme>',
+    'Kedu ihe': '<phoneme alphabet="ipa" ph="kè.dù ì.hè">Kedu ihe</phoneme>',
+    
+    // Food / Water / Basic Needs
+    'Mmiri': '<phoneme alphabet="ipa" ph="m̩.mí.ɾì">Mmiri</phoneme>',
+    'Nri': '<phoneme alphabet="ipa" ph="n̩.ɾì">Nri</phoneme>',
+    'Agụụ na-agụ m': '<phoneme alphabet="ipa" ph="à.ɡʊ̀.ʊ̀ nà à.ɡʊ̀ m̩">Agụụ na-agụ m</phoneme>',
+    'Achọrọ m': '<phoneme alphabet="ipa" ph="à.t͡ʃɔ́.ɾɔ́ m̩">Achọrọ m</phoneme>',
+    'Ana m achọ': '<phoneme alphabet="ipa" ph="à.nà m̩ à.t͡ʃɔ́">Ana m achọ</phoneme>',
+    'Ihe ọṅụṅụ': '<phoneme alphabet="ipa" ph="ì.hè ɔ̀.ŋʊ̀.ŋʊ̀">Ihe ọṅụṅụ</phoneme>',
+    
+    // Common words
+    'Aha': '<phoneme alphabet="ipa" ph="à.hà">Aha</phoneme>',
+    'Aha m bụ': '<phoneme alphabet="ipa" ph="à.hà m̩ bʊ̀">Aha m bụ</phoneme>',
+    'Ego': '<phoneme alphabet="ipa" ph="è.ɡò">Ego</phoneme>',
+    'Ụlọ': '<phoneme alphabet="ipa" ph="ʊ̀.lɔ̀">Ụlọ</phoneme>',
+    'Ahịa': '<phoneme alphabet="ipa" ph="à.hì.à">Ahịa</phoneme>',
+    'Ụwa': '<phoneme alphabet="ipa" ph="ʊ̀.wà">Ụwa</phoneme>',
+    'Ụbọchị': '<phoneme alphabet="ipa" ph="ʊ̀.bɔ̀.t͡ʃì">Ụbọchị</phoneme>',
+    
+    // Direction / Location
+    'Aka nri': '<phoneme alphabet="ipa" ph="à.kà n̩.ɾì">Aka nri</phoneme>',
+    'Aka ekpe': '<phoneme alphabet="ipa" ph="à.kà è.kpè">Aka ekpe</phoneme>',
+    'Ihu': '<phoneme alphabet="ipa" ph="ì.hù">Ihu</phoneme>',
+    'Azụ': '<phoneme alphabet="ipa" ph="à.zʊ̀">Azụ</phoneme>',
+    'Ime': '<phoneme alphabet="ipa" ph="ì.mè">Ime</phoneme>',
+    'Èzí': '<phoneme alphabet="ipa" ph="è.zí">Èzí</phoneme>',
+    
+    // Numbers
+    'Otu': '<phoneme alphabet="ipa" ph="ò.tù">Otu</phoneme>',
+    'Abụọ': '<phoneme alphabet="ipa" ph="à.bʊ̀.ɔ̀">Abụọ</phoneme>',
+    'Atọ': '<phoneme alphabet="ipa" ph="à.tɔ̀">Atọ</phoneme>',
+    'Anọ': '<phoneme alphabet="ipa" ph="à.nɔ̀">Anọ</phoneme>',
+    'Ise': '<phoneme alphabet="ipa" ph="ì.sè">Ise</phoneme>',
+    'Isii': '<phoneme alphabet="ipa" ph="ì.sìː">Isii</phoneme>',
+    'Asaa': '<phoneme alphabet="ipa" ph="à.sàː">Asaa</phoneme>',
+    'Asatọ': '<phoneme alphabet="ipa" ph="à.sà.tɔ̀">Asatọ</phoneme>',
+    'Itoolu': '<phoneme alphabet="ipa" ph="ì.tòː.lù">Itoolu</phoneme>',
+    'Iri': '<phoneme alphabet="ipa" ph="ì.ɾì">Iri</phoneme>',
   };
   
   let result = text;
@@ -219,15 +483,109 @@ const applyIgboTones = (text) => {
   return result;
 };
 
-// Swahili pronunciation
+// SWAHILI - 70+ words
 const applySwahiliPronunciation = (text) => {
   const pronunciationMap = {
+    // Greetings & Time of Day
     'Habari': '<phoneme alphabet="ipa" ph="ha.ba.ɾi">Habari</phoneme>',
+    'Habari yako': '<phoneme alphabet="ipa" ph="ha.ba.ɾi ja.kɔ">Habari yako</phoneme>',
+    'Habari za asubuhi': '<phoneme alphabet="ipa" ph="ha.ba.ɾi za a.su.bu.hi">Habari za asubuhi</phoneme>',
+    'Habari za mchana': '<phoneme alphabet="ipa" ph="ha.ba.ɾi za m̩.t͡ʃa.na">Habari za mchana</phoneme>',
+    'Habari za jioni': '<phoneme alphabet="ipa" ph="ha.ba.ɾi za d͡ʒi.ɔ.ni">Habari za jioni</phoneme>',
+    'Shikamoo': '<phoneme alphabet="ipa" ph="ʃi.ka.mɔː">Shikamoo</phoneme>',
+    'Marahaba': '<phoneme alphabet="ipa" ph="ma.ɾa.ha.ba">Marahaba</phoneme>',
+    'Mambo': '<phoneme alphabet="ipa" ph="mam.bɔ">Mambo</phoneme>',
+    'Poa': '<phoneme alphabet="ipa" ph="pɔ.a">Poa</phoneme>',
+    'Salama': '<phoneme alphabet="ipa" ph="sa.la.ma">Salama</phoneme>',
+    
+    // Thank you / Please
     'Asante': '<phoneme alphabet="ipa" ph="a.san.te">Asante</phoneme>',
+    'Asante sana': '<phoneme alphabet="ipa" ph="a.san.te sa.na">Asante sana</phoneme>',
+    'Ahsante': '<phoneme alphabet="ipa" ph="ah.san.te">Ahsante</phoneme>',
     'Tafadhali': '<phoneme alphabet="ipa" ph="ta.fa.ða.li">Tafadhali</phoneme>',
+    'Karibu': '<phoneme alphabet="ipa" ph="ka.ɾi.bu">Karibu</phoneme>',
+    'Pole': '<phoneme alphabet="ipa" ph="pɔ.lɛ">Pole</phoneme>',
+    
+    // Yes/No
     'Ndiyo': '<phoneme alphabet="ipa" ph="n̩.di.jɔ">Ndiyo</phoneme>',
+    'Ndio': '<phoneme alphabet="ipa" ph="n̩.di.ɔ">Ndio</phoneme>',
     'Hapana': '<phoneme alphabet="ipa" ph="ha.pa.na">Hapana</phoneme>',
+    'Sawa': '<phoneme alphabet="ipa" ph="sa.wa">Sawa</phoneme>',
+    'La': '<phoneme alphabet="ipa" ph="la">La</phoneme>',
+    'Naam': '<phoneme alphabet="ipa" ph="naːm">Naam</phoneme>',
+    
+    // How are you / I am fine
+    'Hujambo': '<phoneme alphabet="ipa" ph="hu.d͡ʒam.bɔ">Hujambo</phoneme>',
+    'Sijambo': '<phoneme alphabet="ipa" ph="si.d͡ʒam.bɔ">Sijambo</phoneme>',
+    'Hamjambo': '<phoneme alphabet="ipa" ph="ham.d͡ʒam.bɔ">Hamjambo</phoneme>',
+    'Hatujambo': '<phoneme alphabet="ipa" ph="ha.tu.d͡ʒam.bɔ">Hatujambo</phoneme>',
+    'Nzuri': '<phoneme alphabet="ipa" ph="n̩.zu.ɾi">Nzuri</phoneme>',
+    'Vizuri': '<phoneme alphabet="ipa" ph="vi.zu.ɾi">Vizuri</phoneme>',
+    'Salama': '<phoneme alphabet="ipa" ph="sa.la.ma">Salama</phoneme>',
+    
+    // Goodbye
     'Kwaheri': '<phoneme alphabet="ipa" ph="kwa.he.ɾi">Kwaheri</phoneme>',
+    'Kwa heri': '<phoneme alphabet="ipa" ph="kwa he.ɾi">Kwa heri</phoneme>',
+    'Kwaheri ya kuonana': '<phoneme alphabet="ipa" ph="kwa.he.ɾi ja ku.ɔ.na.na">Kwaheri ya kuonana</phoneme>',
+    'Tutaonana': '<phoneme alphabet="ipa" ph="tu.ta.ɔ.na.na">Tutaonana</phoneme>',
+    'Baadaye': '<phoneme alphabet="ipa" ph="baː.da.jɛ">Baadaye</phoneme>',
+    'Safari njema': '<phoneme alphabet="ipa" ph="sa.fa.ɾi n̩.d͡ʒɛ.ma">Safari njema</phoneme>',
+    
+    // Help / Emergency
+    'Nahitaji msaada': '<phoneme alphabet="ipa" ph="na.hi.ta.d͡ʒi m̩.sa.da">Nahitaji msaada</phoneme>',
+    'Nisaidie': '<phoneme alphabet="ipa" ph="ni.sa.i.di.ɛ">Nisaidie</phoneme>',
+    'Msaada': '<phoneme alphabet="ipa" ph="m̩.sa.da">Msaada</phoneme>',
+    'Saidia': '<phoneme alphabet="ipa" ph="sa.i.di.a">Saidia</phoneme>',
+    'Tafadhali nisaidie': '<phoneme alphabet="ipa" ph="ta.fa.ða.li ni.sa.i.di.ɛ">Tafadhali nisaidie</phoneme>',
+    
+    // Questions
+    'Wapi': '<phoneme alphabet="ipa" ph="wa.pi">Wapi</phoneme>',
+    'Iko wapi': '<phoneme alphabet="ipa" ph="i.kɔ wa.pi">Iko wapi</phoneme>',
+    'Choo kiko wapi': '<phoneme alphabet="ipa" ph="t͡ʃɔː ki.kɔ wa.pi">Choo kiko wapi</phoneme>',
+    'Bei gani': '<phoneme alphabet="ipa" ph="be.i ga.ni">Bei gani</phoneme>',
+    'Nini': '<phoneme alphabet="ipa" ph="ni.ni">Nini</phoneme>',
+    'Lini': '<phoneme alphabet="ipa" ph="li.ni">Lini</phoneme>',
+    'Kwa nini': '<phoneme alphabet="ipa" ph="kwa ni.ni">Kwa nini</phoneme>',
+    'Nani': '<phoneme alphabet="ipa" ph="na.ni">Nani</phoneme>',
+    'Vipi': '<phoneme alphabet="ipa" ph="vi.pi">Vipi</phoneme>',
+    
+    // Food / Water / Basic Needs
+    'Maji': '<phoneme alphabet="ipa" ph="ma.d͡ʒi">Maji</phoneme>',
+    'Chakula': '<phoneme alphabet="ipa" ph="t͡ʃa.ku.la">Chakula</phoneme>',
+    'Nina njaa': '<phoneme alphabet="ipa" ph="ni.na n̩.d͡ʒaː">Nina njaa</phoneme>',
+    'Nina kiu': '<phoneme alphabet="ipa" ph="ni.na ki.u">Nina kiu</phoneme>',
+    'Nataka': '<phoneme alphabet="ipa" ph="na.ta.ka">Nataka</phoneme>',
+    'Napenda': '<phoneme alphabet="ipa" ph="na.pɛn.da">Napenda</phoneme>',
+    'Kinywaji': '<phoneme alphabet="ipa" ph="ki.ɲwa.d͡ʒi">Kinywaji</phoneme>',
+    
+    // Common words
+    'Jina': '<phoneme alphabet="ipa" ph="d͡ʒi.na">Jina</phoneme>',
+    'Jina langu ni': '<phoneme alphabet="ipa" ph="d͡ʒi.na la.ŋu ni">Jina langu ni</phoneme>',
+    'Pesa': '<phoneme alphabet="ipa" ph="pɛ.sa">Pesa</phoneme>',
+    'Nyumba': '<phoneme alphabet="ipa" ph="ɲum.ba">Nyumba</phoneme>',
+    'Soko': '<phoneme alphabet="ipa" ph="sɔ.kɔ">Soko</phoneme>',
+    'Dunia': '<phoneme alphabet="ipa" ph="du.ni.a">Dunia</phoneme>',
+    'Siku': '<phoneme alphabet="ipa" ph="si.ku">Siku</phoneme>',
+    
+    // Direction / Location
+    'Kulia': '<phoneme alphabet="ipa" ph="ku.li.a">Kulia</phoneme>',
+    'Kushoto': '<phoneme alphabet="ipa" ph="ku.ʃɔ.tɔ">Kushoto</phoneme>',
+    'Mbele': '<phoneme alphabet="ipa" ph="m̩.bɛ.lɛ">Mbele</phoneme>',
+    'Nyuma': '<phoneme alphabet="ipa" ph="ɲu.ma">Nyuma</phoneme>',
+    'Ndani': '<phoneme alphabet="ipa" ph="n̩.da.ni">Ndani</phoneme>',
+    'Nje': '<phoneme alphabet="ipa" ph="n̩.d͡ʒɛ">Nje</phoneme>',
+    
+    // Numbers
+    'Moja': '<phoneme alphabet="ipa" ph="mɔ.d͡ʒa">Moja</phoneme>',
+    'Mbili': '<phoneme alphabet="ipa" ph="m̩.bi.li">Mbili</phoneme>',
+    'Tatu': '<phoneme alphabet="ipa" ph="ta.tu">Tatu</phoneme>',
+    'Nne': '<phoneme alphabet="ipa" ph="n̩.nɛ">Nne</phoneme>',
+    'Tano': '<phoneme alphabet="ipa" ph="ta.nɔ">Tano</phoneme>',
+    'Sita': '<phoneme alphabet="ipa" ph="si.ta">Sita</phoneme>',
+    'Saba': '<phoneme alphabet="ipa" ph="sa.ba">Saba</phoneme>',
+    'Nane': '<phoneme alphabet="ipa" ph="na.nɛ">Nane</phoneme>',
+    'Tisa': '<phoneme alphabet="ipa" ph="ti.sa">Tisa</phoneme>',
+    'Kumi': '<phoneme alphabet="ipa" ph="ku.mi">Kumi</phoneme>',
   };
   
   let result = text;
@@ -240,14 +598,105 @@ const applySwahiliPronunciation = (text) => {
   return result;
 };
 
-// Zulu pronunciation
+// ZULU - 65+ words with click consonants
 const applyZuluPronunciation = (text) => {
   const pronunciationMap = {
+    // Greetings & Time of Day
     'Sawubona': '<phoneme alphabet="ipa" ph="sa.wu.bo.na">Sawubona</phoneme>',
+    'Sawubona ekuseni': '<phoneme alphabet="ipa" ph="sa.wu.bo.na e.ku.se.ni">Sawubona ekuseni</phoneme>',
+    'Sawubona emini': '<phoneme alphabet="ipa" ph="sa.wu.bo.na e.mi.ni">Sawubona emini</phoneme>',
+    'Sawubona ntambama': '<phoneme alphabet="ipa" ph="sa.wu.bo.na n̩.tam.ba.ma">Sawubona ntambama</phoneme>',
+    'Sawubona ebusuku': '<phoneme alphabet="ipa" ph="sa.wu.bo.na e.bu.su.ku">Sawubona ebusuku</phoneme>',
+    'Sanibonani': '<phoneme alphabet="ipa" ph="sa.ni.bo.na.ni">Sanibonani</phoneme>',
+    'Yebo': '<phoneme alphabet="ipa" ph="jɛ.bo">Yebo</phoneme>',
+    'Sawubona sawubona': '<phoneme alphabet="ipa" ph="sa.wu.bo.na sa.wu.bo.na">Sawubona sawubona</phoneme>',
+    
+    // Thank you / Please
     'Ngiyabonga': '<phoneme alphabet="ipa" ph="ŋi.ja.bo.ŋa">Ngiyabonga</phoneme>',
+    'Siyabonga': '<phoneme alphabet="ipa" ph="si.ja.bo.ŋa">Siyabonga</phoneme>',
+    'Ngiyabonga kakhulu': '<phoneme alphabet="ipa" ph="ŋi.ja.bo.ŋa ka.kʰu.lu">Ngiyabonga kakhulu</phoneme>',
     'Ngiyacela': '<phoneme alphabet="ipa" ph="ŋi.ja.t͡ʃɛ.la">Ngiyacela</phoneme>',
+    'Sicela': '<phoneme alphabet="ipa" ph="si.t͡ʃɛ.la">Sicela</phoneme>',
+    'Uxolo': '<phoneme alphabet="ipa" ph="u.ǁɔ.lɔ">Uxolo</phoneme>',
+    
+    // Yes/No
     'Yebo': '<phoneme alphabet="ipa" ph="jɛ.bo">Yebo</phoneme>',
     'Cha': '<phoneme alphabet="ipa" ph="t͡ʃa">Cha</phoneme>',
+    'Kulungile': '<phoneme alphabet="ipa" ph="ku.lu.ŋi.lɛ">Kulungile</phoneme>',
+    'Akukho': '<phoneme alphabet="ipa" ph="a.ku.kʰɔ">Akukho</phoneme>',
+    'Yhoo': '<phoneme alphabet="ipa" ph="jɔː">Yhoo</phoneme>',
+    
+    // How are you / I am fine
+    'Unjani': '<phoneme alphabet="ipa" ph="u.n̩.dʒa.ni">Unjani</phoneme>',
+    'Ninjani': '<phoneme alphabet="ipa" ph="ni.n̩.dʒa.ni">Ninjani</phoneme>',
+    'Ngiyaphila': '<phoneme alphabet="ipa" ph="ŋi.ja.pʰi.la">Ngiyaphila</phoneme>',
+    'Siyaphila': '<phoneme alphabet="ipa" ph="si.ja.pʰi.la">Siyaphila</phoneme>',
+    'Ngikhona': '<phoneme alphabet="ipa" ph="ŋi.kʰɔ.na">Ngikhona</phoneme>',
+    'Kahle': '<phoneme alphabet="ipa" ph="ka.ɬɛ">Kahle</phoneme>',
+    
+    // Goodbye
+    'Sala kahle': '<phoneme alphabet="ipa" ph="sa.la ka.ɬɛ">Sala kahle</phoneme>',
+    'Hamba kahle': '<phoneme alphabet="ipa" ph="ham.ba ka.ɬɛ">Hamba kahle</phoneme>',
+    'Sobonana': '<phoneme alphabet="ipa" ph="so.bo.na.na">Sobonana</phoneme>',
+    'Ngizokubona': '<phoneme alphabet="ipa" ph="ŋi.zɔ.ku.bo.na">Ngizokubona</phoneme>',
+    'Usale kahle': '<phoneme alphabet="ipa" ph="u.sa.lɛ ka.ɬɛ">Usale kahle</phoneme>',
+    
+    // Help / Emergency
+    'Ngidinga usizo': '<phoneme alphabet="ipa" ph="ŋi.di.ŋa u.si.zɔ">Ngidinga usizo</phoneme>',
+    'Ngisize': '<phoneme alphabet="ipa" ph="ŋi.si.zɛ">Ngisize</phoneme>',
+    'Ngisiza': '<phoneme alphabet="ipa" ph="ŋi.si.za">Ngisiza</phoneme>',
+    'Usizo': '<phoneme alphabet="ipa" ph="u.si.zɔ">Usizo</phoneme>',
+    'Ngicela usizo': '<phoneme alphabet="ipa" ph="ŋi.t͡ʃɛ.la u.si.zɔ">Ngicela usizo</phoneme>',
+    
+    // Questions
+    'Kuphi': '<phoneme alphabet="ipa" ph="ku.pʰi">Kuphi</phoneme>',
+    'Ikuphi': '<phoneme alphabet="ipa" ph="i.ku.pʰi">Ikuphi</phoneme>',
+    'Ikuphi indlu yangasese': '<phoneme alphabet="ipa" ph="i.ku.pʰi in.dɮu ja.ŋa.se.se">Ikuphi indlu yangasese</phoneme>',
+    'Malini': '<phoneme alphabet="ipa" ph="ma.li.ni">Malini</phoneme>',
+    'Yini': '<phoneme alphabet="ipa" ph="ji.ni">Yini</phoneme>',
+    'Nini': '<phoneme alphabet="ipa" ph="ni.ni">Nini</phoneme>',
+    'Kungani': '<phoneme alphabet="ipa" ph="ku.ŋa.ni">Kungani</phoneme>',
+    'Ubani': '<phoneme alphabet="ipa" ph="u.ba.ni">Ubani</phoneme>',
+    'Kanjani': '<phoneme alphabet="ipa" ph="kan.dʒa.ni">Kanjani</phoneme>',
+    
+    // Food / Water / Basic Needs
+    'Amanzi': '<phoneme alphabet="ipa" ph="a.man.zi">Amanzi</phoneme>',
+    'Ukudla': '<phoneme alphabet="ipa" ph="u.ku.dɮa">Ukudla</phoneme>',
+    'Ngilambile': '<phoneme alphabet="ipa" ph="ŋi.lam.bi.lɛ">Ngilambile</phoneme>',
+    'Ngomile': '<phoneme alphabet="ipa" ph="ŋɔ.mi.lɛ">Ngomile</phoneme>',
+    'Ngifuna': '<phoneme alphabet="ipa" ph="ŋi.fu.na">Ngifuna</phoneme>',
+    'Ngithanda': '<phoneme alphabet="ipa" ph="ŋi.tʰan.da">Ngithanda</phoneme>',
+    'Iphuzo': '<phoneme alphabet="ipa" ph="i.pʰu.zɔ">Iphuzo</phoneme>',
+    
+    // Common words
+    'Igama': '<phoneme alphabet="ipa" ph="i.ɡa.ma">Igama</phoneme>',
+    'Igama lami': '<phoneme alphabet="ipa" ph="i.ɡa.ma la.mi">Igama lami</phoneme>',
+    'Igama lakho': '<phoneme alphabet="ipa" ph="i.ɡa.ma la.kʰɔ">Igama lakho</phoneme>',
+    'Imali': '<phoneme alphabet="ipa" ph="i.ma.li">Imali</phoneme>',
+    'Indlu': '<phoneme alphabet="ipa" ph="in.dɮu">Indlu</phoneme>',
+    'Isitolo': '<phoneme alphabet="ipa" ph="i.si.tɔ.lɔ">Isitolo</phoneme>',
+    'Umhlaba': '<phoneme alphabet="ipa" ph="um.ɬa.ba">Umhlaba</phoneme>',
+    'Usuku': '<phoneme alphabet="ipa" ph="u.su.ku">Usuku</phoneme>',
+    
+    // Direction / Location
+    'Kwesokudla': '<phoneme alphabet="ipa" ph="kwɛ.sɔ.ku.dɮa">Kwesokudla</phoneme>',
+    'Kwesokunxele': '<phoneme alphabet="ipa" ph="kwɛ.sɔ.ku.ǁɛ.lɛ">Kwesokunxele</phoneme>',
+    'Phambili': '<phoneme alphabet="ipa" ph="pʰam.bi.li">Phambili</phoneme>',
+    'Emuva': '<phoneme alphabet="ipa" ph="ɛ.mu.va">Emuva</phoneme>',
+    'Ngaphakathi': '<phoneme alphabet="ipa" ph="ŋa.pʰa.ka.tʰi">Ngaphakathi</phoneme>',
+    'Ngaphandle': '<phoneme alphabet="ipa" ph="ŋa.pʰan.dlɛ">Ngaphandle</phoneme>',
+    
+    // Numbers
+    'Kunye': '<phoneme alphabet="ipa" ph="ku.ɲɛ">Kunye</phoneme>',
+    'Kubili': '<phoneme alphabet="ipa" ph="ku.bi.li">Kubili</phoneme>',
+    'Kuthathu': '<phoneme alphabet="ipa" ph="ku.tʰa.tʰu">Kuthathu</phoneme>',
+    'Kune': '<phoneme alphabet="ipa" ph="ku.nɛ">Kune</phoneme>',
+    'Kuhlanu': '<phoneme alphabet="ipa" ph="ku.ɬa.nu">Kuhlanu</phoneme>',
+    'Isithupha': '<phoneme alphabet="ipa" ph="i.si.tʰu.pʰa">Isithupha</phoneme>',
+    'Isikhombisa': '<phoneme alphabet="ipa" ph="i.si.kʰɔm.bi.sa">Isikhombisa</phoneme>',
+    'Isishiyagalombili': '<phoneme alphabet="ipa" ph="i.si.ʃi.ja.ɡa.lɔm.bi.li">Isishiyagalombili</phoneme>',
+    'Isishiyagalolunye': '<phoneme alphabet="ipa" ph="i.si.ʃi.ja.ɡa.lɔ.lu.ɲɛ">Isishiyagalolunye</phoneme>',
+    'Ishumi': '<phoneme alphabet="ipa" ph="i.ʃu.mi">Ishumi</phoneme>',
   };
   
   let result = text;
