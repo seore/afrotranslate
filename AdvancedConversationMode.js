@@ -184,7 +184,7 @@ const AdvancedConversationMode = ({
     }
   };
 
-  // Export conversation
+  /*
   const exportConversation = async () => {
     if (conversation.length === 0) {
       Alert.alert('No Conversation', 'No messages to export');
@@ -214,6 +214,7 @@ const AdvancedConversationMode = ({
       Alert.alert('Error', 'Could not share conversation');
     }
   };
+  */
 
   // Clear conversation
   const clearConversation = () => {
@@ -252,10 +253,6 @@ const AdvancedConversationMode = ({
             {sourceLang.toUpperCase()} ↔ {targetLang.toUpperCase()}
           </Text>
         </View>
-        
-        <TouchableOpacity onPress={exportConversation} style={styles.exportButton}>
-          <Ionicons name="share-outline" size={24} color="white" />
-        </TouchableOpacity>
       </View>
 
       {/* Conversation History */}

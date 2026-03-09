@@ -21,12 +21,12 @@ export default function PremiumScreen({ onClose }) {
   const features = [
     { icon: 'infinite', title: 'Unlimited Translations', desc: 'Never run out of translations' },
     { icon: 'language', title: 'All 14 Languages', desc: 'Unlock every African language' },
+    { icon: 'chatbubble-ellipses', title: 'Conversation Mode', desc: 'Real-time two-way conversations' },
     { icon: 'mic', title: 'Premium AI Voices', desc: 'Native African pronunciation' },
     { icon: 'cloud-offline', title: 'Extended Offline Mode', desc: '500+ phrases per language' },
     { icon: 'chatbubbles', title: 'Conversation History', desc: 'Save and export conversations' },
     { icon: 'notifications-off', title: 'Ad-Free Experience', desc: 'No interruptions' },
     { icon: 'flash', title: 'Priority Support', desc: 'Get help faster' },
-    { icon: 'download', title: 'Export Transcripts', desc: 'Share your translations' },
   ];
 
   const getProductPrice = (identifier) => {

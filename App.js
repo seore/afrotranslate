@@ -1087,6 +1087,22 @@ function App() {
               style={styles.conversationToggle}
               onPress={() => {
                 hapticFeedback();
+
+                if (!isPremium) {
+                  Alert.alert(
+                    "Premium Feature",
+                    "Conversation Mode is available for Premium users only. Upgrade to unlock unlimited conversations with conversation history!",
+                    [
+                      { text: "Not Now", style: "cancel"},
+                      {
+                        text: "Upgrade Now",
+                        onPress: () => setShowPremiumScreen(true),
+                        style: 'default'
+                      }
+                    ]
+                  );
+                  return;
+                }
                 setShowConversationMode(true);
               }}
               activeOpacity={0.8}
@@ -1095,6 +1111,11 @@ function App() {
               <Text style={styles.conversationToggleText}>
                 Conversation Mode
               </Text>
+              {!isPremium && (
+                <View style={styles.premiumLockBadge}>
+                  <Ionicons name='lock-closed' size={12} color='#FFD700'/>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -1230,6 +1251,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0A0A0A',
+    paddingTop: 25,
   },
   gradient: {
     flex: 1,
@@ -1242,12 +1264,12 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 20,
+    paddingBottom: 25,
     alignItems: 'center',
     position: 'relative',
   },
   logo: {
-    marginTop: 25,
+    marginTop: 26,
     fontSize: 36,
     fontWeight: '900',
     color: '#FFFFFF',
@@ -1276,6 +1298,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#000',
+  },
+  premiumLockBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFD700',
   },
   langDisplay: {
     flexDirection: 'row',
@@ -1385,6 +1418,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   conversationToggle: {
+    position: 'relative',
     marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',

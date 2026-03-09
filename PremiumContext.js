@@ -15,7 +15,7 @@ export const PremiumProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const FREE_TRANSLATION_LIMIT = 5;
-  const FREE_LANGUAGES = ["sw", "yo", "ha", "ig", "zu", "en", "fr"];
+  const FREE_LANGUAGES = ["yo", "en", "fr"];
 
   useEffect(() => {
     initializePurchases();
