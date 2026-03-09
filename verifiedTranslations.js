@@ -1,9 +1,4 @@
-// Verified Translation Database
-// These are 100% accurate, human-verified translations by native speakers
-// Priority: Common phrases, greetings, essential communication
-
 export const VERIFIED_TRANSLATIONS = {
-  // English to Swahili (Kiswahili)
   'en-sw': {
     // Greetings
     'hello': 'Jambo',
