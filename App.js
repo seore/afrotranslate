@@ -17,7 +17,6 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as FileSystem from 'expo-file-system/legacy';
-import TrackPlayer from 'react-native-track-player';
 import { useAudioPlayer } from 'expo-audio';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
@@ -29,6 +28,9 @@ import { applyIgboTones } from './pronounciation-igbo.js';
 import { applySwahiliPronunciation } from './pronounciation-swahili.js';
 import { applyYorubaTones } from './pronounciation-yoruba.js';
 import { applyZuluPronunciation } from './pronounciation-zulu.js';
+
+import { PremiumProvider, usePremium } from './PremiumContext.js';
+import PremiumScreen from './PremiumScreen.js';
 
 const { width, height } = Dimensions.get('window');
 
@@ -50,9 +52,7 @@ const AFRICAN_LANGUAGES = [
 ];
 
 const OFFLINE_PACKS = {
-  // === SWAHILI - 110+ phrases ===
   'sw': {
-    // Greetings
     'Hello': 'Habari',
     'Good morning': 'Habari za asubuhi',
     'Good afternoon': 'Habari za mchana',
@@ -62,28 +62,20 @@ const OFFLINE_PACKS = {
     'Welcome': 'Karibu',
     'Goodbye': 'Kwaheri',
     'See you later': 'Tutaonana',
-    
-    // Thank you / Please
     'Thank you': 'Asante',
     'Thank you very much': 'Asante sana',
     'Please': 'Tafadhali',
     'Sorry': 'Pole',
     'Excuse me': 'Samahani',
-    
-    // Yes/No
     'Yes': 'Ndiyo',
     'No': 'Hapana',
     'Okay': 'Sawa',
-    
-    // Emergency / Help
     'Help': 'Msaada',
     'I need help': 'Nahitaji msaada',
     'Help me': 'Nisaidie',
     'Emergency': 'Dharura',
     'I am lost': 'Nimepotea',
     'Call the police': 'Ita polisi',
-    
-    // Restaurant / Food
     'Water': 'Maji',
     'Food': 'Chakula',
     'I want food': 'Nataka chakula',
@@ -94,32 +86,22 @@ const OFFLINE_PACKS = {
     'Meat': 'Nyama',
     'I am hungry': 'Nina njaa',
     'I am thirsty': 'Nina kiu',
-    
-    // Hotel
     'I want a room': 'Nataka chumba',
     'No water': 'Hakuna maji',
     'Wake me at': 'Niamshe saa',
-    
-    // Transport
     'Take me to': 'Nipeleke',
     'Airport': 'Uwanja wa ndege',
     'Stop here': 'Simama hapa',
     'Fast': 'Haraka',
-    
-    // Medical
     'I am sick': 'Naumwa',
     'Doctor': 'Daktari',
     'My head hurts': 'Kichwa kinauma',
     'Medicine': 'Dawa',
-    
-    // Shopping
     'How much?': 'Bei gani?',
     'Too expensive': 'Bei kubwa sana',
     'Reduce the price': 'Punguza bei',
     'Too big': 'Kubwa sana',
     'Too small': 'Ndogo sana',
-    
-    // Questions
     'Where?': 'Wapi?',
     'Where is the bathroom?': 'Choo kiko wapi?',
     'What?': 'Nini?',
@@ -127,8 +109,6 @@ const OFFLINE_PACKS = {
     'Why?': 'Kwa nini?',
     'Who?': 'Nani?',
     'How?': 'Vipi?',
-    
-    // Directions
     'Turn right': 'Geuka kulia',
     'Turn left': 'Geuka kushoto',
     'Straight': 'Moja kwa moja',
@@ -138,14 +118,10 @@ const OFFLINE_PACKS = {
     'Left': 'Kushoto',
     'Front': 'Mbele',
     'Back': 'Nyuma',
-    
-    // Common
     'My name is': 'Jina langu ni',
     'Money': 'Pesa',
     'House': 'Nyumba',
     'Market': 'Soko',
-    
-    // Numbers
     'One': 'Moja',
     'Two': 'Mbili',
     'Three': 'Tatu',
@@ -156,8 +132,6 @@ const OFFLINE_PACKS = {
     'Eight': 'Nane',
     'Nine': 'Tisa',
     'Ten': 'Kumi',
-    
-    // Useful
     'I understand': 'Naelewa',
     'I do not understand': 'Sielewi',
     'I want': 'Nataka',
@@ -663,7 +637,15 @@ const getRateForLanguage = (langCode) => {
   return rateMap[langCode] || 0.85;
 };
 
-export default function App() {
+function App() {
+  const {
+    isPremium,
+    canTranslate,
+    isLanguageUnlocked,
+    getRemainingTranslations,
+    incrementTranslationCount,
+  } = usePremium();
+
   const [sourceLang, setSourceLang] = useState('en');
   const [targetLang, setTargetLang] = useState('sw');
   const [isListening, setIsListening] = useState(false);
@@ -680,9 +662,9 @@ export default function App() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [missingVoice, setMissingVoice] = useState(false);
-  //const [availableVoices, setAvailableVoices] = useState([]);
   const [showConversation, setShowConversationMode] = useState(false);
   const [autoDetectMode, setAutoDetectMode] = useState(false);
+  const [showPremiumScreen, setShowPremiumScreen] = useState(false);
   
   const pulseAnim1 = useRef(new Animated.Value(1)).current;
   const [pulseAnim] = useState(new Animated.Value(1));
@@ -898,6 +880,31 @@ export default function App() {
   const translateText = async (text) => {
     if (!text.trim()) return;
 
+    if (!canTranslate()) {
+      Alert.alert(
+        'Translation Limit Reached',
+        `Upgrade to Premium for unlimited translations!`,
+        [
+          {text: 'Cancel', style: 'cancel'},
+          {text: 'Upgrade', onPress: () => setShowPremiumScreen(true)},
+        ]
+      );
+      return;
+    }
+
+    if (!isLanguageUnlocked(targetLang)) {
+      const langInfo = getLanguageInfo(targetLang);
+      Alert.alert(
+        'Premium Language',
+        `${langInfo?.name} is Premium language. Upgrade to unlock all 14 languages!`,
+        [
+          {text: 'Choose Free Language', style: 'cancel', onPress: () => setShowLangPicker(true)},
+          {text: 'Upgrade Now', onPress: () => setShowPremiumScreen(true)},
+        ]
+      );
+      return;
+    }
+
     setIsTranslating(true);
 
     try {
@@ -918,7 +925,6 @@ export default function App() {
           const translated = offlinePack[text];
           setTranslatedText(translated);
           
-          // Add to conversation history if in conversation mode
           if (conversationMode) {
             setConversationHistory(prev => [...prev, {
               source: text,
@@ -928,8 +934,11 @@ export default function App() {
               timestamp: new Date(),
             }]);
           }
+
+          if (!isPremium) {
+            await incrementTranslationCount();
+          }
           
-          // Auto-play translation
           setTimeout(() => {
             speakWithAfricanVoice(translated, targetLang);
           }, 500);
@@ -957,7 +966,6 @@ export default function App() {
       
       setTranslatedText(translated);
       
-      // Add to conversation history if in conversation mode
       if (conversationMode) {
         setConversationHistory(prev => [...prev, {
           source: text,
@@ -969,7 +977,10 @@ export default function App() {
         }]);
       }
       
-      // Auto-play translation
+      if (!isPremium) {
+        await incrementTranslationCount();
+      }
+
       setTimeout(() => {
         speakWithAfricanVoice(translated, targetLang);
       }, 500);
@@ -981,15 +992,6 @@ export default function App() {
       setIsTranslating(false);
     }
   };
-
-  /*
-  const toggleConversationMode = () => {
-    setConversationMode(!conversationMode);
-    hapticFeedback('medium');
-    if (!conversationMode) {
-      setConversationHistory([]);
-    }
-  };*/
 
   const swapLanguages = () => {
     hapticFeedback();
@@ -1100,13 +1102,11 @@ export default function App() {
 
         console.log('Audio saved, playing...');
 
-        // Load and play with expo-audio
         audioPlayer.replace({ uri: fileUri });
         audioPlayer.play();
 
         console.log('Playing Google TTS with SSML pronunciation!');
 
-        // Cleanup after playback
         setTimeout(() => {
           FileSystem.deleteAsync(fileUri, { idempotent: true });
         }, 10000);
@@ -1138,10 +1138,8 @@ const fallbackToExpoSpeech = async (text, langCode) => {
   try {
     console.log('Using fallback expo-speech');
     
-    // Get available voices
     const voices = await Speech.getAvailableVoicesAsync();
     
-    // Voice preferences - prioritize African accents
     const voicePreferences = {
       'sw': ['sw-KE', 'en-ZA', 'en-GB'],
       'yo': ['en-ZA', 'en-GB'],
@@ -1314,60 +1312,84 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             
             <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
               <Text style={styles.pickerSectionTitle}>POPULAR</Text>
-              {popularLangs.map((lang) => (
-                <TouchableOpacity
-                  key={lang.code}
-                  style={[
-                    styles.pickerItem,
-                    targetLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
-                  ]}
-                  onPress={() => {
-                    hapticFeedback();
-                    setTargetLang(lang.code);
-                    setShowLangPicker(false);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.pickerFlag}>{lang.flag}</Text>
-                  <View style={styles.pickerInfo}>
-                    <Text style={styles.pickerName}>{lang.name}</Text>
-                    <Text style={styles.pickerNative}>{lang.native}</Text>
-                  </View>
-                  {targetLang === lang.code && (
-                    <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                      <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
+              {popularLangs.map((lang) => {
+                const locked = !isLanguageUnlocked(land.code);
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={[
+                      styles.pickerItem,
+                      targetLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                      locked && styles.lockedItem,
+                    ]}
+                    onPress={() => {
+                      if (locked) {
+                        setShowLangPicker(false);
+                        setTimeout(() => setShowPremiumScreen(true), 300);
+                        return;
+                      }
+                      hapticFeedback();
+                      setTargetLang(lang.code);
+                      setShowLangPicker(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                    <View style={styles.pickerInfo}>
+                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={styles.pickerName}>{lang.name}</Text>
+                        {locked && <Ionicons name='lock-closed' size={14} color={"#00F5FF"} />}
+                      </View>
+                      <Text style={styles.pickerNative}>{lang.native}</Text>
                     </View>
-                  )}
-                </TouchableOpacity>
-              ))}
+                    {targetLang === lang.code && (
+                      <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                        <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
               
               <Text style={styles.pickerSectionTitle}>ALL LANGUAGES</Text>
-              {otherLangs.map((lang) => (
-                <TouchableOpacity
-                  key={lang.code}
-                  style={[
-                    styles.pickerItem,
-                    targetLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
-                  ]}
-                  onPress={() => {
-                    hapticFeedback();
-                    setTargetLang(lang.code);
-                    setShowLangPicker(false);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.pickerFlag}>{lang.flag}</Text>
-                  <View style={styles.pickerInfo}>
-                    <Text style={styles.pickerName}>{lang.name}</Text>
-                    <Text style={styles.pickerNative}>{lang.native}</Text>
-                  </View>
-                  {targetLang === lang.code && (
+              {otherLangs.map((lang) => {
+                const locked = !isLanguageUnlocked(lang.code);
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={[
+                      styles.pickerItem,
+                      targetLang === lang.code && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                      locked && styles.lockedItem,
+                    ]}
+                    onPress={() => {
+                      if (locked) {
+                        setShowLangPicker(false);
+                        setTimeout(() => setShowPremiumScreen(true), 300);
+                        return;
+                      }
+                      hapticFeedback();
+                      setTargetLang(lang.code);
+                      setShowLangPicker(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                    <View style={styles.pickerInfo}>
+                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                        <Text style={styles.pickerName}>{lang.name}</Text>
+                        {locked && <Ionicons name='lock-closed' size={14} color={"#00F5FF"}/>}
+                      </View>
+                      <Text style={styles.pickerNative}>{lang.native}</Text>
+                    </View>
+                    {targetLang === lang.code && (
                     <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
                       <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
                     </View>
                   )}
                 </TouchableOpacity>
-              ))}
+              );
+            })}
             </ScrollView>
           </View>
         </View>
@@ -1391,6 +1413,15 @@ const fallbackToExpoSpeech = async (text, langCode) => {
           <View style={styles.header}>
             <Text style={styles.logo}>GRIOT</Text>
             <Text style={styles.subtitle}>African Voice Translator</Text>
+            {!isPremium && (
+              <TouchableOpacity
+                style={styles.premiumBadge}
+                onPress={() => setShowPremiumScreen(true)}
+              >
+                <Ionicons name='diamond' size={16} color={"#000"}/>
+                <Text style={styles.premiumBadgeText}>Upgrade</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.langDisplay}>
@@ -1457,6 +1488,22 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             <Text style={styles.voiceInstruction}>
               {isListening ? 'Listening...' : isTranslating ? 'Translating...' : 'TAP TO SPEAK'}
             </Text>
+
+            {/* Translation Counter - Free to Users */}
+            {isPremium && (
+              <View style={styles.translationCounter}>
+                <Text style={styles.counterText}>
+                  {getRemainingTranslations()} translations left today
+                </Text>
+                <TouchableOpacity
+                  style={styles.upgradeBtn}
+                  onPress={() => setShowPremiumScreen(true)}
+                >
+                  <Ionicons name='diamond' size={16} color='#000'/>
+                  <Text style={styles.upgradeBtnText}>Upgrade</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             
             {/* Conversation Mode Toggle */}
             <TouchableOpacity 
@@ -1547,6 +1594,16 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             </Modal>
           )}
 
+          {/* Premium Screen Modal */}
+          {showPremiumScreen && (
+          <Modal
+            visible={showPremiumScreen}
+            animationType='slide'
+          >
+            <PremiumScreen onClose={() => setShowPremiumScreen(false)}/>
+          </Modal>
+          )}
+
           {/* Conversation History */}
           {conversationMode && conversationHistory.length > 0 && (
             <View style={styles.conversationHistory}>
@@ -1578,6 +1635,11 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             <Text style={styles.instructionText}>1. Choose target language above</Text>
             <Text style={styles.instructionText}>2. Tap circle and speak</Text>
             <Text style={styles.instructionText}>3. Listen to instant translation</Text>
+            {!isPremium && (
+              <Text style={styles.instructionHighlight}>
+                Upgrade for unlimited translations
+              </Text>
+            )}
           </View>
           )}
         </ScrollView>
@@ -1609,6 +1671,14 @@ const fallbackToExpoSpeech = async (text, langCode) => {
       <LanguagePicker />
       <SourceLanguagePicker />
     </View>
+  );
+}
+
+export default function AppWrapper() {
+  return (
+    <PremiumProvider>
+      <App />
+    </PremiumProvider>
   );
 }
 
@@ -1795,10 +1865,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   offlinePackBadge: {
-    //alignSelf: 'flex-start',
-    //position: 'absolute',
-    //top: 10,
-    //right: 10,
     backgroundColor: '#22c55e',
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -1808,9 +1874,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
-    //zIndex: 10,
-    //marginTop: 8,
-    //marginBottom: 8,
   },
   offlinePackText: {
     fontSize: 10,
@@ -1842,6 +1905,13 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 8,
     fontWeight: '600',
+  },
+  instructionHighlight: {
+    fontSize: 14,
+    color: '#00F5FF',
+    marginTop: 12,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   connectionStatus: {
     position: "absolute",
@@ -2005,7 +2075,6 @@ const styles = StyleSheet.create({
   },
   conversationItem: {
     marginBottom: 12,
-    //gap: 8,
   },
   conversationBubbleYou: {
     alignSelf: 'flex-start',
@@ -2029,7 +2098,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#888',
     marginBottom: 4,
-    //textTransform: 'uppercase',
   },
   conversationSource: {
     fontSize: 14,
@@ -2045,18 +2113,44 @@ const styles = StyleSheet.create({
     paddingRight: 36,
   },
   playAgainBtn: {
-    //position: 'absolute',
-    //bottom: 10,
-    //right: 10,
     flexDirection: 'row',
     backgroundColor: '#00F5FF',
     padding: 6,
     borderRadius: 20,
     alignItems: 'center',
-    //justifyContent: 'center',
     shadowColor: '#00F5FF',
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-    //elevation: 5,
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00F5FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+  },
+  premiumBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#000',
+  },
+  upgradeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00F5FF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  upgradeBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000',
   },
 });
