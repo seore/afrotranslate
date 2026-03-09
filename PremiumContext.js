@@ -14,7 +14,7 @@ export const PremiumProvider = ({ children }) => {
   const [translationsToday, setTranslationsToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const FREE_TRANSLATION_LIMIT = 10;
+  const FREE_TRANSLATION_LIMIT = 5;
   const FREE_LANGUAGES = ["sw", "yo", "ha", "ig", "zu", "en", "fr"];
 
   useEffect(() => {

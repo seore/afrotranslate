@@ -17,8 +17,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as FileSystem from 'expo-file-system/legacy';
-import { AudioPlayer } from 'expo-audio';
-//import TrackPlayer from 'react-native-track-player';
+import { useAudioPlayer, AudioSource } from 'expo-audio';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
 import { API_KEY } from '@env';
@@ -170,24 +169,42 @@ const convertToSSML = (text, langCode) => {
 
 const getPitchForLanguage = (langCode) => {
   const pitchMap = {
-    'yo': 5,  
-    'ig': 5,   
-    'ha': 0,   
-    'sw': -2,  
-    'zu': 0,   
+    'yo': 3,      
+    'ig': 2,      
+    'ha': -1,    
+    'sw': -2,     
+    'zu': -1,     
+    'xh': -1,     
+    'am': 0,      
+    'so': 0,     
+    'rw': -1,     
+    'af': -2,    
+    'fr': 1,      
+    'pt': 0,     
+    'ar': 0,      
+    'en': 0,      
   };
   return pitchMap[langCode] || 0;
 };
 
 const getRateForLanguage = (langCode) => {
   const rateMap = {
-    'yo': 0.8,   
-    'ig': 0.8,   
-    'ha': 0.85,  
-    'sw': 0.9,   
-    'zu': 0.85,  
+    'yo': 0.85,  
+    'ig': 0.85,   
+    'ha': 0.90,   
+    'sw': 0.95,   
+    'zu': 0.90,   
+    'xh': 0.90,  
+    'am': 0.90,   
+    'so': 0.95,   
+    'rw': 0.90,   
+    'af': 0.95,  
+    'fr': 1.0,    
+    'pt': 0.95,   
+    'ar': 0.90,   
+    'en': 1.0,    
   };
-  return rateMap[langCode] || 0.85;
+  return rateMap[langCode] || 0.95;
 };
 
 function App() {
@@ -217,6 +234,7 @@ function App() {
   const [conversationHistory, setConversationHistory] = useState([]);
   const [showConversation, setShowConversationMode] = useState(false);
   const [autoDetectMode, setAutoDetectMode] = useState(false);
+  const [currentSound, setCurrentSound] = useState(null);
   const [showPremiumScreen, setShowPremiumScreen] = useState(false);
   
   const pulseAnim1 = useRef(new Animated.Value(1)).current;
@@ -224,10 +242,9 @@ function App() {
   const [glowAnim] = useState(new Animated.Value(0));
   const [fadeAnim] = useState(new Animated.Value(1));
 
+  const player = useAudioPlayer();
+
   useEffect(() => {
-    // Setup TrackPlayer
-    //TrackPlayer.setupPlayer().catch(err => console.log('TrackPlayer setup error:', err));
-    
     startPulseAnimation();
     startGlowAnimation();
     checkNetwork();
@@ -261,7 +278,6 @@ function App() {
     }
   }, [isOnline]);
 
-  // Separate effect for speech recognition listeners that updates when languages change
   useEffect(() => {
     const eventEmitter = new EventEmitter(ExpoSpeechRecognitionModule);
     
@@ -288,7 +304,6 @@ function App() {
           
           if (result.isFinal || event.isFinal) {
             setSourceText(transcript);
-            // Call translate with current state
             translateText(transcript);
             setInterimResults('');
           }
@@ -400,7 +415,6 @@ function App() {
     hapticFeedback();
     setHasInteracted(true);
     
-    // Check if user can translate (premium check)
     if (!canTranslate()) {
       Alert.alert(
         'Translation Limit Reached',
@@ -446,7 +460,6 @@ function App() {
   const translateText = async (text) => {
     if (!text.trim()) return;
 
-    // Check translation limit
     if (!canTranslate()) {
       Alert.alert(
         'Translation Limit Reached',
@@ -459,7 +472,6 @@ function App() {
       return;
     }
 
-    // Check if target language is unlocked
     if (!isLanguageUnlocked(targetLang)) {
       const langInfo = getLanguageInfo(targetLang);
       Alert.alert(
@@ -486,7 +498,6 @@ function App() {
         }
       }
 
-      // Try offline translation first
       if (!isOnline || downloadedPacks.includes(targetLang)) {
         const offlinePack = OFFLINE_PACKS[targetLang];
         if (offlinePack && offlinePack[text]) {
@@ -503,7 +514,6 @@ function App() {
             }]);
           }
           
-          // Increment translation count for free users
           if (!isPremium) {
             await incrementTranslationCount();
           }
@@ -517,7 +527,6 @@ function App() {
         }
       }
 
-      // Fall back to online translation
       if (!isOnline) {
         Alert.alert('Offline', 'No internet connection and phrase not in offline pack.');
         setIsTranslating(false);
@@ -545,8 +554,7 @@ function App() {
           autoDetected: autoDetectMode,
         }]);
       }
-      
-      // Increment translation count for free users
+
       if (!isPremium) {
         await incrementTranslationCount();
       }
@@ -668,34 +676,21 @@ function App() {
           await FileSystem.writeAsStringAsync(fileUri, data.audioContent, {
             encoding: 'base64',
           });
-
-          console.log('Audio saved, playing...');
-          const player = new AudioPlayer();
           
-          await player.loadAsync({
-            uri: fileUri,
-          });
+          console.log('Audio saved, playing...');
 
-          await player.playAsync();
-          /*
-          Use TrackPlayer instead of expo-audio
-          await TrackPlayer.reset();
-          await TrackPlayer.add({
-            url: fileUri,
-            title: 'Translation',
-          });
-          await TrackPlayer.play();
-          */
+          player.replace(fileUri);
 
-
-          console.log('Playing Google TTS with SSML pronunciation!');
-
-          // Cleanup after playback
           setTimeout(() => {
-            FileSystem.deleteAsync(fileUri, { idempotent: true });
+            player.play();
+            console.log('Playing Google TTS with SSML pronunciation!');
+          }, 100)
+          
+          setTimeout(() => {
+            FileSystem.deleteAsync(fileUri, {idempotent: true});
           }, 10000);
-        } catch (audioError) {
-          console.error('Audio playback error:', audioError);
+        } catch (error) {
+          console.error('Audio error:', error);
           fallbackToExpoSpeech(text, langCode);
         }
       }
@@ -703,7 +698,8 @@ function App() {
       console.error('Google TTS error:', error);
       fallbackToExpoSpeech(text, langCode);
     }
-  };
+  }
+      
 
   const getVoiceName = (languageCode) => {
     const voiceNames = {

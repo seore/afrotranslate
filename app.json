@@ -47,6 +47,7 @@
           "speechRecognitionPermission": "Allow GRIOT to recognize your speech for instant translation."
         }
       ],
+      "expo-video",
       "expo-audio"
     ]
   }
