@@ -17,575 +17,128 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as FileSystem from 'expo-file-system/legacy';
-import { useAudioPlayer } from 'expo-audio';
+import { AudioPlayer } from 'expo-audio';
+//import TrackPlayer from 'react-native-track-player';
 import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
 import { API_KEY } from '@env';
 
-import AdvancedConversationMode from './AdvancedConversationMode.js';
+// Import pronunciation functions
 import { applyHausaPronunciation } from './pronounciation-hausa.js';
 import { applyIgboTones } from './pronounciation-igbo.js';
 import { applySwahiliPronunciation } from './pronounciation-swahili.js';
 import { applyYorubaTones } from './pronounciation-yoruba.js';
 import { applyZuluPronunciation } from './pronounciation-zulu.js';
 
-import { PremiumProvider, usePremium } from './PremiumContext.js';
-import PremiumScreen from './PremiumScreen.js';
+// Import premium features
+import { PremiumProvider, usePremium } from './PremiumContext';
+import PremiumScreen from './PremiumScreen';
+import AdvancedConversationMode from './AdvancedConversationMode.js';
 
 const { width, height } = Dimensions.get('window');
 
 const AFRICAN_LANGUAGES = [
-  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#ff7b00' },
-  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#058924' },
-  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#0ac82a' },
-  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#1eff00' },
-  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#ed4e14' },
-  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#ec7907' },
-  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#FF3366' },
-  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#ffdd00' },
-  { code: 'so', name: 'Somali', native: 'Soomaali', flag: '🇸🇴', popular: false, color: '#4D9FFF' },
-  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#f6ff00' },
-  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#1E90FF' },
-  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#ffffff' },
-  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#73ff00' },
-  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#ec0404' },
+  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#ff7b00', premium: false },
+  { code: 'yo', name: 'Yoruba', native: 'Yorùbá', flag: '🇳🇬', popular: true, color: '#058924', premium: false },
+  { code: 'ha', name: 'Hausa', native: 'Hausa', flag: '🇳🇬', popular: true, color: '#0ac82a', premium: false },
+  { code: 'ig', name: 'Igbo', native: 'Igbo', flag: '🇳🇬', popular: true, color: '#1eff00', premium: false },
+  { code: 'zu', name: 'Zulu', native: 'isiZulu', flag: '🇿🇦', popular: true, color: '#ed4e14', premium: false },
+  { code: 'en', name: 'English', native: 'English', flag: '🌍', popular: true, color: '#1E90FF', premium: false },
+  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true, color: '#ffffff', premium: false },
+  { code: 'xh', name: 'Xhosa', native: 'isiXhosa', flag: '🇿🇦', popular: false, color: '#ec7907', premium: true },
+  { code: 'af', name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', popular: false, color: '#FF3366', premium: true },
+  { code: 'am', name: 'Amharic', native: 'አማርኛ', flag: '🇪🇹', popular: true, color: '#ffdd00', premium: true },
+  { code: 'so', name: 'Somali', native: 'Soomaali', flag: '🇸🇴', popular: false, color: '#4D9FFF', premium: true },
+  { code: 'rw', name: 'Kinyarwanda', native: 'Kinyarwanda', flag: '🇷🇼', popular: false, color: '#f6ff00', premium: true },
+  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', popular: true, color: '#73ff00', premium: true },
+  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', popular: true, color: '#ec0404', premium: true },
 ];
 
 const OFFLINE_PACKS = {
   'sw': {
     'Hello': 'Habari',
     'Good morning': 'Habari za asubuhi',
-    'Good afternoon': 'Habari za mchana',
     'Good evening': 'Habari za jioni',
-    'How are you?': 'Hujambo?',
-    'I am fine': 'Sijambo',
-    'Welcome': 'Karibu',
-    'Goodbye': 'Kwaheri',
-    'See you later': 'Tutaonana',
     'Thank you': 'Asante',
-    'Thank you very much': 'Asante sana',
     'Please': 'Tafadhali',
-    'Sorry': 'Pole',
-    'Excuse me': 'Samahani',
     'Yes': 'Ndiyo',
     'No': 'Hapana',
-    'Okay': 'Sawa',
-    'Help': 'Msaada',
+    'How are you?': 'Hujambo?',
+    'Goodbye': 'Kwaheri',
     'I need help': 'Nahitaji msaada',
-    'Help me': 'Nisaidie',
-    'Emergency': 'Dharura',
-    'I am lost': 'Nimepotea',
-    'Call the police': 'Ita polisi',
+    'Where is the bathroom?': 'Choo kiko wapi?',
+    'How much?': 'Bei gani?',
     'Water': 'Maji',
     'Food': 'Chakula',
-    'I want food': 'Nataka chakula',
-    'What do you have?': 'Mna nini?',
-    'Delicious': 'Ni tamu',
-    'The bill please': 'Leta bili',
-    'Fish': 'Samaki',
-    'Meat': 'Nyama',
-    'I am hungry': 'Nina njaa',
-    'I am thirsty': 'Nina kiu',
-    'I want a room': 'Nataka chumba',
-    'No water': 'Hakuna maji',
-    'Wake me at': 'Niamshe saa',
-    'Take me to': 'Nipeleke',
-    'Airport': 'Uwanja wa ndege',
-    'Stop here': 'Simama hapa',
-    'Fast': 'Haraka',
-    'I am sick': 'Naumwa',
-    'Doctor': 'Daktari',
-    'My head hurts': 'Kichwa kinauma',
-    'Medicine': 'Dawa',
-    'How much?': 'Bei gani?',
-    'Too expensive': 'Bei kubwa sana',
-    'Reduce the price': 'Punguza bei',
-    'Too big': 'Kubwa sana',
-    'Too small': 'Ndogo sana',
-    'Where?': 'Wapi?',
-    'Where is the bathroom?': 'Choo kiko wapi?',
-    'What?': 'Nini?',
-    'When?': 'Lini?',
-    'Why?': 'Kwa nini?',
-    'Who?': 'Nani?',
-    'How?': 'Vipi?',
-    'Turn right': 'Geuka kulia',
-    'Turn left': 'Geuka kushoto',
-    'Straight': 'Moja kwa moja',
-    'Near': 'Karibu',
-    'Far': 'Mbali',
-    'Right': 'Kulia',
-    'Left': 'Kushoto',
-    'Front': 'Mbele',
-    'Back': 'Nyuma',
-    'My name is': 'Jina langu ni',
-    'Money': 'Pesa',
-    'House': 'Nyumba',
-    'Market': 'Soko',
-    'One': 'Moja',
-    'Two': 'Mbili',
-    'Three': 'Tatu',
-    'Four': 'Nne',
-    'Five': 'Tano',
-    'Six': 'Sita',
-    'Seven': 'Saba',
-    'Eight': 'Nane',
-    'Nine': 'Tisa',
-    'Ten': 'Kumi',
-    'I understand': 'Naelewa',
-    'I do not understand': 'Sielewi',
-    'I want': 'Nataka',
-    'I like': 'Napenda',
+    'Help': 'Msaada',
   },
-
-  // === YORUBA - 100+ phrases ===
   'yo': {
-    // Greetings
     'Hello': 'Bawo',
     'Good morning': 'E kaaro',
-    'Good afternoon': 'E kaasan',
-    'Good evening': 'E kale',
-    'Good night': 'E ku ale',
-    'How are you?': 'Bawo ni?',
-    'I am fine': 'Mo wa daadaa',
-    'Welcome': 'E kaabo',
-    'Goodbye': 'O dabo',
-    
-    // Thank you / Please
+    'Good evening': 'E kaasan',
     'Thank you': 'E se',
-    'Thank you very much': 'E se pupo',
     'Please': 'Jọwọ',
-    'Sorry': 'Pele',
-    
-    // Yes/No
     'Yes': 'Bẹẹni',
     'No': 'Rara',
-    'Okay': 'O dara',
-    
-    // Emergency / Help
-    'Help': 'Iranlọwọ',
+    'How are you?': 'Bawo ni?',
+    'Goodbye': 'O dabo',
     'I need help': 'Mo nilo iranlọwọ',
-    'Help me': 'E gba mi',
-    'I am lost': 'Mo ti ṣọnu',
-    'Call the police': 'Pe ọlọpa',
-    'I am sick': 'Mo ṣaisan',
-    
-    // Restaurant / Food
+    'Where is the bathroom?': 'Nibo ni baluwe wa?',
+    'How much?': 'Elo ni?',
     'Water': 'Omi',
     'Food': 'Ounjẹ',
-    'I want food': 'Mo fẹ ounjẹ',
-    'What do you have?': 'Kini o ni?',
-    'How much?': 'Elo ni?',
-    'Delicious': 'O dun',
-    'Very delicious': 'O dun pupo',
-    'The bill': 'Fun mi ni bill',
-    'Fish': 'Ẹja',
-    'Meat': 'Ẹran',
-    'Rice': 'Iresi',
-    'Soup': 'Ọbẹ',
-    'I am hungry': 'Ebi n pa mi',
-    
-    // Hotel
-    'I want a room': 'Mo fẹ yara',
-    'No water': 'Omi ko si',
-    'No light': 'Ina ko si',
-    'Wake me at': 'Ji mi ni',
-    
-    // Transport
-    'Take me to': 'Mu mi lọ si',
-    'Airport': 'Papa ọkọ ofurufu',
-    'Stop here': 'Duro nibi',
-    'Fast': 'Yara',
-    'Slowly': 'Lọra',
-    'Car': 'Ọkọ ayọkẹlẹ',
-    'Bus': 'Bọsi',
-    
-    // Medical
-    'Doctor': 'Dokita',
-    'My head hurts': 'Ori mi n ro',
-    'Medicine': 'Oogun',
-    'I have fever': 'Mo ni iba',
-    
-    // Shopping
-    'Too expensive': 'O po ju',
-    'Reduce the price': 'Din owo',
-    'Too big': 'Tobi ju',
-    'Too small': 'Kere ju',
-    
-    // Questions
-    'Where?': 'Nibo?',
-    'Where is the bathroom?': 'Nibo ni baluwe wa?',
-    'What?': 'Kini?',
-    'Why?': 'Kilode?',
-    'When?': 'Nigbawo?',
-    'Who?': 'Tani?',
-    'How?': 'Bawo?',
-    
-    // Directions
-    'Right': 'Apa ọtun',
-    'Left': 'Apa osi',
-    'Front': 'Iwaju',
-    'Back': 'Ehin',
-    'Go right': 'Lọ si ọtun',
-    'Go left': 'Lọ si osi',
-    'Straight ahead': 'Tẹsiwaju',
-    'Near': 'Sunmọ',
-    'Far': 'Jinna',
-    
-    // Common
-    'My name is': 'Orukọ mi ni',
-    'Money': 'Owo',
-    'House': 'Ile',
-    'Market': 'Oja',
-    
-    // Numbers
-    'One': 'Ọkan',
-    'Two': 'Meji',
-    'Three': 'Meta',
-    'Four': 'Merin',
-    'Five': 'Marun',
-    'Six': 'Mefa',
-    'Seven': 'Meje',
-    'Eight': 'Mejo',
-    'Nine': 'Mesan',
-    'Ten': 'Mẹwa',
-    
-    // Useful
-    'I understand': 'Mo gbo',
-    'I do not understand': 'Mo ko gbo',
-    'I want': 'Mo fẹ',
-    'I like': 'Mo feran',
+    'Help': 'Iranlọwọ',
   },
-
-  // === HAUSA - 100+ phrases ===
   'ha': {
-    // Greetings
     'Hello': 'Sannu',
-    'Good morning': 'Barka da safe',
-    'Good afternoon': 'Ina wuni',
-    'Good evening': 'Barka da yamma',
-    'How are you?': 'Yaya dai?',
-    'I am fine': 'Lafiya lau',
-    'Thank God': 'Alhamdulillah',
-    'Welcome': 'Maraba',
-    'Goodbye': 'Sai an jima',
-    'See you tomorrow': 'Sai gobe',
-    
-    // Thank you / Please
+    'Good morning': 'Ina kwana',
+    'Good evening': 'Ina yamma',
     'Thank you': 'Na gode',
-    'Thank you very much': 'Na gode sosai',
     'Please': 'Don Allah',
-    'Sorry': 'Ku yi hakuri',
-    
-    // Yes/No
     'Yes': 'Eh',
-    'No': "A'a",
-    'Okay': 'To',
-    
-    // Emergency / Help
-    'Help': 'Taimako',
+    'No': 'A\'a',
+    'How are you?': 'Yaya dai?',
+    'Goodbye': 'Sai an jima',
     'I need help': 'Ina buƙatar taimako',
-    'Help me': 'Ku taimake ni',
-    'I am lost': 'Na ɓace',
-    'Call the police': "Kira 'yan sanda",
-    
-    // Restaurant / Food
+    'Where is the bathroom?': 'Ina toilet?',
+    'How much?': 'Nawa ne?',
     'Water': 'Ruwa',
     'Food': 'Abinci',
-    'I want food': 'Ina son abinci',
-    'What do you have?': 'Me kuke da shi?',
-    'Delicious': 'Ya yi daɗi',
-    'The bill': 'Lissafi',
-    'Fish': 'Kifi',
-    'Meat': 'Nama',
-    'I am hungry': 'Ina jin yunwa',
-    'I am thirsty': 'Ina jin ƙishirwa',
-    
-    // Hotel
-    'I want a room': 'Ina son ɗaki',
-    'No water': 'Babu ruwa',
-    'Wake up call': 'Fadakarwa',
-    
-    // Transport
-    'Take me': 'Kai ni',
-    'Airport': 'Filin jirgin sama',
-    'Stop here': 'Tsaya nan',
-    'Fast': 'Da sauri',
-    
-    // Medical
-    'I am not well': 'Ba ni lafiya',
-    'Doctor': 'Likita',
-    'My head hurts': 'Kai na ciwo',
-    'Medicine': 'Magani',
-    
-    // Shopping
-    'How much?': 'Nawa ne?',
-    'Too expensive': 'Ya yi tsada',
-    'Reduce the price': 'Rage farashi',
-    'Too big': 'Ya yi girma',
-    'Too small': 'Ya yi ƙanƙanta',
-    
-    // Questions
-    'Where?': 'Ina?',
-    'Where is the bathroom?': 'Ina toilet?',
-    'What?': 'Me ne?',
-    'When?': 'Yaushe?',
-    'Why?': 'Don me?',
-    'Who?': 'Wa ne?',
-    'How?': 'Yaya?',
-    
-    // Directions
-    'Turn right': 'Juya dama',
-    'Turn left': 'Juya hagu',
-    'Straight': 'Kai tsaye',
-    'Near': 'Kusa',
-    'Far': 'Nesa',
-    'Right': 'Dama',
-    'Left': 'Hagu',
-    'Front': 'Gaba',
-    'Back': 'Baya',
-    
-    // Common
-    'My name is': 'Sunana',
-    'Money': 'Kuɗi',
-    'House': 'Gida',
-    'Market': 'Kasuwa',
-    
-    // Numbers
-    'One': 'Daya',
-    'Two': 'Biyu',
-    'Three': 'Uku',
-    'Four': 'Huɗu',
-    'Five': 'Biyar',
-    'Six': 'Shida',
-    'Seven': 'Bakwai',
-    'Eight': 'Takwas',
-    'Nine': 'Tara',
-    'Ten': 'Goma',
-    
-    // Useful
-    'I understand': 'Na gane',
-    'I do not understand': 'Ban gane ba',
-    'I want': 'Ina so',
+    'Help': 'Taimako',
   },
-
-  // === ZULU - 100+ phrases ===
   'zu': {
-    // Greetings
     'Hello': 'Sawubona',
     'Good morning': 'Sawubona ekuseni',
-    'Good afternoon': 'Sawubona emini',
     'Good evening': 'Sawubona ntambama',
-    'How are you?': 'Unjani?',
-    'I am fine': 'Ngiyaphila',
-    'Welcome': 'Siyakwamukela',
-    'Goodbye': 'Sala kahle',
-    'Safe journey': 'Hamba kahle',
-    
-    // Thank you / Please
     'Thank you': 'Ngiyabonga',
-    'Thank you very much': 'Ngiyabonga kakhulu',
     'Please': 'Ngiyacela',
-    'Sorry': 'Uxolo',
-    
-    // Yes/No
     'Yes': 'Yebo',
     'No': 'Cha',
-    'Okay': 'Kulungile',
-    
-    // Emergency / Help
-    'Help': 'Usizo',
+    'How are you?': 'Unjani?',
+    'Goodbye': 'Sala kahle',
     'I need help': 'Ngidinga usizo',
-    'Help me': 'Ngisize',
-    'I am lost': 'Ngilahlekile',
-    'Call the police': 'Shayela amaphoyisa',
-    
-    // Restaurant / Food
+    'Where is the bathroom?': 'Ikuphi indlu yangasese?',
+    'How much?': 'Malini?',
     'Water': 'Amanzi',
     'Food': 'Ukudla',
-    'I want food': 'Ngifuna ukudla',
-    'What do you have?': 'Ninani?',
-    'Delicious': 'Kumnandi',
-    'The bill': 'Ngipha i-bill',
-    'Fish': 'Inhlanzi',
-    'Meat': 'Inyama',
-    'I am hungry': 'Ngilambile',
-    'I am thirsty': 'Ngomile',
-    
-    // Hotel
-    'I want a room': 'Ngifuna igumbi',
-    'No water': 'Akunamanzi',
-    'Wake me at': 'Ngivuse ngo',
-    
-    // Transport
-    'Take me': 'Ngiyisa',
-    'Airport': 'Isikhumulo sezindiza',
-    'Stop here': 'Misa lapha',
-    'Fast': 'Shesha',
-    
-    // Medical
-    'I am sick': 'Ngiyagula',
-    'Doctor': 'Udokotela',
-    'My head hurts': 'Ikhanda liyahlaba',
-    'Medicine': 'Umuthi',
-    
-    // Shopping
-    'How much?': 'Malini?',
-    'Too expensive': 'Kubiza kakhulu',
-    'Reduce the price': 'Yehlisa intengo',
-    'Too big': 'Kukhulu kakhulu',
-    'Too small': 'Kuncane kakhulu',
-    
-    // Questions
-    'Where?': 'Kuphi?',
-    'Where is the bathroom?': 'Ikuphi indlu yangasese?',
-    'What?': 'Yini?',
-    'When?': 'Nini?',
-    'Why?': 'Kungani?',
-    'Who?': 'Ubani?',
-    'How?': 'Kanjani?',
-    
-    // Directions
-    'Turn right': 'Jika kwesokudla',
-    'Turn left': 'Jika kwesokunxele',
-    'Straight': 'Qonda',
-    'Near': 'Eduze',
-    'Far': 'Kude',
-    'Front': 'Phambili',
-    'Back': 'Emuva',
-    
-    // Common
-    'My name is': 'Igama lami',
-    'Money': 'Imali',
-    'House': 'Indlu',
-    'Shop': 'Isitolo',
-    
-    // Numbers
-    'One': 'Kunye',
-    'Two': 'Kubili',
-    'Three': 'Kuthathu',
-    'Four': 'Kune',
-    'Five': 'Kuhlanu',
-    'Six': 'Isithupha',
-    'Seven': 'Isikhombisa',
-    'Eight': 'Isishiyagalombili',
-    'Nine': 'Isishiyagalolunye',
-    'Ten': 'Ishumi',
-    
-    // Useful
-    'I understand': 'Ngiyaqonda',
-    'I do not understand': 'Angiqondi',
-    'I want': 'Ngifuna',
-    'I like': 'Ngithanda',
+    'Help': 'Usizo',
   },
-
-  // === IGBO - 100+ phrases ===
   'ig': {
-    // Greetings
     'Hello': 'Ndewo',
     'Good morning': 'Ụtụtụ ọma',
-    'Good afternoon': 'Ehihie ọma',
     'Good evening': 'Mgbede ọma',
-    'Good night': 'Abalị ọma',
-    'How are you?': 'Kedu ka ị mere?',
-    'I am fine': 'A dị m mma',
-    'Welcome': 'Nnọọ',
-    'Goodbye': 'Ka ọmesịa',
-    
-    // Thank you / Please
     'Thank you': 'Daalụ',
-    'Thank you very much': 'Daalụ rinne',
     'Please': 'Biko',
-    
-    // Yes/No
     'Yes': 'Ee',
     'No': 'Mba',
-    'Okay': 'Ọ dị mma',
-    
-    // Emergency / Help
-    'Help': 'Enyemaka',
+    'How are you?': 'Kedu ka ị mere?',
+    'Goodbye': 'Ka ọ dị',
     'I need help': 'Achọrọ m enyemaka',
-    'Help me': 'Nyere m aka',
-    'Please help me': 'Biko nyere m aka',
-    'I am lost': 'Efuru m ụzọ',
-    'Call the police': 'Kpọọ ndị uwe ojii',
-    
-    // Restaurant / Food
+    'Where is the bathroom?': 'Olee ebe ụlọ mposi dị?',
+    'How much?': 'Ego ole?',
     'Water': 'Mmiri',
     'Food': 'Nri',
-    'I want food': 'Achọrọ m nri',
-    'What do you have?': 'Gịnị ka ị nwere?',
-    'Delicious': 'Ọ tọrọ ụtọ',
-    'The bill': 'Nye m bill',
-    'Fish': 'Azụ',
-    'Meat': 'Anụ',
-    'I am hungry': 'Agụụ na-agụ m',
-    
-    // Hotel
-    'I want a room': 'Achọrọ m ọnụ ụlọ',
-    'No water': 'Enweghị mmiri',
-    'Wake me': 'Kpọtee m',
-    
-    // Transport
-    'Take me to': 'Buru m gaa',
-    'Airport': 'Ọdụ ụgbọ elu',
-    'Stop here': 'Kwụsị ebe a',
-    'Fast': 'Ngwa ngwa',
-    
-    // Medical
-    'I am not well': 'Ahụ adịghị m mma',
-    'Doctor': 'Dọkịta',
-    'My head hurts': 'Isi m na-ama jijiji',
-    'Medicine': 'Ọgwụ',
-    
-    // Shopping
-    'How much?': 'Ego ole?',
-    'Too expensive': 'Ọ dị oke ọnụ',
-    'Reduce the price': 'Belata ọnụ ahịa',
-    'Too big': 'O buru ibu',
-    'Too small': 'O pere mpe',
-    
-    // Questions
-    'Where?': 'Olee?',
-    'Where is the bathroom?': 'Olee ebe ụlọ mposi dị?',
-    'What?': 'Gịnị?',
-    'When?': 'Mgbe?',
-    'Why?': 'Gịnị mere?',
-    'Who?': 'Ònye?',
-    
-    // Directions
-    'Turn right': 'Tụgharịa aka nri',
-    'Turn left': 'Tụgharịa aka ekpe',
-    'Straight': 'Kwụ ọtọ',
-    'Near': 'Ọ dị nso',
-    'Far': 'Ọ dị anya',
-    'Right': 'Aka nri',
-    'Left': 'Aka ekpe',
-    'Front': 'Ihu',
-    'Back': 'Azụ',
-    
-    // Common
-    'My name is': 'Aha m bụ',
-    'Money': 'Ego',
-    'House': 'Ụlọ',
-    'Market': 'Ahịa',
-    
-    // Numbers
-    'One': 'Otu',
-    'Two': 'Abụọ',
-    'Three': 'Atọ',
-    'Four': 'Anọ',
-    'Five': 'Ise',
-    'Six': 'Isii',
-    'Seven': 'Asaa',
-    'Eight': 'Asatọ',
-    'Nine': 'Itoolu',
-    'Ten': 'Iri',
-    
-    // Useful
-    'I understand': 'Aghọtara m',
-    'I do not understand': 'Aghọtaghị m',
-    'I want': 'Achọrọ m',
+    'Help': 'Enyemaka',
   },
 };
 
@@ -638,6 +191,7 @@ const getRateForLanguage = (langCode) => {
 };
 
 function App() {
+  // Premium hook
   const {
     isPremium,
     canTranslate,
@@ -658,10 +212,9 @@ function App() {
   const [recognizing, setRecognizing] = useState(false);
   const [interimResults, setInterimResults] = useState('');
   const [conversationMode, setConversationMode] = useState(false);
-  const [downloadedPacks, setDownloadedPacks] = useState(['sw', 'yo', 'ha', 'zu', 'ig']); // Pre-loaded packs
+  const [downloadedPacks, setDownloadedPacks] = useState(['sw', 'yo', 'ha', 'zu', 'ig']);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
-  const [missingVoice, setMissingVoice] = useState(false);
   const [showConversation, setShowConversationMode] = useState(false);
   const [autoDetectMode, setAutoDetectMode] = useState(false);
   const [showPremiumScreen, setShowPremiumScreen] = useState(false);
@@ -671,9 +224,10 @@ function App() {
   const [glowAnim] = useState(new Animated.Value(0));
   const [fadeAnim] = useState(new Animated.Value(1));
 
-  const audioPlayer = useAudioPlayer();
-
   useEffect(() => {
+    // Setup TrackPlayer
+    //TrackPlayer.setupPlayer().catch(err => console.log('TrackPlayer setup error:', err));
+    
     startPulseAnimation();
     startGlowAnimation();
     checkNetwork();
@@ -844,8 +398,20 @@ function App() {
 
   const startVoiceInput = async () => {
     hapticFeedback();
-
     setHasInteracted(true);
+    
+    // Check if user can translate (premium check)
+    if (!canTranslate()) {
+      Alert.alert(
+        'Translation Limit Reached',
+        `You've used all ${getRemainingTranslations()} free translations today. Upgrade to Premium for unlimited translations!`,
+        [
+          { text: 'Maybe Later', style: 'cancel' },
+          { text: 'Upgrade Now', onPress: () => setShowPremiumScreen(true) },
+        ]
+      );
+      return;
+    }
     
     try {
       if (recognizing) {
@@ -880,26 +446,28 @@ function App() {
   const translateText = async (text) => {
     if (!text.trim()) return;
 
+    // Check translation limit
     if (!canTranslate()) {
       Alert.alert(
         'Translation Limit Reached',
         `Upgrade to Premium for unlimited translations!`,
         [
-          {text: 'Cancel', style: 'cancel'},
-          {text: 'Upgrade', onPress: () => setShowPremiumScreen(true)},
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Upgrade', onPress: () => setShowPremiumScreen(true) },
         ]
       );
       return;
     }
 
+    // Check if target language is unlocked
     if (!isLanguageUnlocked(targetLang)) {
       const langInfo = getLanguageInfo(targetLang);
       Alert.alert(
         'Premium Language',
-        `${langInfo?.name} is Premium language. Upgrade to unlock all 14 languages!`,
+        `${langInfo?.name} is a Premium language. Upgrade to unlock all 14 languages!`,
         [
-          {text: 'Choose Free Language', style: 'cancel', onPress: () => setShowLangPicker(true)},
-          {text: 'Upgrade Now', onPress: () => setShowPremiumScreen(true)},
+          { text: 'Choose Free Language', style: 'cancel', onPress: () => setShowLangPicker(true) },
+          { text: 'Upgrade Now', onPress: () => setShowPremiumScreen(true) },
         ]
       );
       return;
@@ -918,7 +486,7 @@ function App() {
         }
       }
 
-      // Try offline translation first if offline or pack is downloaded
+      // Try offline translation first
       if (!isOnline || downloadedPacks.includes(targetLang)) {
         const offlinePack = OFFLINE_PACKS[targetLang];
         if (offlinePack && offlinePack[text]) {
@@ -934,7 +502,8 @@ function App() {
               timestamp: new Date(),
             }]);
           }
-
+          
+          // Increment translation count for free users
           if (!isPremium) {
             await incrementTranslationCount();
           }
@@ -956,7 +525,7 @@ function App() {
       }
 
       const response = await fetch(
-        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
       );
 
       if (!response.ok) throw new Error('Translation failed');
@@ -977,10 +546,11 @@ function App() {
         }]);
       }
       
+      // Increment translation count for free users
       if (!isPremium) {
         await incrementTranslationCount();
       }
-
+      
       setTimeout(() => {
         speakWithAfricanVoice(translated, targetLang);
       }, 500);
@@ -1024,273 +594,284 @@ function App() {
   const getLanguageInfo = (code) => AFRICAN_LANGUAGES.find(l => l.code === code);
   
   const speakWithAfricanVoice = async (text, langCode) => {
-  if (!text.trim()) return;
+    if (!text.trim()) return;
 
-  try {
-    if (!API_KEY) {
-      console.warn('Google TTS API key not found, using fallback');
-      fallbackToExpoSpeech(text, langCode);
-      return;
-    }
-
-    const googleLangCodes = {
-      'sw': 'sw-KE',  
-      'af': 'af-ZA',  
-      'fr': 'fr-FR',  
-      'ar': 'ar-XA',  
-      'pt': 'pt-PT',  
-      'en': 'en-US',  
-      'yo': 'en-US',  
-      'ha': 'en-US',  
-      'ig': 'en-US',  
-      'zu': 'en-US',  
-      'xh': 'en-US',  
-      'am': 'en-US',  
-      'so': 'en-US',  
-      'rw': 'en-US',  
-    };
-
-    const languageCode = googleLangCodes[langCode] || 'en-US';
-
-    const ssml = convertToSSML(text, langCode);
-    const voiceName = getVoiceName(languageCode);
-    
-    console.log(`Speaking with SSML pronounciation in ${languageCode}`);
-
-    // Call Google Cloud TTS API with ssml
-    const response = await fetch(
-      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          input: { 
-            ssml: ssml
-          },
-          voice: {
-            languageCode: languageCode, ...(voiceName && {name: voiceName}),
-            ssmlGender: 'FEMALE',
-          },
-          audioConfig: {
-            audioEncoding: 'MP3',
-            pitch: getPitchForLanguage(langCode),
-            speakingRate: getRateForLanguage(langCode),
-            volumeGainDb: 0,
-          },
-        }),
-      }
-    );
-
-    const data = await response.json();
-    
-    if (data.error) {
-      console.error('Google TTS API error:', data.error);
-      fallbackToExpoSpeech(text, langCode);
-      return;
-    }
-
-    if (data.audioContent) {
-      console.log('Got SSML audio from Google! Playing now...');
-      
-      try {
-        const fileUri = `${FileSystem.cacheDirectory}tts_${Date.now()}.mp3`;
-        await FileSystem.writeAsStringAsync(fileUri, data.audioContent, {
-          encoding: 'base64',
-        });
-
-        console.log('Audio saved, playing...');
-
-        audioPlayer.replace({ uri: fileUri });
-        audioPlayer.play();
-
-        console.log('Playing Google TTS with SSML pronunciation!');
-
-        setTimeout(() => {
-          FileSystem.deleteAsync(fileUri, { idempotent: true });
-        }, 10000);
-      } catch (audioError) {
-        console.error('Audio playback error:', audioError);
-        console.log('Falling back to expo-speech...');
+    try {
+      if (!API_KEY) {
+        console.warn('Google TTS API key not found, using fallback');
         fallbackToExpoSpeech(text, langCode);
+        return;
       }
-    }
-  } catch (error) {
-    console.error('Google TTS error:', error);
-    fallbackToExpoSpeech(text, langCode);
-  }
-};
 
-const getVoiceName = (languageCode) => {
-  const voiceNames = {
-    'sw-KE': 'sw-KE-Standard-A',   
-    'af-ZA': 'af-ZA-Standard-A',   
-    'fr-FR': 'fr-FR-Neural2-A',    
-    'ar-XA': 'ar-XA-Standard-A',   
-    'pt-PT': 'pt-PT-Standard-A',   
+      const googleLangCodes = {
+        'sw': 'sw-KE',  
+        'af': 'af-ZA',  
+        'fr': 'fr-FR',  
+        'ar': 'ar-XA',  
+        'pt': 'pt-PT',  
+        'en': 'en-US',  
+        'yo': 'en-US',  
+        'ha': 'en-US',  
+        'ig': 'en-US',  
+        'zu': 'en-US',  
+        'xh': 'en-US',  
+        'am': 'en-US',  
+        'so': 'en-US',  
+        'rw': 'en-US',  
+      };
+
+      const languageCode = googleLangCodes[langCode] || 'en-US';
+      const ssml = convertToSSML(text, langCode);
+      const voiceName = getVoiceName(languageCode);
+      
+      console.log(`Speaking with SSML pronunciation in ${languageCode}`);
+
+      const response = await fetch(
+        `https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            input: { 
+              ssml: ssml
+            },
+            voice: {
+              languageCode: languageCode, 
+              ...(voiceName && {name: voiceName}),
+              ssmlGender: 'FEMALE',
+            },
+            audioConfig: {
+              audioEncoding: 'MP3',
+              pitch: getPitchForLanguage(langCode),
+              speakingRate: getRateForLanguage(langCode),
+              volumeGainDb: 0,
+            },
+          }),
+        }
+      );
+
+      const data = await response.json();
+      
+      if (data.error) {
+        console.error('Google TTS API error:', data.error);
+        fallbackToExpoSpeech(text, langCode);
+        return;
+      }
+
+      if (data.audioContent) {
+        console.log('Got SSML audio from Google! Playing now...');
+        
+        try {
+          const fileUri = `${FileSystem.cacheDirectory}tts_${Date.now()}.mp3`;
+          await FileSystem.writeAsStringAsync(fileUri, data.audioContent, {
+            encoding: 'base64',
+          });
+
+          console.log('Audio saved, playing...');
+          const player = new AudioPlayer();
+          
+          await player.loadAsync({
+            uri: fileUri,
+          });
+
+          await player.playAsync();
+          /*
+          Use TrackPlayer instead of expo-audio
+          await TrackPlayer.reset();
+          await TrackPlayer.add({
+            url: fileUri,
+            title: 'Translation',
+          });
+          await TrackPlayer.play();
+          */
+
+
+          console.log('Playing Google TTS with SSML pronunciation!');
+
+          // Cleanup after playback
+          setTimeout(() => {
+            FileSystem.deleteAsync(fileUri, { idempotent: true });
+          }, 10000);
+        } catch (audioError) {
+          console.error('Audio playback error:', audioError);
+          fallbackToExpoSpeech(text, langCode);
+        }
+      }
+    } catch (error) {
+      console.error('Google TTS error:', error);
+      fallbackToExpoSpeech(text, langCode);
+    }
   };
 
-  return voiceNames[languageCode] || null;  
-};
-
-const fallbackToExpoSpeech = async (text, langCode) => {
-  try {
-    console.log('Using fallback expo-speech');
-    
-    const voices = await Speech.getAvailableVoicesAsync();
-    
-    const voicePreferences = {
-      'sw': ['sw-KE', 'en-ZA', 'en-GB'],
-      'yo': ['en-ZA', 'en-GB'],
-      'ha': ['en-ZA', 'en-GB'],
-      'ig': ['en-ZA', 'en-GB'],
-      'zu': ['zu-ZA', 'en-ZA'],
-      'xh': ['xh-ZA', 'en-ZA'],
-      'af': ['af-ZA', 'en-ZA'],
-      'am': ['en-ZA', 'en-GB'],
-      'so': ['en-ZA', 'en-GB'],
-      'rw': ['en-ZA', 'en-GB'],
-      'en': ['en-ZA', 'en-GB', 'en-AU'],
-      'fr': ['fr-FR', 'fr-CA'],
-      'ar': ['ar-SA', 'ar-EG'],
-      'pt': ['pt-PT', 'pt-BR'],
+  const getVoiceName = (languageCode) => {
+    const voiceNames = {
+      'sw-KE': 'sw-KE-Standard-A',   
+      'af-ZA': 'af-ZA-Standard-A',   
+      'fr-FR': 'fr-FR-Neural2-A',    
+      'ar-XA': 'ar-XA-Standard-A',   
+      'pt-PT': 'pt-PT-Standard-A',   
     };
 
-    const preferredLocales = voicePreferences[langCode] || [langCode];
-    let selectedVoice = null;
+    return voiceNames[languageCode] || null;  
+  };
 
-    for (const locale of preferredLocales) {
-      selectedVoice = voices.find(voice => 
-        voice.language && voice.language.toLowerCase().startsWith(locale.toLowerCase())
-      );
-      if (selectedVoice) {
-        console.log(`Found voice: ${selectedVoice.name} (${selectedVoice.language})`);
-        break;
+  const fallbackToExpoSpeech = async (text, langCode) => {
+    try {
+      console.log('Using fallback expo-speech');
+      
+      const voices = await Speech.getAvailableVoicesAsync();
+      
+      const voicePreferences = {
+        'sw': ['sw-KE', 'en-ZA', 'en-GB'],
+        'yo': ['en-ZA', 'en-GB'],
+        'ha': ['en-ZA', 'en-GB'],
+        'ig': ['en-ZA', 'en-GB'],
+        'zu': ['zu-ZA', 'en-ZA'],
+        'xh': ['xh-ZA', 'en-ZA'],
+        'af': ['af-ZA', 'en-ZA'],
+        'am': ['en-ZA', 'en-GB'],
+        'so': ['en-ZA', 'en-GB'],
+        'rw': ['en-ZA', 'en-GB'],
+        'en': ['en-ZA', 'en-GB', 'en-AU'],
+        'fr': ['fr-FR', 'fr-CA'],
+        'ar': ['ar-SA', 'ar-EG'],
+        'pt': ['pt-PT', 'pt-BR'],
+      };
+
+      const preferredLocales = voicePreferences[langCode] || [langCode];
+      let selectedVoice = null;
+
+      for (const locale of preferredLocales) {
+        selectedVoice = voices.find(voice => 
+          voice.language && voice.language.toLowerCase().startsWith(locale.toLowerCase())
+        );
+        if (selectedVoice) {
+          console.log(`Found voice: ${selectedVoice.name} (${selectedVoice.language})`);
+          break;
+        }
       }
-    }
 
-    await Speech.speak(text, {
-      language: selectedVoice?.language || langCode,
-      voice: selectedVoice?.identifier,
-      pitch: 1.0,
-      rate: 0.75, 
-    });
-    
-    console.log('Expo-speech playback started');
-  } catch (error) {
-    console.error('Fallback speech error:', error);
-  }
-};
+      await Speech.speak(text, {
+        language: selectedVoice?.language || langCode,
+        voice: selectedVoice?.identifier,
+        pitch: 1.0,
+        rate: 0.75, 
+      });
+      
+    } catch (error) {
+      console.error('Fallback speech error:', error);
+    }
+  };
 
   const SourceLanguagePicker = () => {
-  if (!showSourceLangPicker) return null;
+    if (!showSourceLangPicker) return null;
 
-  const popularLangs = AFRICAN_LANGUAGES.filter(l => l.popular);
-  const otherLangs = AFRICAN_LANGUAGES.filter(l => !l.popular);
+    const popularLangs = AFRICAN_LANGUAGES.filter(l => l.popular);
+    const otherLangs = AFRICAN_LANGUAGES.filter(l => !l.popular);
 
-  return (
-    <Modal visible={showSourceLangPicker} transparent animationType="slide" onRequestClose={() => setShowSourceLangPicker(false)}>
-      <View style={styles.pickerOverlay}>
-        <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowSourceLangPicker(false)} />
-        <View style={styles.pickerContainer}>
-          <View style={styles.pickerHeader}>
-            <Text style={styles.pickerTitle}>Speak From</Text>
-            <TouchableOpacity onPress={() => setShowSourceLangPicker(false)} style={styles.pickerClose}>
-              <Ionicons name="close" size={22} color={"#fff"}/>
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
-            {/* Auto-Detect Option */}
-            <TouchableOpacity
-              style={[
-                styles.pickerItem,
-                styles.autoDetectItem,
-                autoDetectMode && { borderColor: '#00F5FF', backgroundColor: 'rgba(0,245,255,0.15)' },
-              ]}
-              onPress={() => {
-                hapticFeedback();
-                setAutoDetectMode(true);
-                setShowSourceLangPicker(false);
-              }}
-              activeOpacity={0.8}
-            >
-              <MaterialIcons name='auto-awesome' size={22} color={"#00F5FF"}/>
-              <View style={styles.pickerInfo}>
-                <Text style={styles.pickerName}> Auto-Detect</Text>
-                <Text style={styles.pickerNative}> Detects language automatically</Text>
-              </View>
-              {autoDetectMode && (
-                <View style={[styles.pickerCheck, { backgroundColor: '#00F5FF' }]}>
-                  <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            <Text style={styles.pickerSectionTitle}>POPULAR</Text>
-            {popularLangs.map((lang) => (
-              <TouchableOpacity
-                key={lang.code}
-                style={[
-                  styles.pickerItem,
-                  sourceLang === lang.code && !autoDetectMode && { borderColor: lang.color, backgroundColor: lang.color + '15' },
-                ]}
-                onPress={() => {
-                  hapticFeedback();
-                  setSourceLang(lang.code);
-                  setAutoDetectMode(false);
-                  setShowSourceLangPicker(false);
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.pickerFlag}>{lang.flag}</Text>
-                <View style={styles.pickerInfo}>
-                  <Text style={styles.pickerName}>{lang.name}</Text>
-                  <Text style={styles.pickerNative}>{lang.native}</Text>
-                </View>
-                {sourceLang === lang.code && !autoDetectMode && (
-                  <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                    <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
-                  </View>
-                )}
+    return (
+      <Modal visible={showSourceLangPicker} transparent animationType="slide" onRequestClose={() => setShowSourceLangPicker(false)}>
+        <View style={styles.pickerOverlay}>
+          <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowSourceLangPicker(false)} />
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Speak From</Text>
+              <TouchableOpacity onPress={() => setShowSourceLangPicker(false)} style={styles.pickerClose}>
+                <Ionicons name="close" size={22} color={"#fff"}/>
               </TouchableOpacity>
-            ))}
+            </View>
             
-            <Text style={styles.pickerSectionTitle}>ALL LANGUAGES</Text>
-            {otherLangs.map((lang) => (
+            <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
               <TouchableOpacity
-                key={lang.code}
                 style={[
                   styles.pickerItem,
-                  sourceLang === lang.code && !autoDetectMode && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                  styles.autoDetectItem,
+                  autoDetectMode && { borderColor: '#00F5FF', backgroundColor: 'rgba(0,245,255,0.15)' },
                 ]}
                 onPress={() => {
                   hapticFeedback();
-                  setSourceLang(lang.code);
-                  setAutoDetectMode(false);
+                  setAutoDetectMode(true);
                   setShowSourceLangPicker(false);
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                <MaterialIcons name='auto-awesome' size={22} color={"#00F5FF"}/>
                 <View style={styles.pickerInfo}>
-                  <Text style={styles.pickerName}>{lang.name}</Text>
-                  <Text style={styles.pickerNative}>{lang.native}</Text>
+                  <Text style={styles.pickerName}> Auto-Detect</Text>
+                  <Text style={styles.pickerNative}> Detects language automatically</Text>
                 </View>
-                {sourceLang === lang.code && !autoDetectMode && (
-                  <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                {autoDetectMode && (
+                  <View style={[styles.pickerCheck, { backgroundColor: '#00F5FF' }]}>
                     <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
                   </View>
                 )}
               </TouchableOpacity>
-            ))}
-          </ScrollView>
+
+              <Text style={styles.pickerSectionTitle}>POPULAR</Text>
+              {popularLangs.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.pickerItem,
+                    sourceLang === lang.code && !autoDetectMode && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                  ]}
+                  onPress={() => {
+                    hapticFeedback();
+                    setSourceLang(lang.code);
+                    setAutoDetectMode(false);
+                    setShowSourceLangPicker(false);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                  <View style={styles.pickerInfo}>
+                    <Text style={styles.pickerName}>{lang.name}</Text>
+                    <Text style={styles.pickerNative}>{lang.native}</Text>
+                  </View>
+                  {sourceLang === lang.code && !autoDetectMode && (
+                    <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                      <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+              
+              <Text style={styles.pickerSectionTitle}>ALL LANGUAGES</Text>
+              {otherLangs.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.pickerItem,
+                    sourceLang === lang.code && !autoDetectMode && { borderColor: lang.color, backgroundColor: lang.color + '15' },
+                  ]}
+                  onPress={() => {
+                    hapticFeedback();
+                    setSourceLang(lang.code);
+                    setAutoDetectMode(false);
+                    setShowSourceLangPicker(false);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.pickerFlag}>{lang.flag}</Text>
+                  <View style={styles.pickerInfo}>
+                    <Text style={styles.pickerName}>{lang.name}</Text>
+                    <Text style={styles.pickerNative}>{lang.native}</Text>
+                  </View>
+                  {sourceLang === lang.code && !autoDetectMode && (
+                    <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                      <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
-      </View>
-    </Modal>
-  );
-};
+      </Modal>
+    );
+  };
 
   const LanguagePicker = () => {
     if (!showLangPicker) return null;
@@ -1313,7 +894,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             <ScrollView style={styles.pickerScroll} showsVerticalScrollIndicator={false}>
               <Text style={styles.pickerSectionTitle}>POPULAR</Text>
               {popularLangs.map((lang) => {
-                const locked = !isLanguageUnlocked(land.code);
+                const locked = !isLanguageUnlocked(lang.code);
                 return (
                   <TouchableOpacity
                     key={lang.code}
@@ -1336,9 +917,9 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   >
                     <Text style={styles.pickerFlag}>{lang.flag}</Text>
                     <View style={styles.pickerInfo}>
-                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <Text style={styles.pickerName}>{lang.name}</Text>
-                        {locked && <Ionicons name='lock-closed' size={14} color={"#00F5FF"} />}
+                        {locked && <Ionicons name="lock-closed" size={14} color="#00F5FF" />}
                       </View>
                       <Text style={styles.pickerNative}>{lang.native}</Text>
                     </View>
@@ -1376,20 +957,20 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   >
                     <Text style={styles.pickerFlag}>{lang.flag}</Text>
                     <View style={styles.pickerInfo}>
-                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <Text style={styles.pickerName}>{lang.name}</Text>
-                        {locked && <Ionicons name='lock-closed' size={14} color={"#00F5FF"}/>}
+                        {locked && <Ionicons name="lock-closed" size={14} color="#00F5FF" />}
                       </View>
                       <Text style={styles.pickerNative}>{lang.native}</Text>
                     </View>
                     {targetLang === lang.code && (
-                    <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
-                      <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+                      <View style={[styles.pickerCheck, { backgroundColor: lang.color }]}>
+                        <Ionicons name='checkmark-circle' size={22} color={"#fff"}/>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
         </View>
@@ -1414,11 +995,11 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             <Text style={styles.logo}>GRIOT</Text>
             <Text style={styles.subtitle}>African Voice Translator</Text>
             {!isPremium && (
-              <TouchableOpacity
+              <TouchableOpacity 
                 style={styles.premiumBadge}
                 onPress={() => setShowPremiumScreen(true)}
               >
-                <Ionicons name='diamond' size={16} color={"#000"}/>
+                <Ionicons name="diamond" size={16} color="#000" />
                 <Text style={styles.premiumBadgeText}>Upgrade</Text>
               </TouchableOpacity>
             )}
@@ -1488,9 +1069,9 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             <Text style={styles.voiceInstruction}>
               {isListening ? 'Listening...' : isTranslating ? 'Translating...' : 'TAP TO SPEAK'}
             </Text>
-
-            {/* Translation Counter - Free to Users */}
-            {isPremium && (
+            
+            {/* Translation Counter - Only for free users */}
+            {!isPremium && (
               <View style={styles.translationCounter}>
                 <Text style={styles.counterText}>
                   {getRemainingTranslations()} translations left today
@@ -1499,7 +1080,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   style={styles.upgradeBtn}
                   onPress={() => setShowPremiumScreen(true)}
                 >
-                  <Ionicons name='diamond' size={16} color='#000'/>
+                  <Ionicons name="diamond" size={16} color="#000" />
                   <Text style={styles.upgradeBtnText}>Upgrade</Text>
                 </TouchableOpacity>
               </View>
@@ -1542,18 +1123,18 @@ const fallbackToExpoSpeech = async (text, langCode) => {
                   <Text style={styles.textLabel}>Translation:</Text>
                   <Text style={[styles.textContent, styles.translatedText]}>{translatedText}</Text>
                   <View style={styles.cardBottomRow}>
-                  {downloadedPacks.includes(targetLang) && (
-                    <View style={styles.offlinePackBadge}>
-                      <Text style={styles.offlinePackText}>Works Offline</Text>
-                    </View>
-                  )}
-                  <TouchableOpacity 
-                    style={styles.playAgainBtn}
-                    onPress={() => speakWithAfricanVoice(translatedText, targetLang)}
-                  >
-                    <Ionicons name='volume-high' size={22} color={"#fff"}/>
-                  </TouchableOpacity>
-                </View>
+                    {downloadedPacks.includes(targetLang) && (
+                      <View style={styles.offlinePackBadge}>
+                        <Text style={styles.offlinePackText}>Works Offline</Text>
+                      </View>
+                    )}
+                    <TouchableOpacity 
+                      style={styles.playAgainBtn}
+                      onPress={() => speakWithAfricanVoice(translatedText, targetLang)}
+                    >
+                      <Ionicons name='volume-high' size={22} color={"#fff"}/>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
             </Animated.View>
@@ -1596,51 +1177,26 @@ const fallbackToExpoSpeech = async (text, langCode) => {
 
           {/* Premium Screen Modal */}
           {showPremiumScreen && (
-          <Modal
-            visible={showPremiumScreen}
-            animationType='slide'
-          >
-            <PremiumScreen onClose={() => setShowPremiumScreen(false)}/>
-          </Modal>
+            <Modal
+              visible={showPremiumScreen}
+              animationType="slide"
+              presentationStyle="fullScreen"
+            >
+              <PremiumScreen onClose={() => setShowPremiumScreen(false)} />
+            </Modal>
           )}
 
-          {/* Conversation History */}
-          {conversationMode && conversationHistory.length > 0 && (
-            <View style={styles.conversationHistory}>
-              <Text style={styles.conversationHistoryTitle}>Recent Exchanges</Text>
-              <ScrollView
-                style={styles.conversationScroll}
-                contentContainerStyle={{ paddingBottom: 20 }}
-                showsVerticalScrollIndicator={ false }
-              >
-              {conversationHistory.slice(-5).reverse().map((item, index) => (
-                <View key={index} style={styles.conversationItem}>
-                  <View style={styles.conversationBubbleYou}>
-                    <Text style={styles.conversationLabel}>You</Text>
-                    <Text style={styles.conversationSource}>{item.source}</Text>
-                  </View>
-                  <View style={styles.conversationBubbleThem}>
-                    <Text style={styles.conversationLabel}>Translation</Text>
-                    <Text style={styles.conversationTranslated}>{item.translated}</Text>
-                  </View>
-                </View>
-              ))}
-              </ScrollView>
-            </View>
-          )}
-
-          {/* Instructions - only shown before */}
           {!hasInteracted && (
             <View style={styles.instructions}>
-            <Text style={styles.instructionText}>1. Choose target language above</Text>
-            <Text style={styles.instructionText}>2. Tap circle and speak</Text>
-            <Text style={styles.instructionText}>3. Listen to instant translation</Text>
-            {!isPremium && (
-              <Text style={styles.instructionHighlight}>
-                Upgrade for unlimited translations
-              </Text>
-            )}
-          </View>
+              <Text style={styles.instructionText}>1. Choose target language above</Text>
+              <Text style={styles.instructionText}>2. Tap circle and speak</Text>
+              <Text style={styles.instructionText}>3. Listen to instant translation</Text>
+              {!isPremium && (
+                <Text style={styles.instructionHighlight}>
+                  💎 Upgrade for unlimited translations
+                </Text>
+              )}
+            </View>
           )}
         </ScrollView>
 
@@ -1658,15 +1214,6 @@ const fallbackToExpoSpeech = async (text, langCode) => {
             {isOnline ? "Online" : "Offline"}
           </Text>
         </View>
-
-        {missingVoice && (
-          <View style={styles.voiceHintBar}>
-            <Text style={styles.voiceHintText}>Download {getLanguageInfo(targetLang)?.name} voice in Settings for better accent</Text>
-            <TouchableOpacity onPress={() => setMissingVoice(false)} style={styles.voiceHintClose}>
-              <Ionicons name='close' size={22} color={"#fff"}/>
-            </TouchableOpacity>
-          </View>
-        )}
       </LinearGradient>
       <LanguagePicker />
       <SourceLanguagePicker />
@@ -1674,6 +1221,7 @@ const fallbackToExpoSpeech = async (text, langCode) => {
   );
 }
 
+// Main app wrapper with Premium Provider
 export default function AppWrapper() {
   return (
     <PremiumProvider>
@@ -1700,6 +1248,7 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: 20,
     alignItems: 'center',
+    position: 'relative',
   },
   logo: {
     marginTop: 25,
@@ -1714,6 +1263,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: '600',
     letterSpacing: 2,
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00F5FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+  },
+  premiumBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#000',
   },
   langDisplay: {
     flexDirection: 'row',
@@ -1752,11 +1318,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: 10,
   },
-  swapText: {
-    fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: '900',
-  },
   mainContent: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -1791,6 +1352,38 @@ const styles = StyleSheet.create({
     marginTop: 15,
     letterSpacing: 2,
   },
+  translationCounter: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    width: width - 40,
+  },
+  counterText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+  },
+  upgradeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00F5FF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  upgradeBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000',
+  },
   autoDetectItem: {
     borderWidth: 2,
     borderStyle: 'dashed',
@@ -1807,23 +1400,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
     gap: 8,
   },
-  conversationToggleActive: {
-    backgroundColor: 'rgba(0,245,255,0.15)',
-    borderColor: '#00F5FF',
-  },
-  conversationToggleIcon: {
-    fontSize: 20,
-  },
   conversationToggleText: {
     fontSize: 13,
     fontWeight: '700',
     color: '#666',
-  },
-  conversationToggleTextActive: {
-    color: '#00F5FF',
-  },
-  conversationScroll: {
-    flex: 1,
   },
   translationCard: {
     marginHorizontal: 20,
@@ -1834,7 +1414,6 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     marginBottom: 16,
-    //paddingRight: 10,
   },
   textLabel: {
     fontSize: 12,
@@ -1881,20 +1460,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 0.5,
   },
-  replayBtn: {
+  playAgainBtn: {
     flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(0,245,255,0.1)',
+    backgroundColor: '#00F5FF',
+    padding: 6,
     borderRadius: 20,
-  },
-  replayText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#00F5FF',
+    alignItems: 'center',
+    shadowColor: '#00F5FF',
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   instructions: {
     paddingHorizontal: 40,
@@ -1939,40 +1513,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 12,
     fontWeight: "700",
-  },
-  voiceHintBar: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: 'rgba(0,245,255,0.15)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#00F5FF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  voiceHintText: {
-    flex: 1,
-    color: '#00F5FF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  voiceHintClose: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  voiceHintCloseText: {
-    color: '#00F5FF',
-    fontSize: 14,
-    fontWeight: '700',
   },
   pickerOverlay: {
     flex: 1,
@@ -2034,6 +1574,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
+  lockedItem: {
+    opacity: 0.7,
+  },
   pickerFlag: {
     fontSize: 28,
     marginRight: 12,
@@ -2057,100 +1600,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  conversationHistory: {
-    marginHorizontal: 16,
-    marginTop: 20,
-    backgroundColor: '#121212',
-    borderRadius: 20,
-    padding: 16,
-    maxHeight: height * 0.35,
-  },
-  conversationHistoryTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#00F5FF',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  conversationItem: {
-    marginBottom: 12,
-  },
-  conversationBubbleYou: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1E1E1E',
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 6,
-    maxWidth: '80%',
-  },
-  conversationBubbleThem: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#222222',
-    padding: 12,
-    borderRadius: 16,
-    maxWidth: '80%',
-    marginBottom: 12,
-    position: 'relative',
-  },
-  conversationLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#888',
-    marginBottom: 4,
-  },
-  conversationSource: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '500',
-    lineHeight: 20,
-  },
-  conversationTranslated: {
-    fontSize: 14,
-    color: '#00F5FF',
-    fontWeight: '600',
-    lineHeight: 20,
-    paddingRight: 36,
-  },
-  playAgainBtn: {
-    flexDirection: 'row',
-    backgroundColor: '#00F5FF',
-    padding: 6,
-    borderRadius: 20,
-    alignItems: 'center',
-    shadowColor: '#00F5FF',
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  premiumBadge: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 30,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#00F5FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 4,
-  },
-  premiumBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#000',
-  },
-  upgradeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#00F5FF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  upgradeBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#000',
   },
 });

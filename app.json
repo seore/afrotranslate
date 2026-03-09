@@ -46,7 +46,8 @@
           "microphonePermission": "Allow GRIOT to access your microphone for voice translation.",
           "speechRecognitionPermission": "Allow GRIOT to recognize your speech for instant translation."
         }
-      ]
+      ],
+      "expo-audio"
     ]
   }
 }

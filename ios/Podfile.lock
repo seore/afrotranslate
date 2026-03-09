@@ -234,6 +234,8 @@ PODS:
   - hermes-engine (0.14.1):
     - hermes-engine/Pre-built (= 0.14.1)
   - hermes-engine/Pre-built (0.14.1)
+  - PurchasesHybridCommon (17.44.0):
+    - RevenueCat (= 5.61.0)
   - RCTDeprecation (0.83.2)
   - RCTRequired (0.83.2)
   - RCTSwiftUI (0.83.2)
@@ -1627,6 +1629,9 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
+  - react-native-track-player (4.1.2):
+    - React-Core
+    - SwiftAudioEx (= 1.1.0)
   - React-NativeModulesApple (0.83.2):
     - hermes-engine
     - React-callinvoker
@@ -2011,6 +2016,7 @@ PODS:
     - React-utils (= 0.83.2)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.83.2)
+  - RevenueCat (5.61.0)
   - RNCAsyncStorage (2.2.0):
     - hermes-engine
     - RCTRequired
@@ -2033,6 +2039,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNPurchases (9.11.2):
+    - PurchasesHybridCommon (= 17.44.0)
+    - React-Core
   - RNSVG (15.15.3):
     - hermes-engine
     - RCTRequired
@@ -2078,10 +2087,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - SwiftAudioEx (1.1.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
-  - EXConstants (from `../node_modules/expo/node_modules/expo-constants/ios`)
+  - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXJSONUtils (from `../node_modules/expo-json-utils/ios`)
   - EXManifests (from `../node_modules/expo-manifests/ios`)
   - Expo (from `../node_modules/expo`)
@@ -2089,7 +2099,7 @@ DEPENDENCIES:
   - expo-dev-launcher (from `../node_modules/expo-dev-launcher`)
   - expo-dev-menu (from `../node_modules/expo-dev-menu`)
   - expo-dev-menu-interface (from `../node_modules/expo-dev-menu-interface/ios`)
-  - ExpoAsset (from `../node_modules/expo/node_modules/expo-asset/ios`)
+  - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - "ExpoDomWebView (from `../node_modules/expo/node_modules/@expo/log-box/node_modules/@expo/dom-webview/ios`)"
@@ -2142,6 +2152,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-track-player (from `../node_modules/react-native-track-player`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-networking (from `../node_modules/react-native/ReactCommon/react/networking`)
   - React-oscompat (from `../node_modules/react-native/ReactCommon/oscompat`)
@@ -2177,12 +2188,19 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - RNPurchases (from `../node_modules/react-native-purchases`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
+SPEC REPOS:
+  trunk:
+    - PurchasesHybridCommon
+    - RevenueCat
+    - SwiftAudioEx
+
 EXTERNAL SOURCES:
   EXConstants:
-    :path: "../node_modules/expo/node_modules/expo-constants/ios"
+    :path: "../node_modules/expo-constants/ios"
   EXJSONUtils:
     :path: "../node_modules/expo-json-utils/ios"
   EXManifests:
@@ -2198,7 +2216,7 @@ EXTERNAL SOURCES:
   expo-dev-menu-interface:
     :path: "../node_modules/expo-dev-menu-interface/ios"
   ExpoAsset:
-    :path: "../node_modules/expo/node_modules/expo-asset/ios"
+    :path: "../node_modules/expo-asset/ios"
   ExpoAudio:
     :path: "../node_modules/expo-audio/ios"
   ExpoClipboard:
@@ -2302,6 +2320,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-track-player:
+    :path: "../node_modules/react-native-track-player"
   React-NativeModulesApple:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-networking:
@@ -2372,6 +2392,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNPurchases:
+    :path: "../node_modules/react-native-purchases"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   Yoga:
@@ -2402,6 +2424,7 @@ SPEC CHECKSUMS:
   EXUpdatesInterface: d48f288b92900bd95a27c6cf92a7b9aff826d49a
   FBLazyVector: 32e9ed0301d0fcbc1b2b341dd7fcbf291f51eb83
   hermes-engine: 8a21a9492b7c6df2bb673a7e1ab4003ff52b216d
+  PurchasesHybridCommon: 6fd6b4b1bef993ed296388dbf05992beca081c2e
   RCTDeprecation: a522c536d2c7be8f518dd834883cf6dce1d4f545
   RCTRequired: 44337def23abb244c025e9e7ab58f9cd3d63ec7d
   RCTSwiftUI: b2f0c2f2761631b8cd605767536cbb1cbf8d020f
@@ -2438,6 +2461,7 @@ SPEC CHECKSUMS:
   React-logger: 69811317123fe08dc34ed5837dc1d269c468cc8d
   React-Mapbuffer: 8f8cbeb5bedb521cce0897a71274e3a72b5236a1
   React-microtasksnativemodule: bef4a47c7efd42421de52201e6d76a73cf6c816e
+  react-native-track-player: dd56f9948e03756a217c75e0a61aa04aab65b5a1
   React-NativeModulesApple: f9fa097fc24cec967b77bfc05f72d2ea7db05b87
   React-networking: 29a9ae1a2e6ce8bb19174cc47110b36ae7ffcbcd
   React-oscompat: 856e980339052dc5a35980a498e24dd8480acf29
@@ -2472,8 +2496,11 @@ SPEC CHECKSUMS:
   ReactCodegen: e67cb698a2107da1da9efa55174861d724666a3e
   ReactCommon: 8868269b67561136a7970be188b40738135af077
   ReactNativeDependencies: 7dd025faef38f21a2ef780f983aeaf2cb671badd
+  RevenueCat: 9acbd29a62000b57d59efa16166290c4a119847b
   RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
+  RNPurchases: 3b23e4ce742f94402d8372e7296658c202133cbb
   RNSVG: 0bd149b873018bc6e0e3321e2f6435bdba294460
+  SwiftAudioEx: f6aa653770f3a0d3851edaf8d834a30aee4a7646
   Yoga: dd994d8c85dca5cc9b10f5df8c01f9ef1d0da191
 
 PODFILE CHECKSUM: 718b4fb1554af23bca8f7b4d711cd6be1442fdc5

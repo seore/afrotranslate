@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   Platform,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +16,7 @@ import { usePremium } from './PremiumContext';
 const { width } = Dimensions.get('window');
 
 export default function PremiumScreen({ onClose }) {
-  const { products, purchasePremium, restorePurchases, isPremium } = usePremium();
+  const { products, purchasePremium, restorePurchases, isPremium, togglePremiumForTesting } = usePremium();
 
   const features = [
     { icon: 'infinite', title: 'Unlimited Translations', desc: 'Never run out of translations' },
@@ -28,13 +29,44 @@ export default function PremiumScreen({ onClose }) {
     { icon: 'download', title: 'Export Transcripts', desc: 'Share your translations' },
   ];
 
-  const getProductPrice = (productId) => {
-    const product = products.find(p => p.productId === productId);
-    return product ? product.price : '...';
+  const getProductPrice = (identifier) => {
+    const product = products.find(p => p.identifier === identifier);
+    if (product && product.product) {
+      return product.product.priceString || '$4.99';
+    }
+    // Fallback prices
+    if (identifier === 'griot_premium_monthly') return '$4.99';
+    if (identifier === 'griot_premium_yearly') return '$39.99';
+    if (identifier === 'griot_lifetime') return '$79.99';
+    return '...';
   };
 
-  const handlePurchase = (productId) => {
-    purchasePremium(productId);
+  const getProductPackage = (identifier) => {
+    return products.find(p => p.identifier === identifier);
+  };
+
+  const handlePurchase = (identifier) => {
+    const packageToBuy = getProductPackage(identifier);
+    if (packageToBuy) {
+      purchasePremium(packageToBuy);
+    } else {
+      // In development, offer to enable for testing
+      if (__DEV__) {
+        Alert.alert(
+          'Product Not Found',
+          'Enable premium for testing?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Enable Premium (Test)', 
+              onPress: () => togglePremiumForTesting()
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Error', 'Product not available');
+      }
+    }
   };
 
   if (isPremium) {
@@ -50,13 +82,21 @@ export default function PremiumScreen({ onClose }) {
 
           <View style={styles.premiumBadge}>
             <Ionicons name="checkmark-circle" size={80} color="#00F5FF" />
-            <Text style={styles.premiumTitle}>You're Premium!</Text>
+            <Text style={styles.premiumTitle}>You're Premium! 🎉</Text>
             <Text style={styles.premiumSubtitle}>Enjoy unlimited translations</Text>
           </View>
 
-          <TouchableOpacity style={styles.manageBtn}>
-            <Text style={styles.manageBtnText}>Manage Subscription</Text>
-          </TouchableOpacity>
+          {__DEV__ && (
+            <TouchableOpacity 
+              style={styles.manageBtn}
+              onPress={() => {
+                togglePremiumForTesting();
+                onClose();
+              }}
+            >
+              <Text style={styles.manageBtnText}>Disable Premium (Testing)</Text>
+            </TouchableOpacity>
+          )}
         </LinearGradient>
       </View>
     );
@@ -107,7 +147,7 @@ export default function PremiumScreen({ onClose }) {
               </View>
               <Text style={styles.pricingName}>Yearly</Text>
               <Text style={styles.pricingPrice}>{getProductPrice('griot_premium_yearly')}/year</Text>
-              <Text style={styles.pricingSave}>Save 33% • ${(4.99 * 12 - 39.99).toFixed(2)} off</Text>
+              <Text style={styles.pricingSave}>Save 33% • $19.89 off</Text>
             </TouchableOpacity>
 
             {/* Monthly */}
@@ -139,7 +179,7 @@ export default function PremiumScreen({ onClose }) {
             • 7-day free trial for subscriptions{'\n'}
             • Cancel anytime, no questions asked{'\n'}
             • Subscriptions auto-renew unless turned off 24hrs before period ends{'\n'}
-            • Payment charged to iTunes/Google account
+            • Payment charged to App Store account
           </Text>
         </ScrollView>
       </LinearGradient>
