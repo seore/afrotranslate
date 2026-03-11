@@ -14,7 +14,7 @@ export const PremiumProvider = ({ children }) => {
   const [translationsToday, setTranslationsToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const FREE_TRANSLATION_LIMIT = 5;
+  const FREE_TRANSLATION_LIMIT = 10;
   const FREE_LANGUAGES = ["yo", "en", "fr"];
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export const PremiumProvider = ({ children }) => {
         { 
           identifier: 'griot_lifetime',
           product: { 
-            priceString: '$79.99',
+            priceString: '$59.99',
             title: 'Lifetime Premium'
           }
         },
@@ -104,7 +104,7 @@ export const PremiumProvider = ({ children }) => {
           { 
             identifier: 'griot_lifetime',
             product: { 
-              priceString: '$79.99',
+              priceString: '$59.99',
               title: 'Lifetime Premium'
             }
           },
@@ -131,7 +131,7 @@ export const PremiumProvider = ({ children }) => {
         { 
           identifier: 'griot_lifetime',
           product: { 
-            priceString: '$79.99',
+            priceString: '$59.99',
             title: 'Lifetime Premium'
           }
         },

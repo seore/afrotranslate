@@ -37,7 +37,7 @@ export default function PremiumScreen({ onClose }) {
     // Fallback prices
     if (identifier === 'griot_premium_monthly') return '$4.99';
     if (identifier === 'griot_premium_yearly') return '$39.99';
-    if (identifier === 'griot_lifetime') return '$79.99';
+    if (identifier === 'griot_lifetime') return '$59.99';
     return '...';
   };
 

@@ -9,24 +9,24 @@
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		5F8DD33B58D11D070F5C7329 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7803A92BD5A9C4567DD29F8 /* ExpoModulesProvider.swift */; };
-		6F1F3E2213068C3D4815DC1B /* libPods-GRIOT.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DA1092FD35DB6FFEF1EEAC6F /* libPods-GRIOT.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		D185F7DAB844F877A51BB014 /* libPods-GRIOT.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E52EA0B8978EB35517EF8F5B /* libPods-GRIOT.a */; };
+		EBAA98A42715873A110E4068 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 21ECC6A7F7E261418D204370 /* PrivacyInfo.xcprivacy */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		FF47ECF5E259B5CC596D8554 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C38F43A621BA6D76A6F5C26B /* PrivacyInfo.xcprivacy */; };
+		F827F2D827FBD8112412A91E /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E349CD6416210DBA427D51F8 /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* GRIOT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRIOT.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = GRIOT/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = GRIOT/Info.plist; sourceTree = "<group>"; };
-		7F94009CAF9B3038EFBABF42 /* Pods-GRIOT.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRIOT.release.xcconfig"; path = "Target Support Files/Pods-GRIOT/Pods-GRIOT.release.xcconfig"; sourceTree = "<group>"; };
+		21ECC6A7F7E261418D204370 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = GRIOT/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		590E8F68EAFBFB3051919CA6 /* Pods-GRIOT.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRIOT.debug.xcconfig"; path = "Target Support Files/Pods-GRIOT/Pods-GRIOT.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = GRIOT/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		C38F43A621BA6D76A6F5C26B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = GRIOT/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		DA1092FD35DB6FFEF1EEAC6F /* libPods-GRIOT.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-GRIOT.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E7803A92BD5A9C4567DD29F8 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-GRIOT/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		EC6D7C03FD6E78D3E821F03A /* Pods-GRIOT.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRIOT.debug.xcconfig"; path = "Target Support Files/Pods-GRIOT/Pods-GRIOT.debug.xcconfig"; sourceTree = "<group>"; };
+		BBBF76B69D89C187063EBCC8 /* Pods-GRIOT.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRIOT.release.xcconfig"; path = "Target Support Files/Pods-GRIOT/Pods-GRIOT.release.xcconfig"; sourceTree = "<group>"; };
+		E349CD6416210DBA427D51F8 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-GRIOT/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		E52EA0B8978EB35517EF8F5B /* libPods-GRIOT.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-GRIOT.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = GRIOT/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* GRIOT-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRIOT-Bridging-Header.h"; path = "GRIOT/GRIOT-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -37,7 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6F1F3E2213068C3D4815DC1B /* libPods-GRIOT.a in Frameworks */,
+				D185F7DAB844F877A51BB014 /* libPods-GRIOT.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,35 +53,27 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				C38F43A621BA6D76A6F5C26B /* PrivacyInfo.xcprivacy */,
+				21ECC6A7F7E261418D204370 /* PrivacyInfo.xcprivacy */,
 			);
 			name = GRIOT;
+			sourceTree = "<group>";
+		};
+		1E6544A57496747AA253B754 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				590E8F68EAFBFB3051919CA6 /* Pods-GRIOT.debug.xcconfig */,
+				BBBF76B69D89C187063EBCC8 /* Pods-GRIOT.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				DA1092FD35DB6FFEF1EEAC6F /* libPods-GRIOT.a */,
+				E52EA0B8978EB35517EF8F5B /* libPods-GRIOT.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		5876C86CC7EA21E3D6072A7A /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				FD1CF1F48BC859C211F30B54 /* GRIOT */,
-			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
-		81F52C50A91B282D8D8EF97D /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				EC6D7C03FD6E78D3E821F03A /* Pods-GRIOT.debug.xcconfig */,
-				7F94009CAF9B3038EFBABF42 /* Pods-GRIOT.release.xcconfig */,
-			);
-			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -98,8 +90,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				81F52C50A91B282D8D8EF97D /* Pods */,
-				5876C86CC7EA21E3D6072A7A /* ExpoModulesProviders */,
+				1E6544A57496747AA253B754 /* Pods */,
+				E37D4BC0C42E7806D4006724 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -123,12 +115,20 @@
 			path = GRIOT/Supporting;
 			sourceTree = "<group>";
 		};
-		FD1CF1F48BC859C211F30B54 /* GRIOT */ = {
+		C988B11C217D6E2A9786D1C9 /* GRIOT */ = {
 			isa = PBXGroup;
 			children = (
-				E7803A92BD5A9C4567DD29F8 /* ExpoModulesProvider.swift */,
+				E349CD6416210DBA427D51F8 /* ExpoModulesProvider.swift */,
 			);
 			name = GRIOT;
+			sourceTree = "<group>";
+		};
+		E37D4BC0C42E7806D4006724 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				C988B11C217D6E2A9786D1C9 /* GRIOT */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,14 +139,14 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "GRIOT" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				A39731180A3833372662DDB8 /* [Expo] Configure project */,
+				D1786D2FF7454B2FF0C5E767 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				6D5F17ABB45B4DDF884A0405 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
-				B0AE3B128452908459FFE5B7 /* [CP] Embed Pods Frameworks */,
+				D0356C9E35A74D238C82F6A2 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
+				E2C8469E3B0507F165B900DB /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -166,9 +166,7 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = TC2Y44G547;
 						LastSwiftMigration = 1250;
-						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -198,7 +196,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				FF47ECF5E259B5CC596D8554 /* PrivacyInfo.xcprivacy in Resources */,
+				EBAA98A42715873A110E4068 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -244,20 +242,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		6D5F17ABB45B4DDF884A0405 /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo Dev Launcher] Strip Local Network Keys for Release";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Strip dev-launcher-specific local network permission keys from non-Debug builds\n# This only removes _expo._tcp Bonjour services and the dev-launcher usage description.\n# Other Bonjour services and custom descriptions are preserved for production use.\n\nif [ \"$CONFIGURATION\" != \"Debug\" ]; then\n  PLIST_PATH=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n  if [ -f \"$PLIST_PATH\" ]; then\n    # Check if NSBonjourServices exists\n    if /usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" >/dev/null 2>&1; then\n      # Get the count of services\n      COUNT=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')\n\n      # Remove _expo._tcp\n      for ((i=COUNT-1; i>=0; i--)); do\n        SERVICE=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")\n        if echo \"$SERVICE\" | grep -q \"_expo._tcp\"; then\n          /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || true\n        fi\n      done\n\n      # If the array is now empty, remove it entirely\n      REMAINING=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')\n      if [ \"$REMAINING\" -eq \"0\" ]; then\n        /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null || true\n      fi\n    fi\n\n    # Only delete the description if it matches the dev-launcher default text\n    DESC=$(/usr/libexec/PlistBuddy -c \"Print :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")\n    if echo \"$DESC\" | grep -q \"Expo Dev Launcher\"; then\n      /usr/libexec/PlistBuddy -c \"Delete :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || true\n    fi\n  fi\nfi\n";
-		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -296,7 +280,21 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-GRIOT/Pods-GRIOT-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A39731180A3833372662DDB8 /* [Expo] Configure project */ = {
+		D0356C9E35A74D238C82F6A2 /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo Dev Launcher] Strip Local Network Keys for Release";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Strip dev-launcher-specific local network permission keys from non-Debug builds\n# This only removes _expo._tcp Bonjour services and the dev-launcher usage description.\n# Other Bonjour services and custom descriptions are preserved for production use.\n\nif [ \"$CONFIGURATION\" != \"Debug\" ]; then\n  PLIST_PATH=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n  if [ -f \"$PLIST_PATH\" ]; then\n    # Check if NSBonjourServices exists\n    if /usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" >/dev/null 2>&1; then\n      # Get the count of services\n      COUNT=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')\n\n      # Remove _expo._tcp\n      for ((i=COUNT-1; i>=0; i--)); do\n        SERVICE=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")\n        if echo \"$SERVICE\" | grep -q \"_expo._tcp\"; then\n          /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || true\n        fi\n      done\n\n      # If the array is now empty, remove it entirely\n      REMAINING=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')\n      if [ \"$REMAINING\" -eq \"0\" ]; then\n        /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null || true\n      fi\n    fi\n\n    # Only delete the description if it matches the dev-launcher default text\n    DESC=$(/usr/libexec/PlistBuddy -c \"Print :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")\n    if echo \"$DESC\" | grep -q \"Expo Dev Launcher\"; then\n      /usr/libexec/PlistBuddy -c \"Delete :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || true\n    fi\n  fi\nfi\n";
+		};
+		D1786D2FF7454B2FF0C5E767 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -320,7 +318,7 @@
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-GRIOT/expo-configure-project.sh\"\n";
 		};
-		B0AE3B128452908459FFE5B7 /* [CP] Embed Pods Frameworks */ = {
+		E2C8469E3B0507F165B900DB /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -350,7 +348,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				5F8DD33B58D11D070F5C7329 /* ExpoModulesProvider.swift in Sources */,
+				F827F2D827FBD8112412A91E /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,13 +357,11 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EC6D7C03FD6E78D3E821F03A /* Pods-GRIOT.debug.xcconfig */;
+			baseConfigurationReference = 590E8F68EAFBFB3051919CA6 /* Pods-GRIOT.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = GRIOT/GRIOT.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TC2Y44G547;
 				ENABLE_BITCODE = NO;
@@ -402,13 +398,11 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7F94009CAF9B3038EFBABF42 /* Pods-GRIOT.release.xcconfig */;
+			baseConfigurationReference = BBBF76B69D89C187063EBCC8 /* Pods-GRIOT.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = GRIOT/GRIOT.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TC2Y44G547;
 				INFOPLIST_FILE = GRIOT/Info.plist;
