@@ -656,7 +656,7 @@ function App() {
               audioEncoding: 'MP3',
               pitch: getPitchForLanguage(langCode),
               speakingRate: getRateForLanguage(langCode),
-              volumeGainDb: 0,
+              volumeGainDb: 10.0,
             },
           }),
         }
