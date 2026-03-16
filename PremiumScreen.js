@@ -1,3 +1,7 @@
+// ================================================================
+// PremiumScreen.js - Premium Upgrade Screen
+// ================================================================
+
 import React from 'react';
 import {
   View,
@@ -8,6 +12,7 @@ import {
   Dimensions,
   Platform,
   Alert,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +21,7 @@ import { usePremium } from './PremiumContext';
 const { width } = Dimensions.get('window');
 
 export default function PremiumScreen({ onClose }) {
-  const { products, purchasePremium, restorePurchases, isPremium, togglePremiumForTesting } = usePremium();
+  const { products, purchasePremium, restorePurchases, isPremium } = usePremium();
 
   const features = [
     { icon: 'infinite', title: 'Unlimited Translations', desc: 'Never run out of translations' },
@@ -37,7 +42,7 @@ export default function PremiumScreen({ onClose }) {
     // Fallback prices
     if (identifier === 'griot_premium_monthly') return '$4.99';
     if (identifier === 'griot_premium_yearly') return '$39.99';
-    if (identifier === 'griot_lifetime') return '$59.99';
+    if (identifier === 'griot_lifetime') return '$79.99';
     return '...';
   };
 
@@ -50,22 +55,11 @@ export default function PremiumScreen({ onClose }) {
     if (packageToBuy) {
       purchasePremium(packageToBuy);
     } else {
-      // In development, offer to enable for testing
-      if (__DEV__) {
-        Alert.alert(
-          'Product Not Found',
-          'Enable premium for testing?',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Enable Premium (Test)', 
-              onPress: () => togglePremiumForTesting()
-            },
-          ]
-        );
-      } else {
-        Alert.alert('Error', 'Product not available');
-      }
+      Alert.alert(
+        'Unable to Load Products',
+        'Please check your internet connection and try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -85,18 +79,6 @@ export default function PremiumScreen({ onClose }) {
             <Text style={styles.premiumTitle}>You're Premium! 🎉</Text>
             <Text style={styles.premiumSubtitle}>Enjoy unlimited translations</Text>
           </View>
-
-          {__DEV__ && (
-            <TouchableOpacity 
-              style={styles.manageBtn}
-              onPress={() => {
-                togglePremiumForTesting();
-                onClose();
-              }}
-            >
-              <Text style={styles.manageBtnText}>Disable Premium (Testing)</Text>
-            </TouchableOpacity>
-          )}
         </LinearGradient>
       </View>
     );
@@ -145,9 +127,14 @@ export default function PremiumScreen({ onClose }) {
               <View style={styles.bestValueBadge}>
                 <Text style={styles.bestValueText}>BEST VALUE</Text>
               </View>
+              <View style={styles.freeTrialBadge}>
+                <Ionicons name="gift" size={14} color="#00F5FF" />
+                <Text style={styles.freeTrialText}>7-Day Free Trial</Text>
+              </View>
               <Text style={styles.pricingName}>Yearly</Text>
               <Text style={styles.pricingPrice}>{getProductPrice('griot_premium_yearly')}/year</Text>
               <Text style={styles.pricingSave}>Save 33% • $19.89 off</Text>
+              <Text style={styles.trialDesc}>Try free, then {getProductPrice('griot_premium_yearly')}/year</Text>
             </TouchableOpacity>
 
             {/* Monthly */}
@@ -155,9 +142,13 @@ export default function PremiumScreen({ onClose }) {
               style={styles.pricingCard}
               onPress={() => handlePurchase('griot_premium_monthly')}
             >
+              <View style={styles.freeTrialBadge}>
+                <Ionicons name="gift" size={14} color="#00F5FF" />
+                <Text style={styles.freeTrialText}>7-Day Free Trial</Text>
+              </View>
               <Text style={styles.pricingName}>Monthly</Text>
               <Text style={styles.pricingPrice}>{getProductPrice('griot_premium_monthly')}/month</Text>
-              <Text style={styles.pricingDesc}>Billed monthly</Text>
+              <Text style={styles.trialDesc}>Try free, then {getProductPrice('griot_premium_monthly')}/month</Text>
             </TouchableOpacity>
 
             {/* Lifetime */}
@@ -171,15 +162,37 @@ export default function PremiumScreen({ onClose }) {
             </TouchableOpacity>
           </View>
 
+          {/* Legal Links - Required by Apple for Subscriptions */}
+          <View style={styles.legalSection}>
+            <TouchableOpacity 
+              onPress={() => Linking.openURL('https://seore.github.io/afrotranslate-privacy/privacy.html')}
+              style={styles.legalLink}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+              <Ionicons name="open-outline" size={16} color="#00F5FF" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}
+              style={styles.legalLink}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.legalLinkText}>Terms of Use (EULA)</Text>
+              <Ionicons name="open-outline" size={16} color="#00F5FF" />
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity style={styles.restoreBtn} onPress={restorePurchases}>
             <Text style={styles.restoreText}>Restore Purchases</Text>
           </TouchableOpacity>
 
           <Text style={styles.terms}>
-            • 7-day free trial for subscriptions{'\n'}
-            • Cancel anytime, no questions asked{'\n'}
-            • Subscriptions auto-renew unless turned off 24hrs before period ends{'\n'}
-            • Payment charged to App Store account
+            • 7-day free trial for Monthly & Yearly plans{'\n'}
+            • No charge during trial period{'\n'}
+            • Cancel anytime before trial ends - no charge{'\n'}
+            • After trial, subscription auto-renews unless canceled{'\n'}
+            • Manage subscription in App Store settings
           </Text>
         </ScrollView>
       </LinearGradient>
@@ -300,6 +313,24 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#000',
   },
+  freeTrialBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,245,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
+    marginBottom: 12,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,245,255,0.3)',
+  },
+  freeTrialText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#00F5FF',
+  },
   pricingName: {
     fontSize: 18,
     fontWeight: '700',
@@ -320,6 +351,34 @@ const styles = StyleSheet.create({
   pricingDesc: {
     fontSize: 13,
     color: '#666',
+  },
+  trialDesc: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 6,
+    fontWeight: '500',
+  },
+  legalSection: {
+    marginTop: 24,
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  legalLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 245, 255, 0.2)',
+  },
+  legalLinkText: {
+    fontSize: 14,
+    color: '#00F5FF',
+    fontWeight: '600',
   },
   restoreBtn: {
     alignSelf: 'center',

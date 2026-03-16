@@ -1,3 +1,7 @@
+// ================================================================
+// PremiumContext.js - Premium Features with RevenueCat
+// ================================================================
+
 import React, { createContext, useState, useEffect, useContext } from "react";
 import Purchases from "react-native-purchases";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,7 +19,7 @@ export const PremiumProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const FREE_TRANSLATION_LIMIT = 10;
-  const FREE_LANGUAGES = ["yo", "en", "fr"];
+  const FREE_LANGUAGES = ["sw", "yo", "ha", "ig", "zu", "en", "fr"];
 
   useEffect(() => {
     initializePurchases();
@@ -67,7 +71,7 @@ export const PremiumProvider = ({ children }) => {
         { 
           identifier: 'griot_lifetime',
           product: { 
-            priceString: '$59.99',
+            priceString: '$79.99',
             title: 'Lifetime Premium'
           }
         },
@@ -104,7 +108,7 @@ export const PremiumProvider = ({ children }) => {
           { 
             identifier: 'griot_lifetime',
             product: { 
-              priceString: '$59.99',
+              priceString: '$79.99',
               title: 'Lifetime Premium'
             }
           },
@@ -131,7 +135,7 @@ export const PremiumProvider = ({ children }) => {
         { 
           identifier: 'griot_lifetime',
           product: { 
-            priceString: '$59.99',
+            priceString: '$79.99',
             title: 'Lifetime Premium'
           }
         },
@@ -186,26 +190,11 @@ export const PremiumProvider = ({ children }) => {
       if (!error.userCancelled) {
         console.error("Purchase error:", error);
         
-        // In development, offer to enable for testing
-        if (__DEV__) {
-          Alert.alert(
-            "Purchase Feature",
-            "RevenueCat purchases require App Store Connect setup. Enable premium for testing?",
-            [
-              { text: "Cancel", style: "cancel" },
-              { 
-                text: "Enable Premium (Test)", 
-                onPress: async () => {
-                  await AsyncStorage.setItem("isPremium", "true");
-                  setIsPremium(true);
-                  Alert.alert("Premium Enabled! 🎉", "You now have unlimited access!");
-                }
-              },
-            ]
-          );
-        } else {
-          Alert.alert("Purchase Failed", "Please try again.");
-        }
+        Alert.alert(
+          "Purchase Failed",
+          "Unable to complete purchase. Please try again or contact support.",
+          [{ text: "OK" }]
+        );
       }
     }
   };
@@ -286,18 +275,6 @@ export const PremiumProvider = ({ children }) => {
     return Math.max(0, FREE_TRANSLATION_LIMIT - translationsToday);
   };
 
-  // Development testing toggle
-  const togglePremiumForTesting = async () => {
-    const newState = !isPremium;
-    setIsPremium(newState);
-    await AsyncStorage.setItem("isPremium", newState.toString());
-
-    Alert.alert(
-      newState ? "Premium Enabled" : "Premium Disabled",
-      newState ? "Unlimited access activated." : "Back to free tier."
-    );
-  };
-
   return (
     <PremiumContext.Provider
       value={{
@@ -311,7 +288,6 @@ export const PremiumProvider = ({ children }) => {
         isLanguageUnlocked,
         getRemainingTranslations,
         incrementTranslationCount,
-        togglePremiumForTesting,
         FREE_TRANSLATION_LIMIT,
         FREE_LANGUAGES,
       }}

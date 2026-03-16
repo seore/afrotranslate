@@ -33,6 +33,7 @@ import { applyZuluPronunciation } from './pronounciation-zulu.js';
 import { PremiumProvider, usePremium } from './PremiumContext';
 import PremiumScreen from './PremiumScreen';
 import AdvancedConversationMode from './AdvancedConversationMode.js';
+import SettingsScreen from './settingsScreen.js';
 
 const { width, height } = Dimensions.get('window');
 
@@ -236,6 +237,7 @@ function App() {
   const [autoDetectMode, setAutoDetectMode] = useState(false);
   const [currentSound, setCurrentSound] = useState(null);
   const [showPremiumScreen, setShowPremiumScreen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   
   const pulseAnim1 = useRef(new Animated.Value(1)).current;
   const [pulseAnim] = useState(new Animated.Value(1));
@@ -990,15 +992,16 @@ function App() {
           <View style={styles.header}>
             <Text style={styles.logo}>GRIOT</Text>
             <Text style={styles.subtitle}>African Voice Translator</Text>
-            {!isPremium && (
-              <TouchableOpacity 
-                style={styles.premiumBadge}
-                onPress={() => setShowPremiumScreen(true)}
+
+            {/* Header Actions */}
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                 style={styles.settingsBtn}
+                 onPress={() => setShowSettings(true)}
               >
-                <Ionicons name="diamond" size={16} color="#000" />
-                <Text style={styles.premiumBadgeText}>Upgrade</Text>
+                <Ionicons name="settings-outline" size={24} color="#fff"/>
               </TouchableOpacity>
-            )}
+            </View>
           </View>
 
           <View style={styles.langDisplay}>
@@ -1192,6 +1195,23 @@ function App() {
             </Modal>
           )}
 
+          {/* Settings Screen Modal */}
+          {showSettings && (
+            <Modal 
+              visible={showSettings}
+              animationType='slide'
+              
+            >
+              <SettingsScreen 
+                onClose={() => setShowSettings(false)}
+                onOpenPremium={() => {
+                  setShowSettings(false);
+                  setShowPremiumScreen(true);
+                }}
+              />
+            </Modal>
+          )}
+
           {/* Premium Screen Modal */}
           {showPremiumScreen && (
             <Modal
@@ -1281,6 +1301,25 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: '600',
     letterSpacing: 2,
+  },
+  headerActions:{
+    position:'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+
+  },
+  settingsBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   premiumBadge: {
     position: 'absolute',
