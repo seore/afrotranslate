@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.seore.afrotranslate",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "GRIOT uses your photo library to allow you to share translation screenshots.",
         "NSMicrophoneUsageDescription": "This app uses the microphone for voice translation features.",
