@@ -89,24 +89,24 @@ export const PremiumProvider = ({ children }) => {
         setProducts(offerings.current.availablePackages);
       } else {
         console.log('No offerings available, using fallback');
-        // Fallback products
+        // Fallback products with RevenueCat standard identifiers
         setProducts([
           { 
-            identifier: 'griot_premium_monthly',
+            identifier: '$rc_monthly',
             product: { 
               priceString: '$4.99',
               title: 'Premium Monthly'
             }
           },
           { 
-            identifier: 'griot_premium_yearly',
+            identifier: '$rc_annual',
             product: { 
               priceString: '$39.99',
               title: 'Premium Yearly'
             }
           },
           { 
-            identifier: 'griot_lifetime',
+            identifier: '$rc_lifetime',
             product: { 
               priceString: '$79.99',
               title: 'Lifetime Premium'
@@ -116,24 +116,24 @@ export const PremiumProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Load products error:", error);
-      // Set fallback products
+      // Set fallback products with RevenueCat standard identifiers
       setProducts([
         { 
-          identifier: 'griot_premium_monthly',
+          identifier: '$rc_monthly',
           product: { 
             priceString: '$4.99',
             title: 'Premium Monthly'
           }
         },
         { 
-          identifier: 'griot_premium_yearly',
+          identifier: '$rc_annual',
           product: { 
             priceString: '$39.99',
             title: 'Premium Yearly'
           }
         },
         { 
-          identifier: 'griot_lifetime',
+          identifier: '$rc_lifetime',
           product: { 
             priceString: '$79.99',
             title: 'Lifetime Premium'

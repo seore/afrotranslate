@@ -1,3 +1,7 @@
+// ================================================================
+// PremiumScreen.js - Premium Upgrade Screen
+// ================================================================
+
 import React from 'react';
 import {
   View,
@@ -35,10 +39,10 @@ export default function PremiumScreen({ onClose }) {
     if (product && product.product) {
       return product.product.priceString || '$4.99';
     }
-    // Fallback prices
-    if (identifier === 'griot_premium_monthly') return '$4.99';
-    if (identifier === 'griot_premium_yearly') return '$39.99';
-    if (identifier === 'griot_lifetime') return '$79.99';
+    // Fallback prices for RevenueCat standard package identifiers
+    if (identifier === '$rc_monthly') return '$4.99';
+    if (identifier === '$rc_annual') return '$39.99';
+    if (identifier === '$rc_lifetime') return '$79.99';
     return '...';
   };
 
@@ -118,7 +122,7 @@ export default function PremiumScreen({ onClose }) {
             {/* Yearly - Best Value */}
             <TouchableOpacity
               style={[styles.pricingCard, styles.bestValue]}
-              onPress={() => handlePurchase('griot_premium_yearly')}
+              onPress={() => handlePurchase('$rc_annual')}
             >
               <View style={styles.bestValueBadge}>
                 <Text style={styles.bestValueText}>BEST VALUE</Text>
@@ -128,32 +132,32 @@ export default function PremiumScreen({ onClose }) {
                 <Text style={styles.freeTrialText}>7-Day Free Trial</Text>
               </View>
               <Text style={styles.pricingName}>Yearly</Text>
-              <Text style={styles.pricingPrice}>{getProductPrice('griot_premium_yearly')}/year</Text>
+              <Text style={styles.pricingPrice}>{getProductPrice('$rc_annual')}/year</Text>
               <Text style={styles.pricingSave}>Save 33% • $19.89 off</Text>
-              <Text style={styles.trialDesc}>Try free, then {getProductPrice('griot_premium_yearly')}/year</Text>
+              <Text style={styles.trialDesc}>Try free, then {getProductPrice('$rc_annual')}/year</Text>
             </TouchableOpacity>
 
             {/* Monthly */}
             <TouchableOpacity
               style={styles.pricingCard}
-              onPress={() => handlePurchase('griot_premium_monthly')}
+              onPress={() => handlePurchase('$rc_monthly')}
             >
               <View style={styles.freeTrialBadge}>
                 <Ionicons name="gift" size={14} color="#00F5FF" />
                 <Text style={styles.freeTrialText}>7-Day Free Trial</Text>
               </View>
               <Text style={styles.pricingName}>Monthly</Text>
-              <Text style={styles.pricingPrice}>{getProductPrice('griot_premium_monthly')}/month</Text>
-              <Text style={styles.trialDesc}>Try free, then {getProductPrice('griot_premium_monthly')}/month</Text>
+              <Text style={styles.pricingPrice}>{getProductPrice('$rc_monthly')}/month</Text>
+              <Text style={styles.trialDesc}>Try free, then {getProductPrice('$rc_monthly')}/month</Text>
             </TouchableOpacity>
 
             {/* Lifetime */}
             <TouchableOpacity
               style={styles.pricingCard}
-              onPress={() => handlePurchase('griot_lifetime')}
+              onPress={() => handlePurchase('$rc_lifetime')}
             >
               <Text style={styles.pricingName}>Lifetime</Text>
-              <Text style={styles.pricingPrice}>{getProductPrice('griot_lifetime')}</Text>
+              <Text style={styles.pricingPrice}>{getProductPrice('$rc_lifetime')}</Text>
               <Text style={styles.pricingDesc}>One-time payment • Never pay again</Text>
             </TouchableOpacity>
           </View>
