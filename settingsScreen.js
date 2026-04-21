@@ -111,7 +111,7 @@ export default function SettingsScreen({ onClose, onOpenPremium }) {
         {
           icon: 'information-circle',
           label: 'Version',
-          value: '1.0.0',
+          value: '1.1.0',
           color: '#666',
           onPress: null,
         },

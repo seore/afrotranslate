@@ -6,30 +6,39 @@ class ElevenLabsService {
     this.apiKey = ELEVENLABS_API_KEY;
     this.baseUrl = 'https://api.elevenlabs.io/v1';
     
-    // Voice IDs will be populated after cloning voices
+    // Voice IDs - Using ElevenLabs pre-made voices for TESTING
+    // Replace with cloned voices later!
     this.voiceMap = {
-      'yo': {  // Yoruba
-        male: null,   // Add after cloning
-        female: null,
+      'yo': {  // Yoruba - using pre-made voice for testing
+        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
+        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
       },
-      'sw': {  // Swahili
-        male: null,
-        female: null,
+      'sw': {  // Swahili - using pre-made voice for testing
+        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
+        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
       },
-      'ha': {  // Hausa
-        male: null,
-        female: null,
+      'ha': {  // Hausa - using pre-made voice for testing
+        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
+        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
       },
-      'ig': {  // Igbo
-        male: null,
-        female: null,
+      'ig': {  // Igbo - using pre-made voice for testing
+        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
+        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
       },
-      'zu': {  // Zulu
-        male: null,
-        female: null,
+      'zu': {  // Zulu - using pre-made voice for testing
+        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
+        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
+      },
+      'fr': {  // French - using pre-made voice for testing
+        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
+        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
+      },
+      'en': {  // English - using pre-made voice for testing
+        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
+        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
       },
       'am': {  // Amharic
-        male: null,
+        male: null,   // Add after cloning
         female: null,
       },
       'so': {  // Somali
@@ -95,14 +104,22 @@ class ElevenLabsService {
         throw new Error(`ElevenLabs API error: ${response.status}`);
       }
 
-      // Get audio data as base64
+      // Get audio data and convert to Base64 string
       const arrayBuffer = await response.arrayBuffer();
-      const base64Audio = this.arrayBufferToBase64(arrayBuffer);
+      
+      // Convert ArrayBuffer to Base64 using native Uint8Array
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const binaryString = Array.from(uint8Array)
+        .map(byte => String.fromCharCode(byte))
+        .join('');
+      
+      // Manual Base64 encoding (works in React Native!)
+      const base64Audio = this.binaryToBase64(binaryString);
 
       // Save to file system
       const audioUri = await this.saveAudioToFile(base64Audio, text, languageCode);
 
-      console.log('ElevenLabs audio generated successfully');
+      console.log('✅ ElevenLabs audio generated successfully');
 
       return {
         audioUri: audioUri,
@@ -130,7 +147,7 @@ class ElevenLabsService {
       this.voiceMap[languageCode] = {};
     }
     this.voiceMap[languageCode][gender] = voiceId;
-    console.log(`Voice ID set: ${languageCode} ${gender} → ${voiceId}`);
+    console.log(`✅ Voice ID set: ${languageCode} ${gender} → ${voiceId}`);
   }
 
   /**
@@ -152,16 +169,34 @@ class ElevenLabsService {
   }
 
   /**
-   * Convert ArrayBuffer to Base64
+   * Convert binary string to Base64 (Pure JavaScript - works everywhere!)
    */
-  arrayBufferToBase64(buffer) {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
+  binaryToBase64(binaryString) {
+    const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    let result = '';
+    let i;
+    const len = binaryString.length;
+    
+    for (i = 0; i <= len - 3; i += 3) {
+      result += base64chars[binaryString.charCodeAt(i) >> 2];
+      result += base64chars[((binaryString.charCodeAt(i) & 3) << 4) | (binaryString.charCodeAt(i + 1) >> 4)];
+      result += base64chars[((binaryString.charCodeAt(i + 1) & 15) << 2) | (binaryString.charCodeAt(i + 2) >> 6)];
+      result += base64chars[binaryString.charCodeAt(i + 2) & 63];
     }
-    return btoa(binary);
+    
+    if (i < len) {
+      result += base64chars[binaryString.charCodeAt(i) >> 2];
+      if (i === len - 1) {
+        result += base64chars[(binaryString.charCodeAt(i) & 3) << 4];
+        result += '==';
+      } else {
+        result += base64chars[((binaryString.charCodeAt(i) & 3) << 4) | (binaryString.charCodeAt(i + 1) >> 4)];
+        result += base64chars[(binaryString.charCodeAt(i + 1) & 15) << 2];
+        result += '=';
+      }
+    }
+    
+    return result;
   }
 
   /**

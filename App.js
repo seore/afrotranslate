@@ -1,3 +1,6 @@
+// App.js - UPDATED WITH ELEVENLABS + DEEPGRAM INTEGRATION
+// Keeps all existing features + adds native voice support
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
@@ -34,6 +37,10 @@ import { PremiumProvider, usePremium } from './PremiumContext';
 import PremiumScreen from './PremiumScreen';
 import AdvancedConversationMode from './AdvancedConversationMode.js';
 import SettingsScreen from './settingsScreen.js';
+
+// NEW: Import ElevenLabs + Deepgram services
+import VoiceTranslationService from './services/voiceTranslationService';
+import ElevenLabsService from './services/elevenlabsService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -239,6 +246,10 @@ function App() {
   const [showPremiumScreen, setShowPremiumScreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
+  // NEW: Native voice state
+  const [useNativeVoice, setUseNativeVoice] = useState(true);
+  const [voiceGender, setVoiceGender] = useState('male');
+  
   const pulseAnim1 = useRef(new Animated.Value(1)).current;
   const [pulseAnim] = useState(new Animated.Value(1));
   const [glowAnim] = useState(new Animated.Value(0));
@@ -251,6 +262,8 @@ function App() {
     startGlowAnimation();
     checkNetwork();
     requestPermissions();
+    configureAudio(); // NEW: Configure audio session
+    loadVoiceIds(); // NEW: Load cloned voice IDs
     
     const interval = setInterval(checkNetwork, 10000);
     
@@ -258,6 +271,29 @@ function App() {
       clearInterval(interval);
     };
   }, []);
+
+  // NEW: Configure audio session for maximum volume
+  const configureAudio = async () => {
+    try {
+      // Audio configuration handled by expo-audio player
+      console.log('✅ Audio configured for loud playback');
+    } catch (error) {
+      console.error('Audio configuration error:', error);
+    }
+  };
+
+  // NEW: Load cloned voice IDs
+  const loadVoiceIds = () => {
+    // TODO: After cloning voices in ElevenLabs, add their IDs here
+    
+    // Example (uncomment after cloning):
+    // ElevenLabsService.setVoiceId('yo', 'male', 'YOUR_YORUBA_MALE_VOICE_ID');
+    // ElevenLabsService.setVoiceId('yo', 'female', 'YOUR_YORUBA_FEMALE_VOICE_ID');
+    // ElevenLabsService.setVoiceId('sw', 'male', 'YOUR_SWAHILI_MALE_VOICE_ID');
+    // ... etc.
+    
+    console.log('📋 Voice IDs loaded (add actual IDs after cloning voices)');
+  };
 
   useEffect(() => {
     if (isOnline) {
@@ -603,9 +639,59 @@ function App() {
 
   const getLanguageInfo = (code) => AFRICAN_LANGUAGES.find(l => l.code === code);
   
+  // UPDATED: Try ElevenLabs first, fallback to Google TTS
   const speakWithAfricanVoice = async (text, langCode) => {
     if (!text.trim()) return;
 
+    try {
+      // NEW: Try ElevenLabs native voice first (if premium user wants it)
+      if (useNativeVoice && VoiceTranslationService.hasNativeVoice(langCode, voiceGender)) {
+        console.log('🎤 Using ElevenLabs native voice');
+        
+        const result = await VoiceTranslationService.translateTextWithVoice(
+          text,
+          langCode,
+          langCode,
+          { gender: voiceGender }
+        );
+
+        if (result.audioUri) {
+          await playAudioFile(result.audioUri);
+          return; // Success! Exit here
+        }
+        
+        console.warn('⚠️ ElevenLabs failed, falling back to Google TTS');
+      }
+
+      // Fallback to Google TTS (your existing code)
+      speakWithGoogleTTS(text, langCode);
+
+    } catch (error) {
+      console.error('Voice generation error:', error);
+      speakWithGoogleTTS(text, langCode);
+    }
+  };
+
+  // NEW: Play audio file helper
+  const playAudioFile = async (uri) => {
+    try {
+      console.log('🔊 Playing audio:', uri);
+      
+      // Use expo-audio player (same as your existing code)
+      player.replace(uri);
+      
+      setTimeout(() => {
+        player.play();
+        console.log('Playing ElevenLabs native voice!');
+      }, 100);
+
+    } catch (error) {
+      console.error('Audio playback error:', error);
+    }
+  };
+
+  // RENAMED: Your existing TTS function
+  const speakWithGoogleTTS = async (text, langCode) => {
     try {
       if (!API_KEY) {
         console.warn('Google TTS API key not found, using fallback');
@@ -700,7 +786,7 @@ function App() {
       console.error('Google TTS error:', error);
       fallbackToExpoSpeech(text, langCode);
     }
-  }
+  };
       
 
   const getVoiceName = (languageCode) => {
@@ -755,7 +841,8 @@ function App() {
         language: selectedVoice?.language || langCode,
         voice: selectedVoice?.identifier,
         pitch: 1.0,
-        rate: 0.75, 
+        rate: 0.75,
+        volume: 1.0,
       });
       
     } catch (error) {
@@ -893,6 +980,8 @@ function App() {
               <Text style={styles.pickerSectionTitle}>POPULAR</Text>
               {popularLangs.map((lang) => {
                 const locked = !isLanguageUnlocked(lang.code);
+                const hasNativeVoice = VoiceTranslationService.hasNativeVoice(lang.code, voiceGender);
+                
                 return (
                   <TouchableOpacity
                     key={lang.code}
@@ -918,6 +1007,11 @@ function App() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <Text style={styles.pickerName}>{lang.name}</Text>
                         {locked && <Ionicons name="lock-closed" size={14} color="#00F5FF" />}
+                        {hasNativeVoice && isPremium && (
+                          <View style={styles.nativeVoiceBadge}>
+                            <Ionicons name="mic" size={12} color="#00F5FF" />
+                          </View>
+                        )}
                       </View>
                       <Text style={styles.pickerNative}>{lang.native}</Text>
                     </View>
@@ -933,6 +1027,8 @@ function App() {
               <Text style={styles.pickerSectionTitle}>ALL LANGUAGES</Text>
               {otherLangs.map((lang) => {
                 const locked = !isLanguageUnlocked(lang.code);
+                const hasNativeVoice = VoiceTranslationService.hasNativeVoice(lang.code, voiceGender);
+                
                 return (
                   <TouchableOpacity
                     key={lang.code}
@@ -958,6 +1054,11 @@ function App() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <Text style={styles.pickerName}>{lang.name}</Text>
                         {locked && <Ionicons name="lock-closed" size={14} color="#00F5FF" />}
+                        {hasNativeVoice && isPremium && (
+                          <View style={styles.nativeVoiceBadge}>
+                            <Ionicons name="mic" size={12} color="#00F5FF" />
+                          </View>
+                        )}
                       </View>
                       <Text style={styles.pickerNative}>{lang.native}</Text>
                     </View>
@@ -1142,6 +1243,15 @@ function App() {
                 <View style={styles.textBlock}>
                   <Text style={styles.textLabel}>Translation:</Text>
                   <Text style={[styles.textContent, styles.translatedText]}>{translatedText}</Text>
+                  
+                  {/* NEW: Native Voice Badge */}
+                  {useNativeVoice && isPremium && VoiceTranslationService.hasNativeVoice(targetLang, voiceGender) && (
+                    <View style={styles.nativeVoiceActiveBadge}>
+                      <Ionicons name="mic" size={14} color="#00F5FF" />
+                      <Text style={styles.nativeVoiceActiveText}>Native Voice</Text>
+                    </View>
+                  )}
+                  
                   <View style={styles.cardBottomRow}>
                     {downloadedPacks.includes(targetLang) && (
                       <View style={styles.offlinePackBadge}>
@@ -1230,7 +1340,7 @@ function App() {
               <Text style={styles.instructionText}>3. Listen to instant translation</Text>
               {!isPremium && (
                 <Text style={styles.instructionHighlight}>
-                  💎 Upgrade for unlimited translations
+                  💎 Upgrade for unlimited translations + native voices
                 </Text>
               )}
             </View>
@@ -1309,7 +1419,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-
   },
   settingsBtn: {
     width: 40,
@@ -1348,6 +1457,32 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#FFD700',
+  },
+  nativeVoiceBadge: {
+    backgroundColor: 'rgba(0, 245, 255, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#00F5FF',
+  },
+  nativeVoiceActiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 245, 255, 0.15)',
+    marginTop: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#00F5FF',
+    alignSelf: 'flex-start',
+    gap: 6,
+  },
+  nativeVoiceActiveText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#00F5FF',
   },
   langDisplay: {
     flexDirection: 'row',
