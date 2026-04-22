@@ -1,16 +1,14 @@
 import { ELEVENLABS_API_KEY } from '@env';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 class ElevenLabsService {
   constructor() {
     this.apiKey = ELEVENLABS_API_KEY;
     this.baseUrl = 'https://api.elevenlabs.io/v1';
     
-    // Voice IDs - Using ElevenLabs pre-made voices for TESTING
-    // Replace with cloned voices later!
     this.voiceMap = {
       'yo': {  // Yoruba - using pre-made voice for testing
-        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
+        male: 'SuZjJOmejdKQNzQbif43',   // Adam (test voice)
         female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
       },
       'sw': {  // Swahili - using pre-made voice for testing
@@ -29,16 +27,16 @@ class ElevenLabsService {
         male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
         female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
       },
-      'fr': {  // French - using pre-made voice for testing
-        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
-        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
+      'fr': {  
+        male: '5l4ttmr4SKNgi0HnOelT',   
+        female: 'McVZB9hVxVSk3Equu8EH',  
       },
-      'en': {  // English - using pre-made voice for testing
-        male: 'pNInz6obpgDQGcFmaJgB',   // Adam (test voice)
-        female: 'EXAVITQu4vr4xnSDxMaL',  // Bella (test voice)
+      'en': { 
+        male: 'oTQK6KgOJHp8UGGZjwUu',   
+        female: 'B9PDs7mcHTMxHUw5U8Cf',  
       },
       'am': {  // Amharic
-        male: null,   // Add after cloning
+        male: null,  
         female: null,
       },
       'so': {  // Somali
@@ -65,16 +63,14 @@ class ElevenLabsService {
     } = options;
 
     try {
-      // Get voice ID for this language
       const voiceId = this.getVoiceId(languageCode, gender);
       
       if (!voiceId) {
         console.warn(`No voice cloned for ${languageCode} ${gender}, using fallback`);
-        // Fall back to Google TTS
         return null;
       }
 
-      console.log(`🎤 Generating speech with ElevenLabs: "${text.substring(0, 50)}..."`);
+      console.log(`Generating speech with ElevenLabs: "${text.substring(0, 50)}..."`);
 
       const response = await fetch(
         `${this.baseUrl}/text-to-speech/${voiceId}`,
@@ -93,7 +89,9 @@ class ElevenLabsService {
               similarity_boost: similarityBoost,
               style: style,
               use_speaker_boost: true,
-            }
+            },
+            output_format: 'mp3_44100_128',
+            volume_boost: 20.0,
           }),
         }
       );
@@ -119,7 +117,7 @@ class ElevenLabsService {
       // Save to file system
       const audioUri = await this.saveAudioToFile(base64Audio, text, languageCode);
 
-      console.log('✅ ElevenLabs audio generated successfully');
+      console.log('ElevenLabs audio generated successfully');
 
       return {
         audioUri: audioUri,
@@ -147,7 +145,7 @@ class ElevenLabsService {
       this.voiceMap[languageCode] = {};
     }
     this.voiceMap[languageCode][gender] = voiceId;
-    console.log(`✅ Voice ID set: ${languageCode} ${gender} → ${voiceId}`);
+    console.log(`Voice ID set: ${languageCode} ${gender} → ${voiceId}`);
   }
 
   /**

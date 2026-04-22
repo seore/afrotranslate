@@ -1,8 +1,5 @@
-// services/VoiceTranslationService.js
-// SIMPLIFIED - NO DEEPGRAM (using expo-speech-recognition instead)
-
-import ElevenLabsService from './elevenlabsService';
-import { API_KEY } from '@env'; // Google Translate API key
+import ElevenLabsService from './ElevenLabsService';
+import { API_KEY } from '@env'; 
 
 class VoiceTranslationService {
   
@@ -12,16 +9,16 @@ class VoiceTranslationService {
    */
   async translateTextWithVoice(text, sourceLang, targetLang, options = {}) {
     try {
-      console.log(`🔄 Translating: "${text}" from ${sourceLang} to ${targetLang}`);
+      console.log(`Translating: "${text}" from ${sourceLang} to ${targetLang}`);
 
       let translatedText = text;
 
       // Skip translation if same language
       if (sourceLang !== targetLang) {
         translatedText = await this.translateText(text, sourceLang, targetLang);
-        console.log(`✅ Translated: "${translatedText}"`);
+        console.log(`Translated: "${translatedText}"`);
       } else {
-        console.log(`⏭️ Skipping translation (same language: ${sourceLang})`);
+        console.log(`Skipping translation (same language: ${sourceLang})`);
       }
 
       // Step 2: Generate native voice with ElevenLabs

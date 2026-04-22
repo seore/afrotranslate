@@ -18,7 +18,7 @@ export const PremiumProvider = ({ children }) => {
   const [translationsToday, setTranslationsToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const FREE_TRANSLATION_LIMIT = 10;
+  const FREE_TRANSLATION_LIMIT = 30;
   const FREE_LANGUAGES = ["sw", "yo", "ha", "ig", "zu", "en", "fr"];
 
   useEffect(() => {
@@ -33,17 +33,14 @@ export const PremiumProvider = ({ children }) => {
     try {
       console.log('Initializing RevenueCat...');
       
-      // Configure RevenueCat
       await Purchases.configure({
         apiKey: REVENUECAT_API_KEY,
       });
 
       console.log('RevenueCat configured');
 
-      // Load products
       await loadProducts();
       
-      // Check premium status
       await checkPremiumStatus();
 
       setLoading(false);
@@ -116,7 +113,6 @@ export const PremiumProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Load products error:", error);
-      // Set fallback products with RevenueCat standard identifiers
       setProducts([
         { 
           identifier: '$rc_monthly',

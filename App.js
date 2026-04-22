@@ -1,6 +1,3 @@
-// App.js - UPDATED WITH ELEVENLABS + DEEPGRAM INTEGRATION
-// Keeps all existing features + adds native voice support
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
@@ -25,22 +22,19 @@ import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
 import { API_KEY } from '@env';
 
-// Import pronunciation functions
 import { applyHausaPronunciation } from './pronounciation-hausa.js';
 import { applyIgboTones } from './pronounciation-igbo.js';
 import { applySwahiliPronunciation } from './pronounciation-swahili.js';
 import { applyYorubaTones } from './pronounciation-yoruba.js';
 import { applyZuluPronunciation } from './pronounciation-zulu.js';
 
-// Import premium features
 import { PremiumProvider, usePremium } from './PremiumContext';
 import PremiumScreen from './PremiumScreen';
 import AdvancedConversationMode from './AdvancedConversationMode.js';
 import SettingsScreen from './settingsScreen.js';
 
-// NEW: Import ElevenLabs + Deepgram services
 import VoiceTranslationService from './services/voiceTranslationService';
-import ElevenLabsService from './services/elevenlabsService';
+import ElevenLabsService from './services/ElevenLabsService.js';
 
 const { width, height } = Dimensions.get('window');
 
@@ -246,7 +240,6 @@ function App() {
   const [showPremiumScreen, setShowPremiumScreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
-  // NEW: Native voice state
   const [useNativeVoice, setUseNativeVoice] = useState(true);
   const [voiceGender, setVoiceGender] = useState('male');
   
@@ -262,8 +255,8 @@ function App() {
     startGlowAnimation();
     checkNetwork();
     requestPermissions();
-    configureAudio(); // NEW: Configure audio session
-    loadVoiceIds(); // NEW: Load cloned voice IDs
+    configureAudio(); 
+    loadVoiceIds();
     
     const interval = setInterval(checkNetwork, 10000);
     
@@ -272,27 +265,19 @@ function App() {
     };
   }, []);
 
-  // NEW: Configure audio session for maximum volume
   const configureAudio = async () => {
     try {
-      // Audio configuration handled by expo-audio player
-      console.log('✅ Audio configured for loud playback');
+      console.log('Audio configured for loud playback');
     } catch (error) {
       console.error('Audio configuration error:', error);
     }
   };
 
-  // NEW: Load cloned voice IDs
   const loadVoiceIds = () => {
-    // TODO: After cloning voices in ElevenLabs, add their IDs here
-    
-    // Example (uncomment after cloning):
     // ElevenLabsService.setVoiceId('yo', 'male', 'YOUR_YORUBA_MALE_VOICE_ID');
     // ElevenLabsService.setVoiceId('yo', 'female', 'YOUR_YORUBA_FEMALE_VOICE_ID');
-    // ElevenLabsService.setVoiceId('sw', 'male', 'YOUR_SWAHILI_MALE_VOICE_ID');
-    // ... etc.
     
-    console.log('📋 Voice IDs loaded (add actual IDs after cloning voices)');
+    console.log('Voice IDs loaded (add actual IDs after cloning voices)');
   };
 
   useEffect(() => {
@@ -639,14 +624,12 @@ function App() {
 
   const getLanguageInfo = (code) => AFRICAN_LANGUAGES.find(l => l.code === code);
   
-  // UPDATED: Try ElevenLabs first, fallback to Google TTS
   const speakWithAfricanVoice = async (text, langCode) => {
     if (!text.trim()) return;
 
     try {
-      // NEW: Try ElevenLabs native voice first (if premium user wants it)
       if (useNativeVoice && VoiceTranslationService.hasNativeVoice(langCode, voiceGender)) {
-        console.log('🎤 Using ElevenLabs native voice');
+        console.log('Using ElevenLabs native voice');
         
         const result = await VoiceTranslationService.translateTextWithVoice(
           text,
@@ -657,13 +640,12 @@ function App() {
 
         if (result.audioUri) {
           await playAudioFile(result.audioUri);
-          return; // Success! Exit here
+          return; 
         }
         
-        console.warn('⚠️ ElevenLabs failed, falling back to Google TTS');
+        console.warn('ElevenLabs failed, falling back to Google TTS');
       }
 
-      // Fallback to Google TTS (your existing code)
       speakWithGoogleTTS(text, langCode);
 
     } catch (error) {
@@ -672,13 +654,13 @@ function App() {
     }
   };
 
-  // NEW: Play audio file helper
   const playAudioFile = async (uri) => {
     try {
-      console.log('🔊 Playing audio:', uri);
+      console.log('Playing audio:', uri);
       
-      // Use expo-audio player (same as your existing code)
       player.replace(uri);
+
+      player.volume = 1.0;
       
       setTimeout(() => {
         player.play();
@@ -690,7 +672,6 @@ function App() {
     }
   };
 
-  // RENAMED: Your existing TTS function
   const speakWithGoogleTTS = async (text, langCode) => {
     try {
       if (!API_KEY) {
