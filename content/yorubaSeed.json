@@ -1,0 +1,134 @@
+{
+  "$schema_notes": "GRIOT seed content. Course -> units -> lessons -> exercises. Exercises reference vocabulary by key from `lexicon` so each Yoruba item (and its audio) is defined exactly once. audioKey is the filename stem you record, e.g. g_ekaaro -> assets/audio/yo/g_ekaaro.m4a. Where no recording exists yet, fall back to TTS on the `yoruba` string. Tone marks: high = acute (á), low = grave (à), mid = unmarked; sub-dot letters ẹ ọ ṣ are distinct letters, keep them.",
+  "course": {
+    "id": "yo",
+    "language": "Yoruba",
+    "nativeName": "Yorùbá",
+    "direction": "ltr",
+    "audioBasePath": "assets/audio/yo/"
+  },
+  "lexicon": {
+    "g_ekaaro":   { "yoruba": "Ẹ káàárọ̀",     "english": "Good morning",     "audioKey": "g_ekaaro" },
+    "g_ekaasan":  { "yoruba": "Ẹ káàsán",      "english": "Good afternoon",   "audioKey": "g_ekaasan" },
+    "g_ekaale":   { "yoruba": "Ẹ káalẹ́",       "english": "Good evening",     "audioKey": "g_ekaale" },
+    "g_odabo":    { "yoruba": "Ó dàbọ̀",        "english": "Goodbye",          "audioKey": "g_odabo" },
+    "g_bawo":     { "yoruba": "Báwo ni?",      "english": "How are you?",     "audioKey": "g_bawo" },
+    "g_mowa":     { "yoruba": "Mo wà dáadáa",  "english": "I am fine",        "audioKey": "g_mowa" },
+    "g_alaafia":  { "yoruba": "Àlàáfíà ni",    "english": "All is well",      "audioKey": "g_alaafia" },
+    "g_ese":      { "yoruba": "Ẹ ṣé",          "english": "Thank you",        "audioKey": "g_ese" },
+    "g_ejowo":    { "yoruba": "Ẹ jọ̀wọ́",        "english": "Please",           "audioKey": "g_ejowo" },
+    "g_pele":     { "yoruba": "Ẹ pẹ̀lẹ́",        "english": "Sorry / well done", "audioKey": "g_pele" },
+    "g_beeni":    { "yoruba": "Bẹ́ẹ̀ni",         "english": "Yes",              "audioKey": "g_beeni" },
+    "g_beeko":    { "yoruba": "Bẹ́ẹ̀kọ́",         "english": "No",               "audioKey": "g_beeko" },
+
+    "f_idile":    { "yoruba": "Ìdílé",         "english": "Family",           "audioKey": "f_idile" },
+    "f_baba":     { "yoruba": "Bàbá",          "english": "Father",           "audioKey": "f_baba" },
+    "f_iya":      { "yoruba": "Ìyá",           "english": "Mother",           "audioKey": "f_iya" },
+    "f_egbon":    { "yoruba": "Ẹ̀gbọ́n",         "english": "Older sibling",    "audioKey": "f_egbon" },
+    "f_aburo":    { "yoruba": "Àbúrò",         "english": "Younger sibling",  "audioKey": "f_aburo" },
+    "f_omo":      { "yoruba": "Ọmọ",           "english": "Child",            "audioKey": "f_omo" },
+    "f_babaagba": { "yoruba": "Bàbá àgbà",     "english": "Grandfather",      "audioKey": "f_babaagba" },
+    "f_iyaagba":  { "yoruba": "Ìyá àgbà",      "english": "Grandmother",      "audioKey": "f_iyaagba" },
+
+    "n_okan":     { "yoruba": "Ọ̀kan",          "english": "One",              "audioKey": "n_okan" },
+    "n_eji":      { "yoruba": "Èjì",           "english": "Two",              "audioKey": "n_eji" },
+    "n_eta":      { "yoruba": "Ẹ̀ta",           "english": "Three",            "audioKey": "n_eta" },
+    "n_erin":     { "yoruba": "Ẹ̀rin",          "english": "Four",             "audioKey": "n_erin" },
+    "n_arun":     { "yoruba": "Àrún",          "english": "Five",             "audioKey": "n_arun" },
+
+    "d_ounje":    { "yoruba": "Oúnjẹ",         "english": "Food",             "audioKey": "d_ounje" },
+    "d_omi":      { "yoruba": "Omi",           "english": "Water",            "audioKey": "d_omi" },
+    "d_iresi":    { "yoruba": "Ìrẹsì",         "english": "Rice",             "audioKey": "d_iresi" },
+    "d_isu":      { "yoruba": "Iṣu",           "english": "Yam",              "audioKey": "d_isu" },
+    "d_eran":     { "yoruba": "Ẹran",          "english": "Meat",             "audioKey": "d_eran" },
+    "d_eja":      { "yoruba": "Ẹja",           "english": "Fish",             "audioKey": "d_eja" }
+  },
+  "units": [
+    {
+      "id": "u1",
+      "title": "Ìkíni",
+      "subtitle": "Greetings",
+      "lessons": [
+        {
+          "id": "u1l1",
+          "title": "Ìkíni Òòjọ́",
+          "subtitle": "Greetings through the day",
+          "exercises": [
+            { "type": "listen_and_choose", "item": "g_ekaaro", "options": ["g_ekaaro", "g_ekaasan", "g_ekaale"], "answer": "g_ekaaro" },
+            { "type": "select_translation", "item": "g_ekaasan", "direction": "yo_to_en", "options": ["g_ekaasan", "g_ekaaro", "g_odabo"], "answer": "g_ekaasan" },
+            { "type": "match_pairs", "pairs": ["g_ekaaro", "g_ekaasan", "g_ekaale", "g_odabo"] },
+            { "type": "tap_to_build", "item": "g_ekaaro", "tokens": ["Ẹ", "káàárọ̀", "kú", "ni"], "answer": ["Ẹ", "káàárọ̀"] },
+            { "type": "select_translation", "item": "g_ekaale", "direction": "en_to_yo", "options": ["g_ekaale", "g_ekaasan", "g_ekaaro"], "answer": "g_ekaale" }
+          ]
+        },
+        {
+          "id": "u1l2",
+          "title": "Báwo ni?",
+          "subtitle": "How are you?",
+          "exercises": [
+            { "type": "listen_and_choose", "item": "g_bawo", "options": ["g_bawo", "g_mowa", "g_odabo"], "answer": "g_bawo" },
+            { "type": "select_translation", "item": "g_mowa", "direction": "yo_to_en", "options": ["g_mowa", "g_alaafia", "g_bawo"], "answer": "g_mowa" },
+            { "type": "tap_to_build", "item": "g_mowa", "tokens": ["Mo", "wà", "dáadáa", "ni", "ọ̀"], "answer": ["Mo", "wà", "dáadáa"] },
+            { "type": "match_pairs", "pairs": ["g_bawo", "g_mowa", "g_alaafia", "g_beeni"] },
+            { "type": "select_translation", "item": "g_beeko", "direction": "en_to_yo", "options": ["g_beeko", "g_beeni", "g_alaafia"], "answer": "g_beeko" }
+          ]
+        },
+        {
+          "id": "u1l3",
+          "title": "Ọ̀rọ̀ Ìtẹríba",
+          "subtitle": "Courtesy words",
+          "exercises": [
+            { "type": "listen_and_choose", "item": "g_ese", "options": ["g_ese", "g_ejowo", "g_pele"], "answer": "g_ese" },
+            { "type": "select_translation", "item": "g_ejowo", "direction": "yo_to_en", "options": ["g_ejowo", "g_ese", "g_pele"], "answer": "g_ejowo" },
+            { "type": "tap_to_build", "item": "g_ese", "tokens": ["Ẹ", "ṣé", "jọ̀wọ́"], "answer": ["Ẹ", "ṣé"] },
+            { "type": "match_pairs", "pairs": ["g_ese", "g_ejowo", "g_pele", "g_odabo"] },
+            { "type": "listen_and_choose", "item": "g_pele", "options": ["g_pele", "g_ese", "g_ejowo"], "answer": "g_pele" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u2",
+      "title": "Ayé Mi",
+      "subtitle": "My World",
+      "lessons": [
+        {
+          "id": "u2l1",
+          "title": "Ìdílé",
+          "subtitle": "Family",
+          "exercises": [
+            { "type": "listen_and_choose", "item": "f_baba", "options": ["f_baba", "f_iya", "f_omo"], "answer": "f_baba" },
+            { "type": "select_translation", "item": "f_iya", "direction": "yo_to_en", "options": ["f_iya", "f_baba", "f_egbon"], "answer": "f_iya" },
+            { "type": "match_pairs", "pairs": ["f_baba", "f_iya", "f_egbon", "f_aburo"] },
+            { "type": "select_translation", "item": "f_omo", "direction": "en_to_yo", "options": ["f_omo", "f_egbon", "f_iya"], "answer": "f_omo" },
+            { "type": "match_pairs", "pairs": ["f_idile", "f_babaagba", "f_iyaagba", "f_omo"] }
+          ]
+        },
+        {
+          "id": "u2l2",
+          "title": "Ìṣirò 1–5",
+          "subtitle": "Numbers 1 to 5",
+          "exercises": [
+            { "type": "listen_and_choose", "item": "n_eta", "options": ["n_eta", "n_eji", "n_arun"], "answer": "n_eta" },
+            { "type": "match_pairs", "pairs": ["n_okan", "n_eji", "n_eta", "n_erin"] },
+            { "type": "select_translation", "item": "n_arun", "direction": "yo_to_en", "options": ["n_arun", "n_erin", "n_eta"], "answer": "n_arun" },
+            { "type": "listen_and_choose", "item": "n_okan", "options": ["n_okan", "n_eji", "n_erin"], "answer": "n_okan" },
+            { "type": "select_translation", "item": "n_eji", "direction": "en_to_yo", "options": ["n_eji", "n_okan", "n_eta"], "answer": "n_eji" }
+          ]
+        },
+        {
+          "id": "u2l3",
+          "title": "Oúnjẹ",
+          "subtitle": "Food",
+          "exercises": [
+            { "type": "listen_and_choose", "item": "d_iresi", "options": ["d_iresi", "d_isu", "d_eran"], "answer": "d_iresi" },
+            { "type": "select_translation", "item": "d_omi", "direction": "yo_to_en", "options": ["d_omi", "d_ounje", "d_eja"], "answer": "d_omi" },
+            { "type": "match_pairs", "pairs": ["d_iresi", "d_isu", "d_eran", "d_eja"] },
+            { "type": "select_translation", "item": "d_ounje", "direction": "en_to_yo", "options": ["d_ounje", "d_omi", "d_isu"], "answer": "d_ounje" },
+            { "type": "match_pairs", "pairs": ["d_omi", "d_ounje", "d_eran", "d_eja"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

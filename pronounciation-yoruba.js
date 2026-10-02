@@ -158,6 +158,14 @@ export const applyYorubaTones = (text) => {
     'Ọgbọn': '<phoneme alphabet="ipa" ph="ɔ.ɡbɔn">Ọgbọn</phoneme>',
     'Ọgọrun': '<phoneme alphabet="ipa" ph="ɔ.ɡɔ.ɾun">Ọgọrun</phoneme>',
     
+    // === FAMILY ===
+    'Bàbá mi': '<phoneme alphabet="ipa" ph="bà.bá mi">Bàbá mi</phoneme>',
+    'Ìyá': '<phoneme alphabet="ipa" ph="ì.já">Ìyá</phoneme>',
+    'Bàbá': '<phoneme alphabet="ipa" ph="bà.bá">Bàbá</phoneme>',
+    'Ọmọ': '<phoneme alphabet="ipa" ph="ɔ.mɔ">Ọmọ</phoneme>',
+    'Ẹbí': '<phoneme alphabet="ipa" ph="ɛ.bí">Ẹbí</phoneme>',
+    'Arákùnrin': '<phoneme alphabet="ipa" ph="a.rá.kùn.rin">Arákùnrin</phoneme>',
+
     // === USEFUL PHRASES ===
     'Mo fẹ': '<phoneme alphabet="ipa" ph="mɔ fɛ">Mo fẹ</phoneme>',
     'Mo feran': '<phoneme alphabet="ipa" ph="mɔ fɛ.ɾan">Mo feran</phoneme>',

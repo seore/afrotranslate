@@ -18,9 +18,9 @@
       "bundleIdentifier": "com.seore.afrotranslate",
       "buildNumber": "6",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "GRIOT uses your photo library to allow you to share translation screenshots.",
-        "NSMicrophoneUsageDescription": "This app uses the microphone for voice translation features.",
-        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice input.",
+        "NSPhotoLibraryUsageDescription": "GRIOT uses your photo library so you can save and share your learning progress.",
+        "NSMicrophoneUsageDescription": "This app uses the microphone for pronunciation practice.",
+        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition to check your pronunciation.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -43,12 +43,14 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Allow GRIOT to access your microphone for voice translation.",
-          "speechRecognitionPermission": "Allow GRIOT to recognize your speech for instant translation."
+          "microphonePermission": "Allow GRIOT to access your microphone for pronunciation practice.",
+          "speechRecognitionPermission": "Allow GRIOT to recognize your speech to check your pronunciation."
         }
       ],
       "expo-video",
-      "expo-audio"
+      "expo-audio",
+      "expo-notifications",
+      "expo-font"
     ]
   }
 }
