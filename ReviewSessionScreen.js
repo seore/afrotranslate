@@ -87,7 +87,7 @@ export default function ReviewSessionScreen({ langCode = 'yo', onExit }) {
         <Text style={styles.prompt}>Do you remember this word?</Text>
 
         <TouchableOpacity style={styles.playButton} onPress={replay} activeOpacity={0.85}>
-          <Ionicons name="volume-high" size={40} color="#fff" />
+          <Ionicons name="volume-high" size={40} color={COLORS.textOnGold} />
         </TouchableOpacity>
 
         <Text style={styles.yorubaText}>{current.yoruba}</Text>
@@ -172,5 +172,5 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 24, fontWeight: '900', color: COLORS.text, marginTop: 20 },
   emptySubtitle: { fontSize: 14, color: COLORS.textMuted, marginTop: 8, marginBottom: 30 },
   doneBtn: { backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 50 },
-  doneBtnText: { fontSize: 15, fontWeight: '800', color: '#fff', letterSpacing: 1 },
+  doneBtnText: { fontSize: 15, fontWeight: '800', color: COLORS.cream, letterSpacing: 1 },
 });

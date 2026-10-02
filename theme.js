@@ -1,38 +1,75 @@
-// Shared design tokens for the learning app's screens. Previously every
-// screen hardcoded its own hex values (mostly copied from the old
-// translator's generic dark-cyan tech-app look); this pulls them into one
-// place so the palette can change once and apply everywhere, and so it
-// actually reads as a Yoruba-heritage brand rather than a random dark UI.
+// Shared design tokens — Phase 1 of the GRIOT design overhaul.
 //
-// Palette is drawn from adire (indigo-dyed cloth) for the primary accent and
-// aso-oke (gold-threaded cloth) for premium/celebration accents, instead of
-// the previous generic neon cyan.
+// Palette: indigo (adire resist-dye) + gold/ochre (aso-oke) + terracotta +
+// warm cream, on a warm dark base — not the flat navy/purple this replaces.
+// Reviewed and approved as a token preview before being wired in here; see
+// that artifact for the full swatch/type/spacing reference.
+//
+// Every screen already reads colors through the semantic names below
+// (COLORS.primary, COLORS.card, COLORS.text, ...), so changing the values
+// here re-themes the whole app without touching per-screen StyleSheets.
+
+const RAW = {
+  bg: '#140F1F',
+  bgMid: '#201A35',
+  bgElevated: '#1E1730',
+  bgElevated2: '#2A2140',
+
+  indigo900: '#1C1842',
+  indigo600: '#352A6E',
+  indigo500: '#4C3F91',
+  indigo300: '#8B7FD4',
+
+  gold700: '#8C621F',
+  gold600: '#B8842E',
+  gold500: '#E0A947',
+  gold300: '#F3CD83',
+
+  terracotta600: '#9C4A32',
+  terracotta500: '#C96A45',
+  terracotta300: '#E3977A',
+
+  cream: '#F3E9D8',
+  creamMuted: '#C9BBA3',
+  creamFaint: '#8A7F6E',
+
+  success: '#5FA35A',
+  error: '#C2483A',
+};
 
 export const COLORS = {
-  bg: '#0D0B1A',
-  bgMid: '#161225',
-  card: '#1C1730',
+  ...RAW,
+
+  // Semantic aliases — what the screens actually reference.
+  bg: RAW.bg,
+  card: RAW.bgElevated,
+  cardRaised: RAW.bgElevated2,
   cardBorder: 'rgba(255,255,255,0.08)',
   border: 'rgba(255,255,255,0.12)',
 
-  primary: '#6C5CE7', // adire indigo-violet — replaces the old #00F5FF cyan
-  primaryDim: 'rgba(108,92,231,0.15)',
-  primaryBorder: 'rgba(108,92,231,0.35)',
+  primary: RAW.indigo500,
+  primaryDim: 'rgba(76,63,145,0.22)',
+  primaryBorder: 'rgba(76,63,145,0.45)',
+  primaryLight: RAW.indigo300,
 
-  gold: '#E8B93D', // aso-oke gold — premium, streaks, celebration
-  goldDim: 'rgba(232,185,61,0.15)',
-  goldBorder: 'rgba(232,185,61,0.35)',
+  gold: RAW.gold500,
+  goldDim: 'rgba(224,169,71,0.15)',
+  goldBorder: 'rgba(224,169,71,0.4)',
 
-  terracotta: '#E2725B', // warm secondary accent
+  terracotta: RAW.terracotta500,
+  terracottaDark: RAW.terracotta600,
 
-  success: '#22c55e',
-  successDim: 'rgba(34,197,94,0.15)',
-  error: '#ef4444',
-  errorDim: 'rgba(239,68,68,0.15)',
+  success: RAW.success,
+  successDim: 'rgba(95,163,90,0.15)',
+  successBorder: 'rgba(95,163,90,0.4)',
+  error: RAW.error,
+  errorDim: 'rgba(194,72,58,0.15)',
+  errorBorder: 'rgba(194,72,58,0.4)',
 
-  text: '#FFFFFF',
-  textSecondary: '#9CA3AF',
-  textMuted: '#6B7280',
+  text: RAW.cream,
+  textOnGold: RAW.bg, // dark ink on a gold surface, not white
+  textSecondary: RAW.creamMuted,
+  textMuted: RAW.creamFaint,
 };
 
 export const GRADIENT = [COLORS.bg, COLORS.bgMid, COLORS.bg];
@@ -40,4 +77,47 @@ export const GRADIENT = [COLORS.bg, COLORS.bgMid, COLORS.bg];
 export const FONTS = {
   yoruba: 'Fraunces_600SemiBold',
   yorubaBold: 'Fraunces_700Bold',
+};
+
+// Type scale — Fraunces for Yoruba/display moments, system font for English/UI.
+export const TYPE = {
+  display: { fontFamily: FONTS.yorubaBold, fontSize: 36 },
+  h1: { fontFamily: FONTS.yorubaBold, fontSize: 26 },
+  h2: { fontFamily: FONTS.yoruba, fontSize: 20 },
+  body: { fontSize: 16, fontWeight: '500' },
+  bodySmall: { fontSize: 14 },
+  caption: { fontSize: 12, fontWeight: '700', letterSpacing: 1.5 },
+};
+
+export const SPACING = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32, huge: 48 };
+
+export const RADII = { sm: 8, md: 14, lg: 20, xl: 28, pill: 999 };
+
+// Flat black drop-shadows barely read on a dark background, so elevation and
+// emphasis use soft color glows instead. Note: iOS renders these as true
+// colored glows (shadowColor/shadowOpacity/shadowRadius); Android's
+// `elevation` can't be colored, so glow* degrades to a plain dark elevation
+// shadow there — still gives real elevation feedback, just not the color.
+export const SHADOWS = {
+  soft: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  glowGold: {
+    shadowColor: COLORS.gold,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  glowIndigo: {
+    shadowColor: COLORS.primaryLight,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 10,
+  },
 };

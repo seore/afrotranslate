@@ -111,6 +111,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.border,
   },
-  answerTileTextYoruba: { fontSize: 17, fontFamily: FONTS.yorubaBold, color: '#fff' },
+  answerTileTextYoruba: { fontSize: 17, fontFamily: FONTS.yorubaBold, color: COLORS.cream },
   poolTileTextYoruba: { fontSize: 17, fontFamily: FONTS.yorubaBold, color: COLORS.text },
 });

@@ -12,6 +12,7 @@ import LearnerSettingsScreen from './LearnerSettingsScreen';
 import PremiumScreen from './PremiumScreen';
 import ReviewSessionScreen from './ReviewSessionScreen';
 import AnimatedNumber from './components/AnimatedNumber';
+import AdireBackground from './components/AdireBackground';
 import { haptics } from './utils/haptics';
 import { COLORS, GRADIENT, FONTS } from './theme';
 
@@ -78,6 +79,7 @@ export default function CoursePathScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={GRADIENT} style={styles.gradient}>
+        <AdireBackground opacity={0.05} />
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.settingsBtn}
@@ -194,7 +196,7 @@ export default function CoursePathScreen() {
                               : 'lock-closed'
                           }
                           size={18}
-                          color={completed ? '#000' : unitLocked ? COLORS.gold : COLORS.text}
+                          color={completed ? COLORS.bg : unitLocked ? COLORS.gold : COLORS.text}
                         />
                       </View>
                       <View style={styles.lessonInfo}>

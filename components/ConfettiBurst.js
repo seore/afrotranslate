@@ -4,7 +4,7 @@ import { View, Animated, StyleSheet } from 'react-native';
 import { COLORS } from '../theme';
 
 const PARTICLE_COUNT = 24;
-const PARTICLE_COLORS = [COLORS.gold, COLORS.primary, COLORS.terracotta, COLORS.success, '#fff'];
+const PARTICLE_COLORS = [COLORS.gold, COLORS.primary, COLORS.terracotta, COLORS.success, COLORS.cream];
 
 function Particle({ color, delay }) {
   const progress = useRef(new Animated.Value(0)).current;

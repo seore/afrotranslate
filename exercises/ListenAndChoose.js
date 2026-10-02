@@ -30,7 +30,7 @@ export default function ListenAndChoose({ exercise, playAudio, onAnswer, disable
         onPress={() => playAudio(exercise.audioKey, exercise.yoruba)}
         activeOpacity={0.85}
       >
-        <Ionicons name="volume-high" size={40} color="#fff" />
+        <Ionicons name="volume-high" size={40} color={COLORS.cream} />
       </TouchableOpacity>
 
       <View style={styles.choices}>

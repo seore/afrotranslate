@@ -10,6 +10,7 @@ import { getLessonVocab } from './content/yoruba';
 import PronunciationPracticeScreen from './PronunciationPracticeScreen';
 import ConfettiBurst from './components/ConfettiBurst';
 import AnimatedNumber from './components/AnimatedNumber';
+import AdireBackground from './components/AdireBackground';
 import { haptics } from './utils/haptics';
 import { COLORS, FONTS } from './theme';
 
@@ -103,6 +104,7 @@ export default function LessonPlayerScreen({ lesson, langCode = 'yo', onExit, on
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
+        <AdireBackground opacity={0.06} />
         {showConfetti && <ConfettiBurst />}
         <View style={styles.summaryBody}>
           <Ionicons name="ribbon" size={72} color={COLORS.gold} />
@@ -259,12 +261,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   continueBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.cream,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  continueBtnText: { fontSize: 16, fontWeight: '800', color: '#000', letterSpacing: 1 },
+  continueBtnText: { fontSize: 16, fontWeight: '800', color: COLORS.bg, letterSpacing: 1 },
 
   summaryBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30 },
   summaryTitle: { fontSize: 26, fontWeight: '900', color: COLORS.text, marginTop: 20 },
@@ -304,5 +306,5 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 60,
   },
-  doneBtnText: { fontSize: 16, fontWeight: '800', color: '#fff', letterSpacing: 1 },
+  doneBtnText: { fontSize: 16, fontWeight: '800', color: COLORS.cream, letterSpacing: 1 },
 });

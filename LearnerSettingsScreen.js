@@ -199,8 +199,8 @@ export default function LearnerSettingsScreen({ onClose, onOpenPremium }) {
               <Switch
                 value={reminderEnabled}
                 onValueChange={toggleReminder}
-                trackColor={{ false: '#333', true: COLORS.primary }}
-                thumbColor="#fff"
+                trackColor={{ false: COLORS.cardRaised, true: COLORS.primary }}
+                thumbColor={COLORS.cream}
               />
             }
             last

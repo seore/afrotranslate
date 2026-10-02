@@ -113,7 +113,7 @@ export default function PronunciationPracticeScreen({ lesson, langCode = 'yo', o
         <Text style={styles.glossText}>{current.gloss}</Text>
 
         <TouchableOpacity style={styles.targetBtn} onPress={playTarget} activeOpacity={0.85}>
-          <Ionicons name="volume-high" size={22} color="#fff" />
+          <Ionicons name="volume-high" size={22} color={COLORS.cream} />
           <Text style={styles.targetBtnText}>Hear it</Text>
         </TouchableOpacity>
 
@@ -122,7 +122,7 @@ export default function PronunciationPracticeScreen({ lesson, langCode = 'yo', o
           onPress={isRecording ? stopRecording : startRecording}
           activeOpacity={0.85}
         >
-          <Ionicons name={isRecording ? 'stop' : 'mic'} size={32} color="#fff" />
+          <Ionicons name={isRecording ? 'stop' : 'mic'} size={32} color={COLORS.cream} />
         </TouchableOpacity>
         <Text style={styles.recordLabel}>{isRecording ? 'Recording... tap to stop' : 'Tap to record yourself'}</Text>
 
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 36,
   },
-  targetBtnText: { fontSize: 14, fontWeight: '800', color: '#fff' },
+  targetBtnText: { fontSize: 14, fontWeight: '800', color: COLORS.cream },
   recordBtn: {
     width: 90,
     height: 90,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  recordBtnActive: { backgroundColor: '#991b1b' },
+  recordBtnActive: { backgroundColor: COLORS.terracottaDark },
   recordLabel: { fontSize: 13, color: COLORS.textMuted, marginTop: 12, fontWeight: '600' },
   playMineBtn: {
     flexDirection: 'row',
@@ -222,5 +222,5 @@ const styles = StyleSheet.create({
   emptyBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30 },
   emptyText: { fontSize: 15, color: COLORS.textSecondary, marginBottom: 24, textAlign: 'center' },
   doneBtn: { backgroundColor: COLORS.primary, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 40 },
-  doneBtnText: { fontSize: 14, fontWeight: '800', color: '#fff' },
+  doneBtnText: { fontSize: 14, fontWeight: '800', color: COLORS.cream },
 });
