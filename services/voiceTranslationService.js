@@ -1,4 +1,4 @@
-import ElevenLabsService from './ElevenLabsService';
+import ElevenLabsService from './elevenlabsService';
 import { API_KEY } from '@env'; 
 
 class VoiceTranslationService {
