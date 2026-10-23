@@ -1,0 +1,34 @@
+{
+  "language": "yo",
+  "title": "Greet your elders",
+  "phrases": [
+    {
+      "id": "e_kaaro",
+      "text": "Ẹ káàárọ̀",
+      "english": "Good morning",
+      "audioKey": "yo_e_kaaro",
+      "note": "The Ẹ shows respect. Use it with parents, grandparents and anyone older. To a friend, just say “Káàárọ̀”."
+    },
+    {
+      "id": "e_se",
+      "text": "Ẹ ṣé",
+      "english": "Thank you",
+      "audioKey": "yo_e_se",
+      "note": "The respectful “thank you”. To someone your age or younger, say “O ṣé”."
+    },
+    {
+      "id": "se_alaafia_ni",
+      "text": "Ṣé àlàáfíà ni?",
+      "english": "Are you well?",
+      "audioKey": "yo_se_alaafia_ni",
+      "note": "A warm way to ask after an elder’s health. They may answer “Àlàáfíà ni” — all is well."
+    }
+  ],
+  "check": {
+    "prompt": "Which one means “Thank you”?",
+    "answerId": "e_se",
+    "optionIds": ["e_kaaro", "e_se", "se_alaafia_ni"],
+    "correctFeedback": "Correct! Ẹ ṣé is the respectful “thank you”.",
+    "wrongFeedback": "Not quite. “Thank you” is Ẹ ṣé. You’ll see it again soon."
+  }
+}
