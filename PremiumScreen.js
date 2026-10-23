@@ -76,7 +76,7 @@ export default function PremiumScreen({ onClose }) {
 
           <View style={styles.premiumBadge}>
             <Ionicons name="checkmark-circle" size={80} color="#00F5FF" />
-            <Text style={styles.premiumTitle}>You're Premium! 🎉</Text>
+            <Text style={styles.premiumTitle}>You are Premium! 🎉</Text>
             <Text style={styles.premiumSubtitle}>Enjoy unlimited translations</Text>
           </View>
         </LinearGradient>
