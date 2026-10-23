@@ -1,0 +1,155 @@
+{
+  "language": "yo",
+  "proverbs": [
+    {
+      "id": "ajo",
+      "text": "Àjò kì í dùn kí onílé má relé.",
+      "literal": "A journey is never so sweet that the traveller doesn't return home.",
+      "meaning": "However far you go, home still calls you back.",
+      "audioKey": "yo_owe_ajo"
+    },
+    {
+      "id": "igi_kan",
+      "text": "Igi kan kì í dágbó ṣe.",
+      "literal": "One tree does not make a forest.",
+      "meaning": "We are stronger together than alone.",
+      "audioKey": "yo_owe_igi_kan"
+    },
+    {
+      "id": "ile_la_n_wo",
+      "text": "Ilé là ń wò, ká tó sọmọ lórúkọ.",
+      "literal": "We look at the home before we name the child.",
+      "meaning": "A Yorùbá name tells the story of the family and moment a child is born into.",
+      "audioKey": "yo_owe_ile_la_n_wo"
+    },
+    {
+      "id": "omode_owo",
+      "text": "Bí ọmọdé bá mọ ọwọ́ wẹ̀, á bá àgbà jẹun.",
+      "literal": "If a child knows how to wash their hands, they will eat with the elders.",
+      "meaning": "Good conduct earns a young person a place among elders.",
+      "audioKey": "yo_owe_omode_owo"
+    },
+    {
+      "id": "owo_omode",
+      "text": "Ọwọ́ ọmọdé kò tó pẹpẹ, tàgbàlagbà kò wọ akèrègbè.",
+      "literal": "A child's hand can't reach the high shelf; an elder's hand can't fit into the gourd.",
+      "meaning": "Young and old each have something the other needs.",
+      "audioKey": "yo_owe_owo_omode"
+    },
+    {
+      "id": "ikoko",
+      "text": "Ìkòkò tí yóò jẹ ata, ìdí rẹ̀ á gbóná.",
+      "literal": "The pot that will cook pepper stew must bear the heat underneath.",
+      "meaning": "Success comes through endurance.",
+      "audioKey": "yo_owe_ikoko"
+    },
+    {
+      "id": "oro_pupo",
+      "text": "Ọ̀rọ̀ púpọ̀ kò kún agbọ̀n.",
+      "literal": "Many words do not fill a basket.",
+      "meaning": "Actions matter more than talk.",
+      "audioKey": "yo_owe_oro_pupo"
+    },
+    {
+      "id": "ona_kan",
+      "text": "Ọ̀nà kan ò wọ ọjà.",
+      "literal": "Not just one road leads to the market.",
+      "meaning": "There is more than one way to reach a goal.",
+      "audioKey": "yo_owe_ona_kan"
+    },
+    {
+      "id": "iwa",
+      "text": "Ìwà lẹ̀sìn.",
+      "literal": "Character is religion.",
+      "meaning": "How you treat people is the truest sign of your faith.",
+      "audioKey": "yo_owe_iwa"
+    },
+    {
+      "id": "eyin",
+      "text": "Ẹyin lọ̀rọ̀, bí ó bá balẹ̀, fífọ́ ní í fọ́.",
+      "literal": "Words are eggs; once they fall, they break.",
+      "meaning": "Think before you speak. Words can't be taken back.",
+      "audioKey": "yo_owe_eyin"
+    },
+    {
+      "id": "oyin",
+      "text": "Ẹni tí yóò jẹ oyin inú àpáta kì í wo ẹnu àáké.",
+      "literal": "Whoever would eat honey from inside the rock doesn't fear the axe's edge.",
+      "meaning": "Great rewards take courage and effort.",
+      "audioKey": "yo_owe_oyin"
+    },
+    {
+      "id": "ile_eko",
+      "text": "Ilé lẹ̀kọ́ ti ń bẹ̀rẹ̀ kí ó tó dé ìta.",
+      "literal": "Education starts at home before it reaches the outside world.",
+      "meaning": "Children first learn their values from family.",
+      "audioKey": "yo_owe_ile_eko"
+    },
+    {
+      "id": "omo_iya",
+      "text": "Ọmọ tí kò gbọ́ tìyá, á gbọ́ tayé.",
+      "literal": "A child who won't listen to their mother will listen to the world.",
+      "meaning": "Ignore loving advice and life will teach you harder lessons.",
+      "audioKey": "yo_owe_omo_iya"
+    },
+    {
+      "id": "agba_loja",
+      "text": "Àgbà kì í wà lọ́jà, kí orí ọmọ títun wọ́.",
+      "literal": "An elder doesn't stay in the market and let a baby's head hang crooked.",
+      "meaning": "Elders are responsible for guiding and protecting the young.",
+      "audioKey": "yo_owe_agba_loja"
+    }
+  ],
+  "names": [
+    { "id": "adebayo", "name": "Adébáyọ̀", "meaning": "The crown meets joy", "gender": "boy", "theme": "Royalty", "audioKey": "yo_name_adebayo" },
+    { "id": "adeola", "name": "Adéọlá", "meaning": "Crown of wealth", "gender": "any", "theme": "Royalty", "audioKey": "yo_name_adeola" },
+    { "id": "adewale", "name": "Adéwálé", "meaning": "The crown has come home", "gender": "boy", "theme": "Royalty", "audioKey": "yo_name_adewale" },
+    { "id": "adebola", "name": "Adébọ́lá", "meaning": "The crown meets wealth", "gender": "any", "theme": "Royalty", "audioKey": "yo_name_adebola" },
+    { "id": "adesina", "name": "Adéṣínà", "meaning": "The crown opens the way", "gender": "boy", "theme": "Royalty", "audioKey": "yo_name_adesina" },
+    { "id": "adeyemi", "name": "Adéyẹmí", "meaning": "The crown suits me", "gender": "any", "theme": "Royalty", "audioKey": "yo_name_adeyemi" },
+    { "id": "sade", "name": "Ṣadé", "meaning": "Makes a crown", "gender": "girl", "theme": "Royalty", "note": "Often short for Fọláṣadé.", "audioKey": "yo_name_sade" },
+    { "id": "adunni", "name": "Adùnní", "meaning": "Sweet to have", "gender": "girl", "theme": "Love", "audioKey": "yo_name_adunni" },
+    { "id": "abeni", "name": "Àbẹ̀ní", "meaning": "We asked for her, and here she is", "gender": "girl", "theme": "Circumstance", "audioKey": "yo_name_abeni" },
+    { "id": "morenike", "name": "Mọ́rẹ́nikẹ́", "meaning": "I have found someone to cherish", "gender": "girl", "theme": "Love", "audioKey": "yo_name_morenike" },
+    { "id": "ayinke", "name": "Àyìnkẹ́", "meaning": "One we praise and cherish", "gender": "girl", "theme": "Love", "audioKey": "yo_name_ayinke" },
+    { "id": "ajoke", "name": "Àjọkẹ́", "meaning": "One everyone cherishes together", "gender": "girl", "theme": "Love", "audioKey": "yo_name_ajoke" },
+    { "id": "ayodele", "name": "Ayọ̀délé", "meaning": "Joy has come home", "gender": "any", "theme": "Joy", "audioKey": "yo_name_ayodele" },
+    { "id": "ayomide", "name": "Ayọ̀mídé", "meaning": "My joy has come", "gender": "any", "theme": "Joy", "audioKey": "yo_name_ayomide" },
+    { "id": "ayobami", "name": "Ayọ̀bámi", "meaning": "Joy meets me", "gender": "any", "theme": "Joy", "audioKey": "yo_name_ayobami" },
+    { "id": "funmilayo", "name": "Fúnmiláyọ̀", "meaning": "Give me joy", "gender": "girl", "theme": "Joy", "audioKey": "yo_name_funmilayo" },
+    { "id": "babatunde", "name": "Babátúndé", "meaning": "Father has returned", "gender": "boy", "theme": "Family", "note": "Given to a boy born after a grandfather has passed.", "audioKey": "yo_name_babatunde" },
+    { "id": "yetunde", "name": "Yétúndé", "meaning": "Mother has returned", "gender": "girl", "theme": "Family", "note": "Given to a girl born after a grandmother has passed.", "audioKey": "yo_name_yetunde" },
+    { "id": "iyabo", "name": "Ìyábọ̀", "meaning": "Mother has come back", "gender": "girl", "theme": "Family", "audioKey": "yo_name_iyabo" },
+    { "id": "tunde", "name": "Túndé", "meaning": "Has returned", "gender": "boy", "theme": "Family", "note": "Short for names such as Babátúndé.", "audioKey": "yo_name_tunde" },
+    { "id": "wale", "name": "Wálé", "meaning": "Has come home", "gender": "boy", "theme": "Family", "note": "Short for names such as Adéwálé.", "audioKey": "yo_name_wale" },
+    { "id": "kunle", "name": "Kúnlé", "meaning": "Fills the home (with joy)", "gender": "boy", "theme": "Family", "audioKey": "yo_name_kunle" },
+    { "id": "dapo", "name": "Dàpọ̀", "meaning": "Brings together", "gender": "boy", "theme": "Family", "audioKey": "yo_name_dapo" },
+    { "id": "omotola", "name": "Ọmọ́tọ́lá", "meaning": "A child is worth more than wealth", "gender": "any", "theme": "Family", "audioKey": "yo_name_omotola" },
+    { "id": "omowumi", "name": "Ọmọ́wùmí", "meaning": "I longed for a child", "gender": "girl", "theme": "Family", "audioKey": "yo_name_omowumi" },
+    { "id": "bolaji", "name": "Bọ́láji", "meaning": "Wakes up with wealth", "gender": "boy", "theme": "Wealth", "audioKey": "yo_name_bolaji" },
+    { "id": "bukola", "name": "Bùkọ́lá", "meaning": "Adds to wealth", "gender": "girl", "theme": "Wealth", "audioKey": "yo_name_bukola" },
+    { "id": "damilola", "name": "Dámilọ́lá", "meaning": "Has made me wealthy", "gender": "any", "theme": "Wealth", "audioKey": "yo_name_damilola" },
+    { "id": "folasade", "name": "Fọláṣadé", "meaning": "Wealth makes a crown", "gender": "girl", "theme": "Wealth", "audioKey": "yo_name_folasade" },
+    { "id": "folake", "name": "Fọlákẹ́", "meaning": "Cherished with wealth", "gender": "girl", "theme": "Wealth", "audioKey": "yo_name_folake" },
+    { "id": "olatunde", "name": "Ọlátúndé", "meaning": "Wealth has returned", "gender": "boy", "theme": "Wealth", "audioKey": "yo_name_olatunde" },
+    { "id": "olaoluwa", "name": "Ọláolúwa", "meaning": "The glory of God", "gender": "any", "theme": "God", "audioKey": "yo_name_olaoluwa" },
+    { "id": "oluwaseun", "name": "Olúwaṣeun", "meaning": "Thank God", "gender": "boy", "theme": "God", "audioKey": "yo_name_oluwaseun" },
+    { "id": "oluwatobi", "name": "Olúwatóbi", "meaning": "God is great", "gender": "boy", "theme": "God", "audioKey": "yo_name_oluwatobi" },
+    { "id": "oluwafemi", "name": "Olúwafẹ́mi", "meaning": "God loves me", "gender": "any", "theme": "God", "audioKey": "yo_name_oluwafemi" },
+    { "id": "oluwaseyi", "name": "Olúwaṣeyí", "meaning": "God has done this", "gender": "boy", "theme": "God", "audioKey": "yo_name_oluwaseyi" },
+    { "id": "oluwatimilehin", "name": "Olúwatìmílẹ́yìn", "meaning": "God is behind me", "gender": "any", "theme": "God", "audioKey": "yo_name_oluwatimilehin" },
+    { "id": "oluwadamilola", "name": "Olúwadámilọ́lá", "meaning": "God has made me wealthy", "gender": "any", "theme": "God", "audioKey": "yo_name_oluwadamilola" },
+    { "id": "oluwatoyin", "name": "Olúwatóyìn", "meaning": "God is worthy of praise", "gender": "any", "theme": "God", "audioKey": "yo_name_oluwatoyin" },
+    { "id": "ifeoluwa", "name": "Ìfẹ́olúwa", "meaning": "God's love", "gender": "any", "theme": "God", "audioKey": "yo_name_ifeoluwa" },
+    { "id": "temitope", "name": "Tèmítọ́pẹ́", "meaning": "Mine is worthy of thanks", "gender": "any", "theme": "God", "audioKey": "yo_name_temitope" },
+    { "id": "tope", "name": "Tọ́pẹ́", "meaning": "Worthy of thanks", "gender": "any", "theme": "God", "audioKey": "yo_name_tope" },
+    { "id": "ibukun", "name": "Ìbùkún", "meaning": "Blessing", "gender": "any", "theme": "Faith", "audioKey": "yo_name_ibukun" },
+    { "id": "ireti", "name": "Ìrètí", "meaning": "Hope", "gender": "any", "theme": "Faith", "audioKey": "yo_name_ireti" },
+    { "id": "yemisi", "name": "Yẹ́misí", "meaning": "Honour me", "gender": "girl", "theme": "Honour", "audioKey": "yo_name_yemisi" },
+    { "id": "taiwo", "name": "Táíwò", "meaning": "Taste the world first", "gender": "any", "theme": "Twins", "note": "The first-born twin, sent ahead to see the world.", "audioKey": "yo_name_taiwo" },
+    { "id": "kehinde", "name": "Kẹ́hìndé", "meaning": "Came last", "gender": "any", "theme": "Twins", "note": "The second-born twin, traditionally seen as the elder.", "audioKey": "yo_name_kehinde" },
+    { "id": "idowu", "name": "Ìdòwú", "meaning": "The child born after twins", "gender": "any", "theme": "Twins", "audioKey": "yo_name_idowu" },
+    { "id": "segun", "name": "Ṣẹ́gun", "meaning": "Victory", "gender": "boy", "theme": "Strength", "audioKey": "yo_name_segun" },
+    { "id": "akinwale", "name": "Akínwálé", "meaning": "The brave one has come home", "gender": "boy", "theme": "Strength", "audioKey": "yo_name_akinwale" }
+  ]
+}

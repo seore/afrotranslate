@@ -1,9 +1,13 @@
 // ================================================================
 // PremiumContext.js - Premium Features with RevenueCat
 // ================================================================
+// Prices, trials and plans always come from RevenueCat's *current*
+// offering (so RevenueCat Experiments can change them remotely). Nothing
+// is hard-coded: if offerings can't load, the paywall says so and offers
+// a retry instead of showing placeholder products.
 
 import React, { createContext, useState, useEffect, useContext } from "react";
-import Purchases from "react-native-purchases";
+import Purchases, { INTRO_ELIGIBILITY_STATUS, PURCHASES_ERROR_CODE } from "react-native-purchases";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert, Platform } from "react-native";
 import { REVENUECAT_API_KEY } from "@env";
@@ -12,131 +16,113 @@ const PremiumContext = createContext();
 
 export const usePremium = () => useContext(PremiumContext);
 
+const ENTITLEMENT_ID = "premium";
+
 export const PremiumProvider = ({ children }) => {
   const [isPremium, setIsPremium] = useState(false);
   const [products, setProducts] = useState([]);
+  const [offering, setOffering] = useState(null);
+  // 'loading' | 'ready' | 'error'
+  const [offeringsStatus, setOfferingsStatus] = useState("loading");
+  // product identifier -> true when the user can get its trial/intro offer
+  const [introEligibility, setIntroEligibility] = useState({});
   const [translationsToday, setTranslationsToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const FREE_TRANSLATION_LIMIT = 30;
+  // Translations are unlimited for everyone (V2). The daily count is still
+  // kept for stats; Premium unlocks the extra languages below.
   const FREE_LANGUAGES = ["sw", "yo", "ha", "ig", "zu", "en", "fr"];
 
   useEffect(() => {
     initializePurchases();
     loadTranslationCount();
     const cleanup = checkDailyReset();
-    return cleanup;
+
+    return () => {
+      cleanup();
+      Purchases.removeCustomerInfoUpdateListener(onCustomerInfo);
+    };
   }, []);
+
+  // Renewals, expiries, refunds and Family Sharing changes arrive here
+  // without needing an app restart. Registered once RevenueCat is configured.
+  const onCustomerInfo = (customerInfo) => applyCustomerInfo(customerInfo);
 
   // Initialize RevenueCat
   const initializePurchases = async () => {
     try {
       console.log('Initializing RevenueCat...');
-      
+
       await Purchases.configure({
         apiKey: REVENUECAT_API_KEY,
       });
 
       console.log('RevenueCat configured');
+      Purchases.addCustomerInfoUpdateListener(onCustomerInfo);
 
       await loadProducts();
-      
+
       await checkPremiumStatus();
 
       setLoading(false);
       console.log('RevenueCat initialization complete');
     } catch (error) {
       console.error("RevenueCat initialization error:", error);
+      setOfferingsStatus("error");
       setLoading(false);
-      
-      // Set fallback products for testing
-      setProducts([
-        { 
-          identifier: 'griot_premium_monthly',
-          product: { 
-            priceString: '$4.99',
-            title: 'Premium Monthly'
-          }
-        },
-        { 
-          identifier: 'griot_premium_yearly',
-          product: { 
-            priceString: '$39.99',
-            title: 'Premium Yearly'
-          }
-        },
-        { 
-          identifier: 'griot_lifetime',
-          product: { 
-            priceString: '$79.99',
-            title: 'Lifetime Premium'
-          }
-        },
-      ]);
     }
   };
 
-  // Load subscription products from RevenueCat
+  // Load the current offering from RevenueCat
   const loadProducts = async () => {
     try {
+      setOfferingsStatus("loading");
       const offerings = await Purchases.getOfferings();
+      const current = offerings.current;
 
-      if (offerings.current && offerings.current.availablePackages.length > 0) {
-        console.log('Products loaded:', offerings.current.availablePackages.length);
-        setProducts(offerings.current.availablePackages);
+      if (current && current.availablePackages.length > 0) {
+        console.log('Products loaded:', current.availablePackages.length);
+        setOffering(current);
+        setProducts(current.availablePackages);
+        setOfferingsStatus("ready");
+        await loadIntroEligibility(current.availablePackages);
       } else {
-        console.log('No offerings available, using fallback');
-        // Fallback products with RevenueCat standard identifiers
-        setProducts([
-          { 
-            identifier: '$rc_monthly',
-            product: { 
-              priceString: '$4.99',
-              title: 'Premium Monthly'
-            }
-          },
-          { 
-            identifier: '$rc_annual',
-            product: { 
-              priceString: '$39.99',
-              title: 'Premium Yearly'
-            }
-          },
-          { 
-            identifier: '$rc_lifetime',
-            product: { 
-              priceString: '$79.99',
-              title: 'Lifetime Premium'
-            }
-          },
-        ]);
+        console.log('No current offering available');
+        setOffering(null);
+        setProducts([]);
+        setOfferingsStatus("error");
       }
     } catch (error) {
       console.error("Load products error:", error);
-      setProducts([
-        { 
-          identifier: '$rc_monthly',
-          product: { 
-            priceString: '$4.99',
-            title: 'Premium Monthly'
-          }
-        },
-        { 
-          identifier: '$rc_annual',
-          product: { 
-            priceString: '$39.99',
-            title: 'Premium Yearly'
-          }
-        },
-        { 
-          identifier: '$rc_lifetime',
-          product: { 
-            priceString: '$79.99',
-            title: 'Lifetime Premium'
-          }
-        },
-      ]);
+      setOfferingsStatus("error");
     }
+  };
+
+  // Only offer a trial to people Apple will actually give it to.
+  const loadIntroEligibility = async (packages) => {
+    if (Platform.OS !== "ios") return;
+    try {
+      const ids = packages
+        .filter((pkg) => pkg.product.introPrice)
+        .map((pkg) => pkg.product.identifier);
+      if (!ids.length) return;
+      const result = await Purchases.checkTrialOrIntroductoryPriceEligibility(ids);
+      const eligible = {};
+      for (const id of ids) {
+        eligible[id] =
+          result[id]?.status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE;
+      }
+      setIntroEligibility(eligible);
+    } catch (error) {
+      console.error("Intro eligibility error:", error);
+    }
+  };
+
+  const applyCustomerInfo = async (customerInfo) => {
+    const active = Boolean(customerInfo.entitlements.active[ENTITLEMENT_ID]);
+    setIsPremium(active);
+    await AsyncStorage.setItem("isPremium", active ? "true" : "false");
+    return active;
   };
 
   // Check if user is premium
@@ -145,18 +131,11 @@ export const PremiumProvider = ({ children }) => {
       const customerInfo = await Purchases.getCustomerInfo();
 
       // Check if user has active premium entitlement
-      if (customerInfo.entitlements.active["premium"]) {
-        console.log('User is premium');
-        setIsPremium(true);
-        await AsyncStorage.setItem("isPremium", "true");
-      } else {
-        console.log('User is not premium');
-        setIsPremium(false);
-        await AsyncStorage.setItem("isPremium", "false");
-      }
+      const active = await applyCustomerInfo(customerInfo);
+      console.log(active ? 'User is premium' : 'User is not premium');
     } catch (error) {
       console.error("Check premium status error:", error);
-      
+
       // Fallback to AsyncStorage
       const storedPremium = await AsyncStorage.getItem("isPremium");
       if (storedPremium === "true") {
@@ -165,52 +144,62 @@ export const PremiumProvider = ({ children }) => {
     }
   };
 
-  // Purchase a package
-  const purchasePremium = async (packageToBuy) => {
+  // Purchase a package.
+  // Returns { status: 'success' | 'cancelled' | 'pending' | 'error' }.
+  // `silent` skips the alerts, for screens that show their own feedback.
+  const purchasePremium = async (packageToBuy, { silent = false } = {}) => {
     try {
-      console.log('Attempting purchase:', packageToBuy);
-      
+      console.log('Attempting purchase:', packageToBuy.identifier);
+
       const { customerInfo } = await Purchases.purchasePackage(packageToBuy);
 
       // Check if premium is now active
-      if (customerInfo.entitlements.active["premium"]) {
-        setIsPremium(true);
-        await AsyncStorage.setItem("isPremium", "true");
-
-        Alert.alert(
-          "Welcome to Premium! 🎉",
-          "You now have unlimited translations and all 14 languages unlocked!"
-        );
+      if (await applyCustomerInfo(customerInfo)) {
+        if (!silent) {
+          Alert.alert(
+            "Welcome to Premium! 🎉",
+            "Every lesson, daily review and all 14 translator languages are unlocked!"
+          );
+        }
+        return { status: "success" };
       }
+      return { status: "error" };
     } catch (error) {
-      if (!error.userCancelled) {
-        console.error("Purchase error:", error);
-        
+      if (error.userCancelled) return { status: "cancelled" };
+
+      // e.g. Ask to Buy: waiting for a parent's approval.
+      if (error.code === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR) {
+        return { status: "pending" };
+      }
+
+      console.error("Purchase error:", error);
+      if (!silent) {
         Alert.alert(
           "Purchase Failed",
           "Unable to complete purchase. Please try again or contact support.",
           [{ text: "OK" }]
         );
       }
+      return { status: "error" };
     }
   };
 
-  // Restore purchases
-  const restorePurchases = async () => {
+  // Restore purchases.
+  // Returns { status: 'restored' | 'none' | 'error' }.
+  const restorePurchases = async ({ silent = false } = {}) => {
     try {
       const customerInfo = await Purchases.restorePurchases();
 
-      if (customerInfo.entitlements.active["premium"]) {
-        setIsPremium(true);
-        await AsyncStorage.setItem("isPremium", "true");
-
-        Alert.alert("Success", "Purchases restored!");
-      } else {
-        Alert.alert("No Purchases", "No active purchases found.");
+      if (await applyCustomerInfo(customerInfo)) {
+        if (!silent) Alert.alert("Success", "Purchases restored!");
+        return { status: "restored" };
       }
+      if (!silent) Alert.alert("No Purchases", "No active purchases found.");
+      return { status: "none" };
     } catch (error) {
       console.error("Restore error:", error);
-      Alert.alert("Restore Failed", "Could not restore purchases.");
+      if (!silent) Alert.alert("Restore Failed", "Could not restore purchases.");
+      return { status: "error" };
     }
   };
 
@@ -256,26 +245,24 @@ export const PremiumProvider = ({ children }) => {
     await AsyncStorage.setItem("translationsToday", newCount.toString());
   };
 
-  const canTranslate = () => {
-    if (isPremium) return true;
-    return translationsToday < FREE_TRANSLATION_LIMIT;
-  };
+  const canTranslate = () => true;
 
   const isLanguageUnlocked = (langCode) => {
     if (isPremium) return true;
     return FREE_LANGUAGES.includes(langCode);
   };
 
-  const getRemainingTranslations = () => {
-    if (isPremium) return "Unlimited";
-    return Math.max(0, FREE_TRANSLATION_LIMIT - translationsToday);
-  };
+  const getRemainingTranslations = () => "Unlimited";
 
   return (
     <PremiumContext.Provider
       value={{
         isPremium,
         products,
+        offering,
+        offeringsStatus,
+        introEligibility,
+        refreshOfferings: loadProducts,
         translationsToday,
         loading,
         purchasePremium,
@@ -284,7 +271,6 @@ export const PremiumProvider = ({ children }) => {
         isLanguageUnlocked,
         getRemainingTranslations,
         incrementTranslationCount,
-        FREE_TRANSLATION_LIMIT,
         FREE_LANGUAGES,
       }}
     >
