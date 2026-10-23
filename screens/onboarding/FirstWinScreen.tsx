@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Button } from '../../components/ui/Button';
 import { Screen } from '../../components/ui/Screen';
@@ -8,12 +10,22 @@ import { getFirstLesson } from '../../content';
 import { LEARNABLE_LANGUAGES } from '../../content/languages';
 import { REASONS } from '../../content/reasons';
 import { useLearnerProfile } from '../../context/LearnerProfileContext';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
+import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/colors';
 
-// Shown once after the first lesson. Finishing onboarding swaps the
-// root navigator over to the tabs (see navigation/RootNavigator.tsx).
+// Shown once after the first lesson, then the paywall. Finishing onboarding
+// swaps the root navigator over to the tabs (see navigation/RootNavigator.tsx).
 export default function FirstWinScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile, updateProfile } = useLearnerProfile();
+  const { isPremium } = usePremiumStatus();
+
+  // Premium is offered right after the first win; closing it finishes onboarding.
+  const next = () =>
+    isPremium
+      ? updateProfile({ onboardingCompletedAt: new Date().toISOString() })
+      : navigation.navigate('Paywall', { source: 'first_win' });
   const language = profile.language ?? 'yo';
   const lesson = getFirstLesson(language);
   const languageName = LEARNABLE_LANGUAGES.find((l) => l.code === language)?.native ?? '';
@@ -21,12 +33,7 @@ export default function FirstWinScreen() {
 
   return (
     <Screen
-      footer={
-        <Button
-          label="Continue"
-          onPress={() => updateProfile({ onboardingCompletedAt: new Date().toISOString() })}
-        />
-      }
+      footer={<Button label="Continue" onPress={next} />}
     >
       <View style={styles.hero}>
         <View style={styles.badge}>

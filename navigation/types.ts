@@ -1,5 +1,7 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
+import type { PaywallSource } from '../lib/entitlements';
+
 export type TabParamList = {
   Learn: undefined;
   Review: undefined;
@@ -28,4 +30,5 @@ export type RootStackParamList = {
   HabitSettings: undefined;
   Names: undefined;
   NameDetail: { nameId: string };
+  Paywall: { source: PaywallSource };
 };

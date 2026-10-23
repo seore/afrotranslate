@@ -21,6 +21,8 @@ export interface Progress {
   /** Lexicon ids the learner has been taught, in the order first learned. */
   learnedItemIds: string[];
   cards: SrsCards;
+  /** Finished review sessions; the first is free (lib/entitlements.ts). */
+  reviewSessionsCompleted: number;
 }
 
 interface ProgressValue {
@@ -32,7 +34,7 @@ interface ProgressValue {
 }
 
 const STORAGE_KEY = 'griot.progress.v1';
-const EMPTY: Progress = { lessons: {}, learnedItemIds: [], cards: {} };
+const EMPTY: Progress = { lessons: {}, learnedItemIds: [], cards: {}, reviewSessionsCompleted: 0 };
 
 const ProgressContext = createContext<ProgressValue | null>(null);
 
@@ -81,6 +83,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       const learned = new Set(prev.learnedItemIds);
 
       await save({
+        ...prev,
         lessons: {
           ...prev.lessons,
           [lessonId]: {
@@ -105,7 +108,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       for (const { itemId, correct } of results) {
         if (cards[itemId]) cards[itemId] = gradeCard(cards[itemId], correct, today);
       }
-      await save({ ...prev, cards });
+      await save({ ...prev, cards, reviewSessionsCompleted: prev.reviewSessionsCompleted + 1 });
     },
     [save],
   );

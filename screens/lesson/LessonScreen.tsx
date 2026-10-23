@@ -26,7 +26,9 @@ import { useHabit } from '../../context/HabitContext';
 import { useLearnerProfile } from '../../context/LearnerProfileContext';
 import { useProgress } from '../../context/ProgressContext';
 import { usePhraseAudio } from '../../hooks/usePhraseAudio';
-import { findLesson } from '../../lib/course';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
+import { allLessons, findLesson } from '../../lib/course';
+import { canStartLesson, canStartReview } from '../../lib/entitlements';
 import { dateKey } from '../../lib/dates';
 import {
   accuracy,
@@ -69,6 +71,21 @@ export default function LessonScreen({ navigation, route }: Props) {
   const language = profile.language ?? 'yo';
   const course = getCourse(language);
   const isReview = route.params.lessonId === REVIEW_LESSON_ID;
+  const premium = usePremiumStatus();
+  const allowed = isReview
+    ? canStartReview(learnerProgress.reviewSessionsCompleted, premium.isPremium)
+    : course
+      ? canStartLesson(allLessons(course).findIndex((l) => l.id === route.params.lessonId), premium.isPremium)
+      : false;
+
+  // Safety net: entry points already gate, but never run locked content.
+  // Waits for RevenueCat so Premium users aren't bounced while it loads.
+  useEffect(() => {
+    if (!premium.loading && !allowed) {
+      navigation.replace('Paywall', { source: isReview ? 'review' : 'locked_lesson' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allowed, premium.loading]);
 
   // Fixed for the whole session, even as progress updates underneath.
   const [lesson] = useState<Lesson | null>(() => {

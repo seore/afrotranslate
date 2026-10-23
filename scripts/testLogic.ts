@@ -8,6 +8,8 @@ import { join } from 'node:path';
 import { buildCourse, tokenize, validateCourse, type RawCourse } from '../lib/course.ts';
 import { foldForSearch, proverbOfTheDay, searchNames, validateCulture } from '../lib/culture.ts';
 import { addDays, dateKey, daysBetween } from '../lib/dates.ts';
+import { canStartLesson, canStartReview, FREE_COURSE_LESSONS } from '../lib/entitlements.ts';
+import { annualSavingsPercent, ctaLabel, defaultPackage, disclosure, freeTrial, orderPackages, priceLabel, trialBadge, type PackageLike } from '../lib/paywall.ts';
 import { accuracy, advance, answer, createLessonState, currentStep, isFinished } from '../lib/lessonEngine.ts';
 import { planReminders } from '../lib/reminders.ts';
 import { buildReviewLesson } from '../lib/review.ts';
@@ -206,6 +208,51 @@ test('culture: name search ignores tone marks and filters by gender', () => {
   assert.ok(searchNames(culture.names, 'twin').length >= 2, 'matches meaning/theme too');
   assert.ok(searchNames(culture.names, '', 'girl').every((n) => n.gender !== 'boy'));
   assert.deepEqual(validateCulture(culture), []);
+});
+
+// ---------- paywall & entitlements ----------
+const pkg = (packageType: string, id: string, price: number, priceString: string, trialDays?: number): PackageLike => ({
+  identifier: '$rc_' + packageType.toLowerCase(),
+  packageType,
+  product: {
+    identifier: id,
+    title: id,
+    price,
+    priceString,
+    introPrice: trialDays ? { price: 0, priceString: '£0.00', periodUnit: 'DAY', periodNumberOfUnits: trialDays } : null,
+  },
+});
+const lifetime = pkg('LIFETIME', 'griot_lifetime', 79.99, '£79.99');
+const monthly = pkg('MONTHLY', 'griot_monthly', 4.99, '£4.99');
+const annual = pkg('ANNUAL', 'griot_yearly', 39.99, '£39.99', 7);
+
+test('paywall: annual first and preselected; prices only from store data', () => {
+  assert.deepEqual(orderPackages([lifetime, monthly, annual]).map((p) => p.packageType), ['ANNUAL', 'MONTHLY', 'LIFETIME']);
+  assert.equal(defaultPackage([lifetime, monthly, annual]), annual);
+  assert.equal(defaultPackage([lifetime, monthly]), monthly);
+  assert.equal(priceLabel(annual), '£39.99/year');
+  assert.equal(priceLabel(lifetime), '£79.99');
+  assert.equal(annualSavingsPercent([monthly, annual]), 33);
+});
+
+test('paywall: trial shown only when offered AND eligible', () => {
+  assert.equal(freeTrial(annual, {}), null);
+  assert.equal(freeTrial(annual, { griot_yearly: false }), null);
+  const trial = freeTrial(annual, { griot_yearly: true });
+  assert.ok(trial);
+  assert.equal(trialBadge(trial!), '7-day free trial');
+  assert.equal(ctaLabel(annual, trial), 'Start free trial');
+  assert.match(disclosure(annual, trial), /^7-day free trial, then £39\.99\/year\..*Renews automatically.*Cancel anytime/);
+  assert.equal(freeTrial(monthly, { griot_monthly: true }), null, 'no intro offer configured');
+  assert.equal(ctaLabel(monthly, null), 'Subscribe');
+  assert.equal(disclosure(lifetime, null), 'One-time payment of £79.99. No subscription.');
+});
+
+test('entitlements: free lessons and one free review, Premium unlocks all', () => {
+  assert.ok(canStartLesson(0, false) && canStartLesson(FREE_COURSE_LESSONS - 1, false));
+  assert.ok(!canStartLesson(FREE_COURSE_LESSONS, false));
+  assert.ok(canStartLesson(99, true));
+  assert.ok(canStartReview(0, false) && !canStartReview(1, false) && canStartReview(5, true));
 });
 
 console.log(`✓ ${passed} logic tests passed`);

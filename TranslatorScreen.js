@@ -20,7 +20,7 @@ import { ExpoSpeechRecognitionModule } from "expo-speech-recognition";
 import { EventEmitter } from 'expo-modules-core';
 
 import { usePremium } from './PremiumContext';
-import PremiumScreen from './PremiumScreen';
+import { PaywallModalContent } from './screens/paywall/PaywallScreen';
 import AdvancedConversationMode from './AdvancedConversationMode.js';
 import SettingsScreen from './settingsScreen.js';
 
@@ -1036,7 +1036,7 @@ export default function TranslatorScreen() {
               animationType="slide"
               presentationStyle="fullScreen"
             >
-              <PremiumScreen onClose={() => setShowPremiumScreen(false)} />
+              <PaywallModalContent onClose={() => setShowPremiumScreen(false)} source="translator" />
             </Modal>
           )}
 

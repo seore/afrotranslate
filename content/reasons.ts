@@ -10,6 +10,8 @@ export const REASONS: {
   firstWinNudge: string;
   /** Reminder notification lines; {language} is replaced with the language name. */
   reminderLines: string[];
+  /** Paywall headline; {language} is replaced with the language name. */
+  paywallHeadline: string;
 }[] = [
   {
     id: 'family',
@@ -22,6 +24,7 @@ export const REASONS: {
       'Your family will notice the effort. Time for today’s {language}.',
       'Practise a greeting now, use it on family later.',
     ],
+    paywallHeadline: 'Speak with your family, not just about them.',
   },
   {
     id: 'visiting',
@@ -34,6 +37,7 @@ export const REASONS: {
       'Five minutes of {language} now, more confidence when you land.',
       'Keep your {language} ready for the trip.',
     ],
+    paywallHeadline: 'Arrive ready to greet everyone properly.',
   },
   {
     id: 'teaching_kids',
@@ -46,6 +50,7 @@ export const REASONS: {
       'Your children learn by hearing you. Practise your {language} now.',
       'A short {language} session keeps you a step ahead of the kids.',
     ],
+    paywallHeadline: 'Raise children who speak {language}.',
   },
   {
     id: 'culture',
@@ -58,6 +63,7 @@ export const REASONS: {
       'Every phrase is a link to where you come from. {language} time.',
       'Your {language} streak is waiting.',
     ],
+    paywallHeadline: 'Reconnect with {language}, one phrase at a time.',
   },
 ];
 

@@ -9,7 +9,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button } from '../../components/ui/Button';
 import { Screen } from '../../components/ui/Screen';
 import { useProgress } from '../../context/ProgressContext';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
 import { dateKey } from '../../lib/dates';
+import { canStartReview } from '../../lib/entitlements';
 import { REVIEW_LESSON_ID } from '../../lib/review';
 import { dueItemIds, MAX_BOX } from '../../lib/srs';
 import type { RootStackParamList } from '../../navigation/types';
@@ -18,6 +20,8 @@ import { colors } from '../../theme/colors';
 export default function ReviewHomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { progress } = useProgress();
+  const { isPremium } = usePremiumStatus();
+  const reviewUnlocked = canStartReview(progress.reviewSessionsCompleted, isPremium);
   const today = dateKey(new Date());
   const allDue = dueItemIds(progress.cards, today, Infinity).length;
   const cards = Object.values(progress.cards);
@@ -53,11 +57,22 @@ export default function ReviewHomeScreen() {
         </Text>
         {allDue ? (
           <View style={styles.action}>
-            <Button
-              label="Start review"
-              icon="play"
-              onPress={() => navigation.navigate('Lesson', { lessonId: REVIEW_LESSON_ID })}
-            />
+            {reviewUnlocked ? (
+              <Button
+                label="Start review"
+                icon="play"
+                onPress={() => navigation.navigate('Lesson', { lessonId: REVIEW_LESSON_ID })}
+              />
+            ) : (
+              <>
+                <Button
+                  label="Unlock daily review"
+                  icon="diamond"
+                  onPress={() => navigation.navigate('Paywall', { source: 'review' })}
+                />
+                <Text style={styles.note}>You’ve used your free review. Premium keeps these phrases fresh every day.</Text>
+              </>
+            )}
           </View>
         ) : null}
       </View>
@@ -117,6 +132,13 @@ const styles = StyleSheet.create({
   action: {
     alignSelf: 'stretch',
     marginTop: 20,
+  },
+  note: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 10,
   },
   stats: {
     flexDirection: 'row',

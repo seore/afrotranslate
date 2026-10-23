@@ -17,17 +17,21 @@ import type { Lesson } from '../../content/types';
 import { useHabit } from '../../context/HabitContext';
 import { useLearnerProfile } from '../../context/LearnerProfileContext';
 import { useProgress } from '../../context/ProgressContext';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
 import { allLessons } from '../../lib/course';
+import { canStartLesson } from '../../lib/entitlements';
 import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/colors';
 
-type LessonStatus = 'done' | 'next' | 'locked';
+// premium: needs Premium (lib/entitlements.ts); locked: finish the previous lesson first.
+type LessonStatus = 'done' | 'next' | 'locked' | 'premium';
 
 export default function LearnHomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile } = useLearnerProfile();
   const { isLessonComplete } = useProgress();
   const { habit, update } = useHabit();
+  const { isPremium } = usePremiumStatus();
   const language = profile.language ?? 'yo';
   const languageName = LEARNABLE_LANGUAGES.find((l) => l.code === language)?.native ?? '';
   const starter = getFirstLesson(language);
@@ -39,7 +43,14 @@ export default function LearnHomeScreen() {
   const ordered = course ? allLessons(course) : [];
   const nextId = ordered.find((l) => !isLessonComplete(l.id))?.id;
   const statusOf = (lesson: Lesson): LessonStatus =>
-    isLessonComplete(lesson.id) ? 'done' : lesson.id === nextId ? 'next' : 'locked';
+    !canStartLesson(ordered.indexOf(lesson), isPremium)
+      ? 'premium'
+      : isLessonComplete(lesson.id)
+        ? 'done'
+        : lesson.id === nextId
+          ? 'next'
+          : 'locked';
+  const openPaywall = () => navigation.navigate('Paywall', { source: 'locked_lesson' });
 
   return (
     <Screen>
@@ -101,9 +112,11 @@ export default function LearnHomeScreen() {
 
           {unit.lessons.map((lesson, lessonIndex) => {
             const status = statusOf(lesson);
-            const open = () => navigation.navigate('Lesson', { lessonId: lesson.id });
+            const open =
+              status === 'premium' ? openPaywall : () => navigation.navigate('Lesson', { lessonId: lesson.id });
+            const isNextPremium = status === 'premium' && lesson.id === nextId;
             return (
-              <View key={lesson.id} style={[styles.lesson, status === 'next' && styles.lessonNext]}>
+              <View key={lesson.id} style={[styles.lesson, (status === 'next' || isNextPremium) && styles.lessonNext]}>
                 <TouchableOpacity
                   style={styles.lessonRow}
                   onPress={open}
@@ -111,19 +124,34 @@ export default function LearnHomeScreen() {
                   activeOpacity={0.8}
                   accessibilityRole="button"
                   accessibilityLabel={`Lesson ${lessonIndex + 1}: ${lesson.title}. ${
-                    status === 'done' ? 'Completed' : status === 'locked' ? 'Locked' : 'Up next'
+                    status === 'done'
+                      ? 'Completed'
+                      : status === 'locked'
+                        ? 'Locked'
+                        : status === 'premium'
+                          ? 'Premium. Opens upgrade options'
+                          : 'Up next'
                   }`}
                   accessibilityState={{ disabled: status === 'locked' }}
                 >
                   <View style={[styles.lessonIcon, status === 'done' && styles.iconDone]}>
                     <Ionicons
-                      name={status === 'done' ? 'checkmark' : status === 'locked' ? 'lock-closed' : 'play'}
+                      name={
+                        status === 'done'
+                          ? 'checkmark'
+                          : status === 'locked'
+                            ? 'lock-closed'
+                            : status === 'premium'
+                              ? 'diamond'
+                              : 'play'
+                      }
                       size={18}
                       color={status === 'locked' ? colors.textMuted : status === 'done' ? colors.onAccent : colors.accent}
                     />
                   </View>
                   <View style={styles.flex}>
                     <Text style={[styles.lessonTitle, status === 'locked' && styles.muted]}>{lesson.title}</Text>
+                    {status === 'premium' ? <Text style={styles.premiumTag}>PREMIUM</Text> : null}
                     <Text style={styles.lessonBody}>{lesson.description}</Text>
                   </View>
                 </TouchableOpacity>
@@ -132,11 +160,33 @@ export default function LearnHomeScreen() {
                     <Button label="Start lesson" icon="play" onPress={open} />
                   </View>
                 ) : null}
+                {isNextPremium ? (
+                  <View style={styles.lessonAction}>
+                    <Button label="Unlock with Premium" icon="diamond" onPress={openPaywall} />
+                  </View>
+                ) : null}
               </View>
             );
           })}
         </View>
       ))}
+
+      {!isPremium ? (
+        <TouchableOpacity
+          style={styles.upgrade}
+          onPress={() => navigation.navigate('Paywall', { source: 'learn_upgrade' })}
+          accessibilityRole="button"
+          accessibilityLabel="GRIOT Premium. See plans"
+          activeOpacity={0.8}
+        >
+          <Ionicons name="diamond" size={22} color={colors.accent} />
+          <View style={styles.flex}>
+            <Text style={styles.starterTitle}>GRIOT Premium</Text>
+            <Text style={styles.lessonBody}>Every lesson, daily review and the full translator.</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+        </TouchableOpacity>
+      ) : null}
     </Screen>
   );
 }
@@ -278,6 +328,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 2,
+  },
+  premiumTag: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+    color: colors.accent,
+    marginTop: 4,
+  },
+  upgrade: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.accentSoft,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    padding: 16,
+    marginBottom: 8,
   },
   lessonAction: {
     marginTop: 14,

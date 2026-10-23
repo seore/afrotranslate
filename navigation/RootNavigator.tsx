@@ -21,6 +21,7 @@ import ReviewHomeScreen from '../screens/review/ReviewHomeScreen';
 import HabitSettingsScreen from '../screens/settings/HabitSettingsScreen';
 import LessonCompleteScreen from '../screens/lesson/LessonCompleteScreen';
 import LessonScreen from '../screens/lesson/LessonScreen';
+import PaywallScreen from '../screens/paywall/PaywallScreen';
 import FirstWinScreen from '../screens/onboarding/FirstWinScreen';
 import LanguageScreen from '../screens/onboarding/LanguageScreen';
 import LevelScreen from '../screens/onboarding/LevelScreen';
@@ -98,6 +99,7 @@ export default function RootNavigator() {
           <Stack.Screen name="HabitSettings" component={HabitSettingsScreen} />
           <Stack.Screen name="Names" component={NamesScreen} />
           <Stack.Screen name="NameDetail" component={NameDetailScreen} />
+          <Stack.Screen name="Paywall" component={PaywallScreen} options={{ presentation: 'modal' }} />
         </>
       ) : (
         <>
@@ -107,6 +109,11 @@ export default function RootNavigator() {
           <Stack.Screen name="Language" component={LanguageScreen} />
           <Stack.Screen name="FirstLesson" component={FirstLessonScreen} />
           <Stack.Screen name="FirstWin" component={FirstWinScreen} options={{ gestureEnabled: false }} />
+          <Stack.Screen
+            name="Paywall"
+            component={PaywallScreen}
+            options={{ presentation: 'fullScreenModal', gestureEnabled: false }}
+          />
         </>
       )}
     </Stack.Navigator>

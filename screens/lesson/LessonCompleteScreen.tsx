@@ -9,7 +9,9 @@ import { getCourse } from '../../content';
 import { useHabit } from '../../context/HabitContext';
 import { useLearnerProfile } from '../../context/LearnerProfileContext';
 import { usePhraseAudio } from '../../hooks/usePhraseAudio';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
 import { allLessons, findLesson } from '../../lib/course';
+import { canStartLesson } from '../../lib/entitlements';
 import { REVIEW_LESSON_ID } from '../../lib/review';
 import type { RootStackParamList } from '../../navigation/types';
 import { canPromptAgain, isReviewMoment, requestReviewPrompt } from '../../services/reviewPrompt';
@@ -21,6 +23,7 @@ export default function LessonCompleteScreen({ navigation, route }: Props) {
   const { lessonId, accuracy, xp, goalJustMet, streak, firstCourseLessonJustDone } = route.params;
   const { profile } = useLearnerProfile();
   const { habit, update } = useHabit();
+  const { isPremium } = usePremiumStatus();
   const language = profile.language ?? 'yo';
   const course = getCourse(language);
   const isReview = lessonId === REVIEW_LESSON_ID;
@@ -41,7 +44,9 @@ export default function LessonCompleteScreen({ navigation, route }: Props) {
   if (!course) return null;
 
   const lessons = allLessons(course);
-  const nextLesson = found ? lessons[lessons.findIndex((l) => l.id === lessonId) + 1] : undefined;
+  const nextIndex = lessons.findIndex((l) => l.id === lessonId) + 1;
+  const nextLesson = found ? lessons[nextIndex] : undefined;
+  const nextNeedsPremium = Boolean(nextLesson) && !canStartLesson(nextIndex, isPremium);
   const percent = Math.round(accuracy * 100);
   const headline = isReview
     ? 'Review complete'
@@ -56,7 +61,15 @@ export default function LessonCompleteScreen({ navigation, route }: Props) {
       footer={
         <>
           {nextLesson ? (
-            <Button label="Next lesson" onPress={() => navigation.replace('Lesson', { lessonId: nextLesson.id })} />
+            nextNeedsPremium ? (
+              <Button
+                label="Unlock the next lesson"
+                icon="diamond"
+                onPress={() => navigation.replace('Paywall', { source: 'locked_lesson' })}
+              />
+            ) : (
+              <Button label="Next lesson" onPress={() => navigation.replace('Lesson', { lessonId: nextLesson.id })} />
+            )
           ) : null}
           <Button
             label={isReview ? 'Done' : 'Back to lessons'}
