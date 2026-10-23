@@ -100,7 +100,12 @@ export default function FirstLessonScreen({ navigation, route }: Props) {
 
       {phrase ? (
         <>
-          <PhraseCard phrase={phrase} language={language} onListen={() => audio.play(phrase)} />
+          <PhraseCard
+            phrase={phrase}
+            language={language}
+            onListen={() => audio.play(phrase)}
+            onListenSlow={() => audio.playSlow(phrase)}
+          />
           <RepeatPanel
             isRecording={recorder.isRecording}
             hasAttempt={recorder.attemptUri !== null}

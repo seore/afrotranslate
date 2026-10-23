@@ -1,33 +1,31 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { hasToneMarks } from '../../content/languages';
 import type { LanguageCode, Phrase } from '../../content/types';
 import { colors } from '../../theme/colors';
+import { ListenButtons } from './ListenButtons';
+import { ToneContour } from './ToneContour';
 
 interface PhraseCardProps {
   phrase: Phrase;
   language: LanguageCode;
   onListen: () => void;
+  onListenSlow: () => void;
 }
 
 // The phrase is always shown as text too, so audio is never the only way in.
-export function PhraseCard({ phrase, language, onListen }: PhraseCardProps) {
+export function PhraseCard({ phrase, language, onListen, onListenSlow }: PhraseCardProps) {
   return (
     <View style={styles.card}>
-      <TouchableOpacity
-        onPress={onListen}
-        style={styles.listenBtn}
-        accessibilityRole="button"
-        accessibilityLabel={`Listen to ${phrase.english}`}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="volume-high" size={30} color={colors.onAccent} />
-      </TouchableOpacity>
+      <View style={styles.listen}>
+        <ListenButtons onListen={onListen} onListenSlow={onListenSlow} label={phrase.english} />
+      </View>
       <Text style={styles.text} accessibilityLanguage={language} selectable>
         {phrase.text}
       </Text>
       <Text style={styles.english}>{phrase.english}</Text>
+      {hasToneMarks(language) ? <ToneContour text={phrase.text} /> : null}
       {phrase.note ? <Text style={styles.note}>{phrase.note}</Text> : null}
     </View>
   );
@@ -40,13 +38,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
   },
-  listenBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
+  listen: {
     marginBottom: 20,
   },
   text: {

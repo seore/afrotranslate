@@ -6,6 +6,7 @@ export interface ExerciseProps<T extends Exercise> {
   lexicon: Record<string, Phrase>;
   language: LanguageCode;
   play: (phrase: Phrase) => void;
+  playSlow: (phrase: Phrase) => void;
   /** Called once when the learner commits an answer. */
   onAnswer: (correct: boolean) => void;
 }

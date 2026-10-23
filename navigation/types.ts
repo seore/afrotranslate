@@ -3,6 +3,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 export type TabParamList = {
   Learn: undefined;
   Review: undefined;
+  Culture: undefined;
   Tools: undefined;
 };
 
@@ -25,4 +26,6 @@ export type RootStackParamList = {
     firstCourseLessonJustDone: boolean;
   };
   HabitSettings: undefined;
+  Names: undefined;
+  NameDetail: { nameId: string };
 };

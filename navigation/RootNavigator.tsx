@@ -13,6 +13,9 @@ import TranslatorScreen from '../TranslatorScreen';
 import { useLearnerProfile } from '../context/LearnerProfileContext';
 import { useReminderSync } from '../hooks/useReminderSync';
 import LearnHomeScreen from '../screens/learn/LearnHomeScreen';
+import CultureHomeScreen from '../screens/culture/CultureHomeScreen';
+import NameDetailScreen from '../screens/culture/NameDetailScreen';
+import NamesScreen from '../screens/culture/NamesScreen';
 import FirstLessonScreen from '../screens/lesson/FirstLessonScreen';
 import ReviewHomeScreen from '../screens/review/ReviewHomeScreen';
 import HabitSettingsScreen from '../screens/settings/HabitSettingsScreen';
@@ -57,6 +60,13 @@ function Tabs() {
         }}
       />
       <Tab.Screen
+        name="Culture"
+        component={CultureHomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
         name="Tools"
         component={TranslatorScreen}
         options={{
@@ -86,6 +96,8 @@ export default function RootNavigator() {
           <Stack.Screen name="Lesson" component={LessonScreen} options={{ gestureEnabled: false }} />
           <Stack.Screen name="LessonComplete" component={LessonCompleteScreen} options={{ gestureEnabled: false }} />
           <Stack.Screen name="HabitSettings" component={HabitSettingsScreen} />
+          <Stack.Screen name="Names" component={NamesScreen} />
+          <Stack.Screen name="NameDetail" component={NameDetailScreen} />
         </>
       ) : (
         <>

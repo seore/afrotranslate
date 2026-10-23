@@ -12,6 +12,8 @@ export interface LanguageOption {
   native: string;
   flag: string;
   available: boolean;
+  /** Written with tone marks, so a tone pattern can be drawn from the text. */
+  toneMarks: boolean;
 }
 
 export interface Phrase {
@@ -120,4 +122,33 @@ export interface Course {
   language: LanguageCode;
   lexicon: Record<string, Phrase>;
   units: Unit[];
+}
+
+// ---------- Culture: proverbs and names ----------
+
+/** Òwe: a proverb, with its literal translation and what it means. */
+export interface Proverb {
+  id: string;
+  text: string;
+  literal: string;
+  meaning: string;
+  audioKey: string;
+}
+
+export interface NameMeaning {
+  id: string;
+  name: string;
+  meaning: string;
+  /** Traditional use; many names are given to any child. */
+  gender: 'boy' | 'girl' | 'any';
+  /** Short theme, e.g. "Royalty", "Joy", "Twins". */
+  theme: string;
+  note?: string;
+  audioKey: string;
+}
+
+export interface CultureContent {
+  language: LanguageCode;
+  proverbs: Proverb[];
+  names: NameMeaning[];
 }

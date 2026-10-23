@@ -1,34 +1,32 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import type { LanguageCode, Phrase } from '../../content/types';
 import { colors } from '../../theme/colors';
+import { ListenButtons } from '../lesson/ListenButtons';
 
 interface AudioPromptProps {
   phrase: Phrase;
   language: LanguageCode;
   play: (phrase: Phrase) => void;
+  playSlow: (phrase: Phrase) => void;
   /** Show the text from the start instead of behind "Show text". */
   textVisible?: boolean;
 }
 
 // Big replay button. The text is one tap away ("Show text") so the
 // exercise stays audio-first but is still usable without sound.
-export function AudioPrompt({ phrase, language, play, textVisible = false }: AudioPromptProps) {
+export function AudioPrompt({ phrase, language, play, playSlow, textVisible = false }: AudioPromptProps) {
   const [showText, setShowText] = useState(textVisible);
 
   return (
     <View style={styles.wrap}>
-      <TouchableOpacity
-        onPress={() => play(phrase)}
-        style={styles.playBtn}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel="Play the phrase again"
-      >
-        <Ionicons name="volume-high" size={40} color={colors.onAccent} />
-      </TouchableOpacity>
+      <ListenButtons
+        size="large"
+        label="the phrase"
+        onListen={() => play(phrase)}
+        onListenSlow={() => playSlow(phrase)}
+      />
       {showText ? (
         <Text style={styles.text} accessibilityLanguage={language}>
           {phrase.text}
@@ -51,14 +49,6 @@ const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
     marginBottom: 24,
-  },
-  playBtn: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   text: {
     fontSize: 26,

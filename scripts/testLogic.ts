@@ -6,11 +6,13 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { buildCourse, tokenize, validateCourse, type RawCourse } from '../lib/course.ts';
+import { foldForSearch, proverbOfTheDay, searchNames, validateCulture } from '../lib/culture.ts';
 import { addDays, dateKey, daysBetween } from '../lib/dates.ts';
 import { accuracy, advance, answer, createLessonState, currentStep, isFinished } from '../lib/lessonEngine.ts';
 import { planReminders } from '../lib/reminders.ts';
 import { buildReviewLesson } from '../lib/review.ts';
 import { addCards, dueItemIds, gradeCard, MAX_BOX } from '../lib/srs.ts';
+import { describeTones, tonePattern } from '../lib/tones.ts';
 import { EMPTY_STREAK, MAX_FREEZES, meetGoal, reconcileStreak, type StreakState } from '../lib/streak.ts';
 
 let passed = 0;
@@ -168,6 +170,42 @@ test('reminders: skips today once goal met or time passed, fills the week', () =
   assert.equal(planReminders({ ...base, now: new Date(2026, 9, 23, 20, 0), goalMetToday: false }).length, 6);
   const all = planReminders({ ...base, now: morning, goalMetToday: false });
   assert.ok(all.every((r) => r.date.getHours() === 19 && !r.body.includes('{language}')));
+});
+
+// ---------- tones ----------
+test('tones: pattern follows tone marks; underdots ignored; tone-marked nasals count', () => {
+  const p = (t: string) => tonePattern(t).map((w) => w.tones.join(''));
+  assert.deepEqual(p('Ẹ káàárọ̀'), ['M', 'HLHL']);
+  assert.deepEqual(p('Ṣé àlàáfíà ni?'), ['H', 'LLHHL', 'M']);
+  assert.deepEqual(p('Ẹ̀gbọ́n'), ['LH']);
+  assert.deepEqual(p('Ẹ ǹlẹ́ o'), ['M', 'LH', 'M']);
+  assert.deepEqual(p('E\u0323\u0300gbo\u0323\u0301n'), ['LH'], 'decomposed input gives the same result');
+  assert.equal(describeTones(tonePattern('Ó dàbọ̀')), 'Ó: high. dàbọ̀: low, low');
+});
+
+test('tones: every Unit 1 phrase has at least one tone-bearing syllable', () => {
+  for (const [id, phrase] of Object.entries(course.lexicon)) {
+    assert.ok(tonePattern(phrase.text).length > 0, id);
+  }
+});
+
+// ---------- culture ----------
+const culture = JSON.parse(readFileSync(join(import.meta.dirname, '../content/yo/culture.json'), 'utf8'));
+
+test('culture: proverb of the day is stable within a day and cycles through all', () => {
+  const seen = new Set<string>();
+  for (let i = 0; i < culture.proverbs.length; i++) seen.add(proverbOfTheDay(culture.proverbs, addDays('2026-10-23', i))!.id);
+  assert.equal(seen.size, culture.proverbs.length);
+  assert.equal(proverbOfTheDay(culture.proverbs, '2026-10-23'), proverbOfTheDay(culture.proverbs, '2026-10-23'));
+  assert.ok(proverbOfTheDay(culture.proverbs, '2025-06-01'), 'dates before the epoch still work');
+});
+
+test('culture: name search ignores tone marks and filters by gender', () => {
+  assert.equal(foldForSearch('Adébáyọ̀'), 'adebayo');
+  assert.deepEqual(searchNames(culture.names, 'adebayo').map((n) => n.id), ['adebayo']);
+  assert.ok(searchNames(culture.names, 'twin').length >= 2, 'matches meaning/theme too');
+  assert.ok(searchNames(culture.names, '', 'girl').every((n) => n.gender !== 'boy'));
+  assert.deepEqual(validateCulture(culture), []);
 });
 
 console.log(`✓ ${passed} logic tests passed`);

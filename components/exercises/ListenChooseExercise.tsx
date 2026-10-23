@@ -7,7 +7,7 @@ import { OptionCard } from '../ui/OptionCard';
 import { AudioPrompt } from './AudioPrompt';
 import { shuffled, type ExerciseProps } from './types';
 
-export function ListenChooseExercise({ exercise, lexicon, language, play, onAnswer }: ExerciseProps<ListenChoose>) {
+export function ListenChooseExercise({ exercise, lexicon, language, play, playSlow, onAnswer }: ExerciseProps<ListenChoose>) {
   const phrase = lexicon[exercise.itemId];
   const options = useMemo(() => shuffled(exercise.optionIds), [exercise.optionIds]);
   const [choice, setChoice] = useState<string | null>(null);
@@ -21,7 +21,7 @@ export function ListenChooseExercise({ exercise, lexicon, language, play, onAnsw
   return (
     <View>
       <Text style={styles.instruction}>What does this mean?</Text>
-      <AudioPrompt phrase={phrase} language={language} play={play} />
+      <AudioPrompt phrase={phrase} language={language} play={play} playSlow={playSlow} />
       {options.map((id) => {
         const isAnswer = id === exercise.itemId;
         const result = choice === null ? undefined : isAnswer ? 'correct' : id === choice ? 'wrong' : undefined;

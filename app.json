@@ -21,7 +21,8 @@
         "NSPhotoLibraryUsageDescription": "GRIOT uses your photo library to allow you to share translation screenshots.",
         "NSMicrophoneUsageDescription": "This app uses the microphone for voice translation features.",
         "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice input.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryAddUsageDescription": "GRIOT saves proverb and name cards to your photos when you choose Save Image."
       }
     },
     "android": {
@@ -51,7 +52,8 @@
       "expo-audio",
       "expo-font",
       "@react-native-community/datetimepicker",
-      "./plugins/withoutPushEntitlement"
+      "./plugins/withoutPushEntitlement",
+      "expo-sharing"
     ]
   }
 }

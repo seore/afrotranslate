@@ -83,8 +83,15 @@ const getRateForLanguage = (langCode) => {
 };
 
 // `player` is an expo-audio player owned by the calling screen.
-// `getVoiceOptions` returns the caller's current { useNativeVoice, voiceGender }.
+// `getVoiceOptions` returns the caller's current { useNativeVoice, voiceGender }, plus an
+// optional `rate` (e.g. 0.6 for slow playback). The translator never sets `rate`.
 export const createSpeaker = (player, getVoiceOptions) => {
+  // Pitch-corrected, so slowed audio keeps its tones.
+  const applyRate = () => {
+    const { rate } = getVoiceOptions();
+    if (rate) player.setPlaybackRate(rate, 'high');
+  };
+
   const speakWithAfricanVoice = async (text, langCode) => {
     if (!text.trim()) return;
     const { useNativeVoice, voiceGender } = getVoiceOptions();
@@ -121,6 +128,7 @@ export const createSpeaker = (player, getVoiceOptions) => {
       console.log('Playing audio:', uri);
       
       player.replace(uri);
+      applyRate();
 
       player.volume = 1.0;
       
@@ -211,6 +219,7 @@ export const createSpeaker = (player, getVoiceOptions) => {
           console.log('Audio saved, playing...');
 
           player.replace(fileUri);
+          applyRate();
 
           setTimeout(() => {
             player.play();
@@ -284,7 +293,7 @@ export const createSpeaker = (player, getVoiceOptions) => {
         language: selectedVoice?.language || langCode,
         voice: selectedVoice?.identifier,
         pitch: 1.0,
-        rate: 0.75,
+        rate: 0.75 * (getVoiceOptions().rate ?? 1),
         volume: 1.0,
       });
       

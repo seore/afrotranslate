@@ -188,6 +188,7 @@ export default function LessonScreen({ navigation, route }: Props) {
             phrase={course.lexicon[step.itemId]}
             language={language}
             onListen={() => audio.play(course.lexicon[step.itemId])}
+            onListenSlow={() => audio.playSlow(course.lexicon[step.itemId])}
           />
         </View>
       ) : null}
@@ -201,6 +202,7 @@ export default function LessonScreen({ navigation, route }: Props) {
             lexicon={course.lexicon}
             language={language}
             play={audio.play}
+            playSlow={audio.playSlow}
             onAnswer={onAnswer}
           />
         </View>

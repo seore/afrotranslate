@@ -10,7 +10,7 @@ import { Button } from '../ui/Button';
 import type { ExerciseProps } from './types';
 
 // Self-assessed for now; Phase 4 adds pitch comparison and a score.
-export function ListenRepeatExercise({ exercise, lexicon, language, play, onAnswer }: ExerciseProps<ListenRepeat>) {
+export function ListenRepeatExercise({ exercise, lexicon, language, play, playSlow, onAnswer }: ExerciseProps<ListenRepeat>) {
   const phrase = lexicon[exercise.itemId];
   const recorder = useAttemptRecorder();
 
@@ -30,7 +30,12 @@ export function ListenRepeatExercise({ exercise, lexicon, language, play, onAnsw
   return (
     <View>
       <Text style={styles.instruction}>Say it out loud</Text>
-      <PhraseCard phrase={phrase} language={language} onListen={() => play(phrase)} />
+      <PhraseCard
+        phrase={phrase}
+        language={language}
+        onListen={() => play(phrase)}
+        onListenSlow={() => playSlow(phrase)}
+      />
       <RepeatPanel
         isRecording={recorder.isRecording}
         hasAttempt={recorder.attemptUri !== null}
