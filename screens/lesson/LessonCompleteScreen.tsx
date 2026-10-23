@@ -16,6 +16,7 @@ import { REVIEW_LESSON_ID } from '../../lib/review';
 import type { RootStackParamList } from '../../navigation/types';
 import { canPromptAgain, isReviewMoment, requestReviewPrompt } from '../../services/reviewPrompt';
 import { colors } from '../../theme/colors';
+import { track } from '../../services/analytics';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LessonComplete'>;
 
@@ -35,7 +36,10 @@ export default function LessonCompleteScreen({ navigation, route }: Props) {
     if (!isReviewMoment({ firstCourseLessonJustDone, streak: goalJustMet ? streak : 0 })) return;
     if (!canPromptAgain(habit.lastReviewPromptAt)) return;
     const timer = setTimeout(async () => {
-      if (await requestReviewPrompt()) update({ lastReviewPromptAt: new Date().toISOString() });
+      if (await requestReviewPrompt()) {
+        update({ lastReviewPromptAt: new Date().toISOString() });
+        track('review_prompt_shown', { trigger: firstCourseLessonJustDone ? 'first_lesson' : 'streak_3' });
+      }
     }, 1500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps

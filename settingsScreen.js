@@ -12,9 +12,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { usePremium } from './PremiumContext';
+import { useAnalyticsConsent } from './services/analytics';
 
 export default function SettingsScreen({ onClose, onOpenPremium }) {
   const { isPremium } = usePremium();
+  const analytics = useAnalyticsConsent();
 
   const openURL = async (url, title) => {
     try {
@@ -52,6 +54,19 @@ export default function SettingsScreen({ onClose, onOpenPremium }) {
           value: 'Unlimited',
           color: '#00F5FF',
           onPress: null,
+        },
+      ],
+    },
+    {
+      title: 'Privacy',
+      items: [
+        {
+          icon: 'analytics',
+          label: 'Share anonymous usage data',
+          value: analytics.available && analytics.enabled ? 'On' : 'Off',
+          color: '#00F5FF',
+          // Anonymous usage stats only (see services/analytics.ts); tap to switch.
+          onPress: analytics.available ? () => analytics.setEnabled(!analytics.enabled) : null,
         },
       ],
     },

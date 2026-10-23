@@ -33,6 +33,7 @@ import {
 } from '../../lib/paywall';
 import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/colors';
+import { track } from '../../services/analytics';
 
 const PRIVACY_URL = 'https://seore.github.io/afrotranslate-privacy/privacy.html';
 const TERMS_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
@@ -49,7 +50,7 @@ interface PaywallProps {
   source: PaywallSource;
 }
 
-export function Paywall({ onClose }: PaywallProps) {
+export function Paywall({ onClose, source }: PaywallProps) {
   const { profile } = useLearnerProfile();
   const premium = usePremiumStatus();
   const { offering, offeringsStatus, introEligibility } = premium;
@@ -63,6 +64,7 @@ export function Paywall({ onClose }: PaywallProps) {
 
   // Retry once on open if plans failed to load earlier (e.g. offline at launch).
   useEffect(() => {
+    track('paywall_view', { source });
     if (offeringsStatus === 'error') premium.refreshOfferings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -79,7 +81,10 @@ export function Paywall({ onClose }: PaywallProps) {
     setBusy('purchase');
     const { status } = await premium.purchasePremium(selected, { silent: true });
     setBusy(null);
-    if (status === 'success') setJustUnlocked(true);
+    if (status === 'success') {
+      setJustUnlocked(true);
+      track(trial ? 'trial_start' : 'purchase', { plan: selected.identifier, source });
+    }
     else if (status === 'pending') {
       Alert.alert('Waiting for approval', 'Your purchase will complete once it’s approved (for example, Ask to Buy).');
     } else if (status === 'error') {

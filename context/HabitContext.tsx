@@ -18,6 +18,7 @@ import {
   type DayLog,
   type StreakState,
 } from '../lib/streak';
+import { track } from '../services/analytics';
 
 export interface ReminderSettings {
   enabled: boolean;
@@ -123,6 +124,7 @@ export function HabitProvider({ children }: { children: React.ReactNode }) {
       const streak = goalJustMet ? meetGoal(prev.streak, today) : reconcileStreak(prev.streak, today);
 
       await save({ ...prev, days: { ...prev.days, [today]: day }, totalXp: prev.totalXp + xp, streak });
+      if (goalJustMet) track('streak_day', { streak: streak.current });
       return { goalJustMet, streak };
     },
     [save],

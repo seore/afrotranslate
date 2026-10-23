@@ -44,6 +44,7 @@ import { buildReviewLesson, REVIEW_LESSON_ID } from '../../lib/review';
 import { dueItemIds } from '../../lib/srs';
 import { XP, lessonXp } from '../../lib/streak';
 import type { RootStackParamList } from '../../navigation/types';
+import { track } from '../../services/analytics';
 import { colors } from '../../theme/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Lesson'>;
@@ -100,6 +101,11 @@ export default function LessonScreen({ navigation, route }: Props) {
   const [feedback, setFeedback] = useState<boolean | null>(null);
   const startedAt = useRef(Date.now());
 
+  useEffect(() => {
+    if (lesson && allowed) track('lesson_start', { lesson_id: lesson.id, kind: isReview ? 'review' : 'lesson' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const finished = state ? isFinished(state) : false;
 
   useEffect(() => {
@@ -122,6 +128,13 @@ export default function LessonScreen({ navigation, route }: Props) {
         await recordLessonComplete(lesson.id, score, lesson.newItemIds);
         xp = lessonXp(score);
       }
+      track('lesson_complete', {
+        lesson_id: lesson.id,
+        kind: isReview ? 'review' : 'lesson',
+        accuracy: score,
+        xp,
+        duration_s: seconds,
+      });
       const session = await recordSession(seconds, xp);
       navigation.replace('LessonComplete', {
         lessonId: lesson.id,

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { sanitizeProperties } from '../lib/analytics.ts';
 import { buildCourse, tokenize, validateCourse, type RawCourse } from '../lib/course.ts';
 import { foldForSearch, proverbOfTheDay, searchNames, validateCulture } from '../lib/culture.ts';
 import { addDays, dateKey, daysBetween } from '../lib/dates.ts';
@@ -270,6 +271,28 @@ test('lookup: Yorùbá input matches without tone marks', () => {
   assert.equal(findByTarget('Ẹ káàárọ̀!', course.lexicon)?.id, 'e_kaaro');
   assert.equal(findByTarget('kini oruko re', course.lexicon), undefined, 'word boundaries matter');
   assert.equal(findByTarget('ki ni oruko re', course.lexicon)?.id, 'oruko_re');
+});
+
+// ---------- analytics privacy ----------
+test('analytics: only allowed, identifier-like properties are sent', () => {
+  assert.deepEqual(
+    sanitizeProperties('lesson_complete', { lesson_id: 'yo_u1_l1', kind: 'lesson', accuracy: 0.8333, xp: 15, duration_s: 182.4 }),
+    { lesson_id: 'yo_u1_l1', kind: 'lesson', accuracy: 0.83, xp: 15, duration_s: 182.4 },
+  );
+  assert.deepEqual(sanitizeProperties('purchase', { plan: '$rc_annual', source: 'first_win' }), { plan: '$rc_annual', source: 'first_win' });
+});
+
+test('analytics: free text, unknown keys and odd values never get through', () => {
+  const out = sanitizeProperties('lesson_start', {
+    lesson_id: 'Good morning, grandma', // a sentence
+    kind: 'lesson',
+    text: 'my secret', // not an allowed key
+    email: 'a@b.com',
+  });
+  assert.deepEqual(out, { kind: 'lesson' });
+  assert.deepEqual(sanitizeProperties('app_open', { anything: 'x' }), {});
+  assert.deepEqual(sanitizeProperties('streak_day', { streak: NaN }), {});
+  assert.deepEqual(sanitizeProperties('paywall_view', { source: 'x'.repeat(41) }), {});
 });
 
 console.log(`✓ ${passed} logic tests passed`);

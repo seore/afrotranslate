@@ -20,6 +20,7 @@ import { useLearnerProfile } from '../../context/LearnerProfileContext';
 import { useAttemptRecorder } from '../../hooks/useAttemptRecorder';
 import { usePhraseAudio } from '../../hooks/usePhraseAudio';
 import { XP } from '../../lib/streak';
+import { track } from '../../services/analytics';
 import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/colors';
 
@@ -34,6 +35,10 @@ export default function FirstLessonScreen({ navigation, route }: Props) {
   const recorder = useAttemptRecorder();
   const { recordSession } = useHabit();
   const startedAt = useRef(Date.now());
+
+  useEffect(() => {
+    track('lesson_start', { lesson_id: 'starter', kind: 'starter' });
+  }, []);
   const [step, setStep] = useState(0);
   const [choiceId, setChoiceId] = useState<string | null>(null);
 
@@ -53,7 +58,9 @@ export default function FirstLessonScreen({ navigation, route }: Props) {
   if (!lesson) return null;
 
   const finish = async () => {
-    await recordSession((Date.now() - startedAt.current) / 1000, XP.starter);
+    const seconds = (Date.now() - startedAt.current) / 1000;
+    track('lesson_complete', { lesson_id: 'starter', kind: 'starter', xp: XP.starter, duration_s: seconds });
+    await recordSession(seconds, XP.starter);
     if (!profile.firstLessonCompletedAt) {
       await updateProfile({ firstLessonCompletedAt: new Date().toISOString() });
     }

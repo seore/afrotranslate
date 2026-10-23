@@ -7,6 +7,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { LanguageCode } from '../content/types';
+import { track } from '../services/analytics';
 
 export type LearningReason = 'family' | 'visiting' | 'teaching_kids' | 'culture';
 export type StartingLevel = 'none' | 'understand_some' | 'speak_little';
@@ -55,6 +56,14 @@ export function LearnerProfileProvider({ children }: { children: React.ReactNode
 
   const updateProfile = useCallback(async (changes: Partial<LearnerProfile>) => {
     const next = { ...profileRef.current, ...changes };
+    if (changes.onboardingCompletedAt && !profileRef.current.onboardingCompletedAt) {
+      track('onboarding_complete', {
+        reason: next.reason,
+        level: next.level,
+        language: next.language,
+        path: next.firstLessonCompletedAt ? 'first_lesson' : 'skipped_to_translator',
+      });
+    }
     profileRef.current = next;
     setProfile(next);
     try {
