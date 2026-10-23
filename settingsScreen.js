@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePremium } from './PremiumContext';
 
 export default function SettingsScreen({ onClose, onOpenPremium }) {
-  const { isPremium, translationsToday, FREE_TRANSLATION_LIMIT } = usePremium();
+  const { isPremium } = usePremium();
 
   const openURL = async (url, title) => {
     try {
@@ -49,7 +49,7 @@ export default function SettingsScreen({ onClose, onOpenPremium }) {
         {
           icon: 'stats-chart',
           label: 'Translations Today',
-          value: isPremium ? 'Unlimited' : `${translationsToday}/${FREE_TRANSLATION_LIMIT}`,
+          value: 'Unlimited',
           color: '#00F5FF',
           onPress: null,
         },

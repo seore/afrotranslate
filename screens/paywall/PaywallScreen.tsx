@@ -41,7 +41,7 @@ const BENEFITS = [
   'Every lesson, plus new units as they’re released',
   'Daily review that makes phrases stick',
   'Conversation mode in the translator',
-  'Unlimited translations in all 14 languages',
+  '7 more translator languages, including Amharic and Arabic',
 ];
 
 interface PaywallProps {

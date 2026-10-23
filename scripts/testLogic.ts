@@ -11,6 +11,7 @@ import { addDays, dateKey, daysBetween } from '../lib/dates.ts';
 import { canStartLesson, canStartReview, FREE_COURSE_LESSONS } from '../lib/entitlements.ts';
 import { annualSavingsPercent, ctaLabel, defaultPackage, disclosure, freeTrial, orderPackages, priceLabel, trialBadge, type PackageLike } from '../lib/paywall.ts';
 import { accuracy, advance, answer, createLessonState, currentStep, isFinished } from '../lib/lessonEngine.ts';
+import { findByEnglish, findByTarget } from '../lib/phraseLookup.ts';
 import { planReminders } from '../lib/reminders.ts';
 import { buildReviewLesson } from '../lib/review.ts';
 import { addCards, dueItemIds, gradeCard, MAX_BOX } from '../lib/srs.ts';
@@ -253,6 +254,22 @@ test('entitlements: free lessons and one free review, Premium unlocks all', () =
   assert.ok(!canStartLesson(FREE_COURSE_LESSONS, false));
   assert.ok(canStartLesson(99, true));
   assert.ok(canStartReview(0, false) && !canStartReview(1, false) && canStartReview(5, true));
+});
+
+// ---------- translator phrase lookup ----------
+test('lookup: English finds the course phrase, preferring exact meanings', () => {
+  assert.equal(findByEnglish('Thank you', course.lexicon)?.id, 'e_se');
+  assert.equal(findByEnglish('thank you!', course.lexicon)?.id, 'e_se');
+  assert.equal(findByEnglish('What’s your name?', course.lexicon)?.id, 'oruko_re');
+  assert.equal(findByEnglish('good evening', course.lexicon)?.id, 'e_kaale');
+  assert.equal(findByEnglish('Where is the station?', course.lexicon), undefined);
+});
+
+test('lookup: Yorùbá input matches without tone marks', () => {
+  assert.equal(findByTarget('e kaaro', course.lexicon)?.english, 'Good morning');
+  assert.equal(findByTarget('Ẹ káàárọ̀!', course.lexicon)?.id, 'e_kaaro');
+  assert.equal(findByTarget('kini oruko re', course.lexicon), undefined, 'word boundaries matter');
+  assert.equal(findByTarget('ki ni oruko re', course.lexicon)?.id, 'oruko_re');
 });
 
 console.log(`✓ ${passed} logic tests passed`);

@@ -12,6 +12,8 @@ import {
   Alert,
   Modal,
   Vibration,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,8 +29,9 @@ import SettingsScreen from './settingsScreen.js';
 import VoiceTranslationService from './services/voiceTranslationService';
 import ElevenLabsService from './services/elevenlabsService.js';
 import { createSpeaker } from './services/ttsService';
+import { lookupCoursePhrase } from './services/coursePhrases';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const AFRICAN_LANGUAGES = [
   { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', popular: true, color: '#ff7b00', premium: false },
@@ -65,22 +68,23 @@ const OFFLINE_PACKS = {
     'Food': 'Chakula',
     'Help': 'Msaada',
   },
+  // Tone-marked to match the lessons (content/yo/course.json).
   'yo': {
-    'Hello': 'Bawo',
-    'Good morning': 'E kaaro',
-    'Good evening': 'E kaasan',
-    'Thank you': 'E se',
-    'Please': 'Jọwọ',
-    'Yes': 'Bẹẹni',
-    'No': 'Rara',
-    'How are you?': 'Bawo ni?',
-    'Goodbye': 'O dabo',
-    'I need help': 'Mo nilo iranlọwọ',
-    'Where is the bathroom?': 'Nibo ni baluwe wa?',
-    'How much?': 'Elo ni?',
+    'Hello': 'Báwo ni',
+    'Good morning': 'Ẹ káàárọ̀',
+    'Good evening': 'Ẹ káalẹ́',
+    'Thank you': 'Ẹ ṣé',
+    'Please': 'Ẹ jọ̀wọ́',
+    'Yes': 'Bẹ́ẹ̀ni',
+    'No': 'Rárá',
+    'How are you?': 'Báwo ni?',
+    'Goodbye': 'Ó dàbọ̀',
+    'I need help': 'Mo nílò ìrànlọ́wọ́',
+    'Where is the bathroom?': 'Níbo ni ilé ìgbọ̀nsẹ̀ wà?',
+    'How much?': 'Èló ni?',
     'Water': 'Omi',
-    'Food': 'Ounjẹ',
-    'Help': 'Iranlọwọ',
+    'Food': 'Oúnjẹ',
+    'Help': 'Ìrànlọ́wọ́',
   },
   'ha': {
     'Hello': 'Sannu',
@@ -135,13 +139,14 @@ const OFFLINE_PACKS = {
   },
 };
 
+// Source languages voice input supports; others are typed.
+const SPEECH_RECOGNITION_LANGS = ['en', 'fr', 'ar', 'pt', 'sw'];
+
 export default function TranslatorScreen() {
   // Premium hook
   const {
     isPremium,
-    canTranslate,
     isLanguageUnlocked,
-    getRemainingTranslations,
     incrementTranslationCount,
   } = usePremium();
 
@@ -151,6 +156,12 @@ export default function TranslatorScreen() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [sourceText, setSourceText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
+  // Where the result came from: 'course' | 'offline' | 'machine'
+  const [translationSource, setTranslationSource] = useState(null);
+  const [translationAudio, setTranslationAudio] = useState(null);
+  const [typedText, setTypedText] = useState('');
+  const [inputMode, setInputMode] = useState('voice');
+  const typeInputRef = useRef(null);
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [showSourceLangPicker, setShowSourceLangPicker] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -158,7 +169,6 @@ export default function TranslatorScreen() {
   const [interimResults, setInterimResults] = useState('');
   const [conversationMode, setConversationMode] = useState(false);
   const [downloadedPacks, setDownloadedPacks] = useState(['sw', 'yo', 'ha', 'zu', 'ig']);
-  const [hasInteracted, setHasInteracted] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [showConversation, setShowConversationMode] = useState(false);
   const [autoDetectMode, setAutoDetectMode] = useState(false);
@@ -251,6 +261,7 @@ export default function TranslatorScreen() {
           setInterimResults(transcript);
           
           if (result.isFinal || event.isFinal) {
+            setInputMode('voice');
             setSourceText(transcript);
             translateText(transcript);
             setInterimResults('');
@@ -364,23 +375,21 @@ export default function TranslatorScreen() {
 
   const startVoiceInput = async () => {
     hapticFeedback();
-    setHasInteracted(true);
-    
-    if (!canTranslate()) {
-      Alert.alert(
-        'Translation Limit Reached',
-        `You've used all ${getRemainingTranslations()} free translations today. Upgrade to Premium for unlimited translations!`,
-        [
-          { text: 'Maybe Later', style: 'cancel' },
-          { text: 'Upgrade Now', onPress: () => setShowPremiumScreen(true) },
-        ]
-      );
-      return;
-    }
     
     try {
       if (recognizing) {
         await ExpoSpeechRecognitionModule.stop();
+        return;
+      }
+
+      // Don't silently listen in English for languages iOS can't recognise.
+      if (!autoDetectMode && !SPEECH_RECOGNITION_LANGS.includes(sourceLang)) {
+        const name = getLanguageInfo(sourceLang)?.name;
+        Alert.alert(
+          'Voice input not available',
+          `Speech recognition doesn't support ${name} yet. Type your ${name} in the box below instead.`,
+          [{ text: 'OK', onPress: () => typeInputRef.current?.focus() }]
+        );
         return;
       }
 
@@ -410,20 +419,19 @@ export default function TranslatorScreen() {
     }
   };
 
+  const submitTypedText = () => {
+    const text = typedText.trim();
+    if (!text) return;
+    Keyboard.dismiss();
+    hapticFeedback();
+    setInputMode('text');
+    setSourceText(text);
+    setTypedText('');
+    translateText(text);
+  };
+
   const translateText = async (text) => {
     if (!text.trim()) return;
-
-    if (!canTranslate()) {
-      Alert.alert(
-        'Translation Limit Reached',
-        `Upgrade to Premium for unlimited translations!`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Upgrade', onPress: () => setShowPremiumScreen(true) },
-        ]
-      );
-      return;
-    }
 
     if (!isLanguageUnlocked(targetLang)) {
       const langInfo = getLanguageInfo(targetLang);
@@ -451,11 +459,43 @@ export default function TranslatorScreen() {
         }
       }
 
+      // Phrases the course teaches: answer with the checked course text
+      // (and its native recording) instead of machine translation.
+      const known = lookupCoursePhrase(text, fromLang, targetLang);
+      if (known) {
+        setTranslatedText(known.text);
+        setTranslationSource('course');
+        setTranslationAudio(known.audio);
+
+        if (conversationMode) {
+          setConversationHistory(prev => [...prev, {
+            source: text,
+            translated: known.text,
+            sourceLang: fromLang,
+            targetLang,
+            timestamp: new Date(),
+          }]);
+        }
+
+        if (!isPremium) {
+          await incrementTranslationCount();
+        }
+
+        setTimeout(() => {
+          speakTranslation(known.text, targetLang, known.audio);
+        }, 500);
+
+        setIsTranslating(false);
+        return;
+      }
+
       if (!isOnline || downloadedPacks.includes(targetLang)) {
         const offlinePack = OFFLINE_PACKS[targetLang];
         if (offlinePack && offlinePack[text]) {
           const translated = offlinePack[text];
           setTranslatedText(translated);
+          setTranslationSource('offline');
+          setTranslationAudio(null);
           
           if (conversationMode) {
             setConversationHistory(prev => [...prev, {
@@ -496,6 +536,8 @@ export default function TranslatorScreen() {
       const translated = data[0].map(item => item[0]).join('');
       
       setTranslatedText(translated);
+      setTranslationSource('machine');
+      setTranslationAudio(null);
       
       if (conversationMode) {
         setConversationHistory(prev => [...prev, {
@@ -554,7 +596,11 @@ export default function TranslatorScreen() {
 
   const getLanguageInfo = (code) => AFRICAN_LANGUAGES.find(l => l.code === code);
   
-  const { speakWithAfricanVoice } = createSpeaker(player, () => ({ useNativeVoice, voiceGender }));
+  const { speakWithAfricanVoice, playAudioFile } = createSpeaker(player, () => ({ useNativeVoice, voiceGender }));
+
+  // Course phrases with a native recording play it; everything else uses TTS.
+  const speakTranslation = (text, langCode, audio) =>
+    audio ? playAudioFile(audio) : speakWithAfricanVoice(text, langCode);
 
   const SourceLanguagePicker = () => {
     if (!showSourceLangPicker) return null;
@@ -795,6 +841,8 @@ export default function TranslatorScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets
         >
           <View style={styles.header}>
             <Text style={styles.logo}>GRIOT</Text>
@@ -875,22 +923,44 @@ export default function TranslatorScreen() {
             <Text style={styles.voiceInstruction}>
               {isListening ? 'Listening...' : isTranslating ? 'Translating...' : 'TAP TO SPEAK'}
             </Text>
-            
-            {/* Translation Counter - Only for free users */}
+
+            {/* Typed input: works for every language, including ones voice input can't hear */}
+            <View style={styles.typeRow}>
+              <TextInput
+                ref={typeInputRef}
+                style={styles.typeInput}
+                value={typedText}
+                onChangeText={setTypedText}
+                placeholder={`Or type in ${autoDetectMode ? 'any language' : getLanguageInfo(sourceLang)?.name}`}
+                placeholderTextColor="#666"
+                returnKeyType="go"
+                onSubmitEditing={submitTypedText}
+                autoCorrect={false}
+                accessibilityLabel="Type text to translate"
+              />
+              <TouchableOpacity
+                style={[styles.typeSend, !typedText.trim() && styles.typeSendDisabled]}
+                onPress={submitTypedText}
+                disabled={!typedText.trim()}
+                accessibilityRole="button"
+                accessibilityLabel="Translate"
+              >
+                <Ionicons name="arrow-forward" size={22} color="#000" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Translations are unlimited for everyone; extra languages need Premium */}
             {!isPremium && (
-              <View style={styles.translationCounter}>
-                <Text style={styles.counterText}>
-                  {getRemainingTranslations()} translations left today
-                </Text>
-                <TouchableOpacity
-                  style={styles.upgradeBtn}
-                  onPress={() => setShowPremiumScreen(true)}
-                >
-                  <Ionicons name="diamond" size={16} color="#000" />
-                  <Text style={styles.upgradeBtnText}>Upgrade</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                onPress={() => setShowPremiumScreen(true)}
+                style={styles.premiumLink}
+                accessibilityRole="link"
+                accessibilityLabel="7 more languages with Premium. See plans"
+              >
+                <Text style={styles.premiumLinkText}>💎 7 more languages with Premium ›</Text>
+              </TouchableOpacity>
             )}
+            
             
             {/* Conversation Mode Toggle */}
             <TouchableOpacity 
@@ -941,7 +1011,7 @@ export default function TranslatorScreen() {
               
               {sourceText && !isListening && (
                 <View style={styles.textBlock}>
-                  <Text style={styles.textLabel}>You said:</Text>
+                  <Text style={styles.textLabel}>{inputMode === 'text' ? 'You typed:' : 'You said:'}</Text>
                   <Text style={styles.textContent}>{sourceText}</Text>
                 </View>
               )}
@@ -950,6 +1020,15 @@ export default function TranslatorScreen() {
                 <View style={styles.textBlock}>
                   <Text style={styles.textLabel}>Translation:</Text>
                   <Text style={[styles.textContent, styles.translatedText]}>{translatedText}</Text>
+                  {translationSource ? (
+                    <Text style={[styles.sourceNote, translationSource === 'course' && styles.sourceNoteCourse]}>
+                      {translationSource === 'course'
+                        ? '✓ From GRIOT lessons'
+                        : translationSource === 'offline'
+                          ? 'Offline phrase'
+                          : 'Machine translation · may not be exact'}
+                    </Text>
+                  ) : null}
                   
                   {/* NEW: Native Voice Badge */}
                   {useNativeVoice && isPremium && VoiceTranslationService.hasNativeVoice(targetLang, voiceGender) && (
@@ -967,7 +1046,7 @@ export default function TranslatorScreen() {
                     )}
                     <TouchableOpacity 
                       style={styles.playAgainBtn}
-                      onPress={() => speakWithAfricanVoice(translatedText, targetLang)}
+                      onPress={() => speakTranslation(translatedText, targetLang, translationAudio)}
                     >
                       <Ionicons name='volume-high' size={22} color={"#fff"}/>
                     </TouchableOpacity>
@@ -1040,18 +1119,6 @@ export default function TranslatorScreen() {
             </Modal>
           )}
 
-          {!hasInteracted && (
-            <View style={styles.instructions}>
-              <Text style={styles.instructionText}>1. Choose target language above</Text>
-              <Text style={styles.instructionText}>2. Tap circle and speak</Text>
-              <Text style={styles.instructionText}>3. Listen to instant translation</Text>
-              {!isPremium && (
-                <Text style={styles.instructionHighlight}>
-                  💎 Upgrade for unlimited translations + native voices
-                </Text>
-              )}
-            </View>
-          )}
         </ScrollView>
 
         <View style={styles.connectionStatus}>
@@ -1254,38 +1321,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
     letterSpacing: 2,
   },
-  translationCounter: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    width: width - 40,
-  },
-  counterText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#666',
-  },
-  upgradeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#00F5FF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  upgradeBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#000',
-  },
   autoDetectItem: {
     borderWidth: 2,
     borderStyle: 'dashed',
@@ -1373,20 +1408,53 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
-  instructions: {
-    paddingHorizontal: 40,
-    marginTop: 30,
+  typeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    alignSelf: 'stretch',
+    marginHorizontal: 20,
+    marginTop: 18,
   },
-  instructionText: {
-    fontSize: 14,
+  typeInput: {
+    flex: 1,
+    minHeight: 48,
+    paddingHorizontal: 18,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  typeSend: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#00F5FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  typeSendDisabled: {
+    opacity: 0.4,
+  },
+  sourceNote: {
+    fontSize: 12,
     color: '#666',
-    marginBottom: 8,
+    marginTop: 8,
     fontWeight: '600',
   },
-  instructionHighlight: {
+  sourceNoteCourse: {
+    color: '#22c55e',
+  },
+  premiumLink: {
+    marginTop: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  premiumLinkText: {
     fontSize: 14,
     color: '#00F5FF',
-    marginTop: 12,
     fontWeight: '700',
     textAlign: 'center',
   },

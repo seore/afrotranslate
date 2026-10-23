@@ -29,7 +29,8 @@ export const PremiumProvider = ({ children }) => {
   const [translationsToday, setTranslationsToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const FREE_TRANSLATION_LIMIT = 30;
+  // Translations are unlimited for everyone (V2). The daily count is still
+  // kept for stats; Premium unlocks the extra languages below.
   const FREE_LANGUAGES = ["sw", "yo", "ha", "ig", "zu", "en", "fr"];
 
   useEffect(() => {
@@ -157,7 +158,7 @@ export const PremiumProvider = ({ children }) => {
         if (!silent) {
           Alert.alert(
             "Welcome to Premium! 🎉",
-            "You now have unlimited translations and all 14 languages unlocked!"
+            "Every lesson, daily review and all 14 translator languages are unlocked!"
           );
         }
         return { status: "success" };
@@ -244,20 +245,14 @@ export const PremiumProvider = ({ children }) => {
     await AsyncStorage.setItem("translationsToday", newCount.toString());
   };
 
-  const canTranslate = () => {
-    if (isPremium) return true;
-    return translationsToday < FREE_TRANSLATION_LIMIT;
-  };
+  const canTranslate = () => true;
 
   const isLanguageUnlocked = (langCode) => {
     if (isPremium) return true;
     return FREE_LANGUAGES.includes(langCode);
   };
 
-  const getRemainingTranslations = () => {
-    if (isPremium) return "Unlimited";
-    return Math.max(0, FREE_TRANSLATION_LIMIT - translationsToday);
-  };
+  const getRemainingTranslations = () => "Unlimited";
 
   return (
     <PremiumContext.Provider
@@ -276,7 +271,6 @@ export const PremiumProvider = ({ children }) => {
         isLanguageUnlocked,
         getRemainingTranslations,
         incrementTranslationCount,
-        FREE_TRANSLATION_LIMIT,
         FREE_LANGUAGES,
       }}
     >
