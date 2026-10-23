@@ -70,7 +70,7 @@ export default function PremiumScreen({ onClose }) {
           style={styles.gradient}
         >
           <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-            <Ionicons name="close" size={28} color={COLORS.text} />
+            <Ionicons name="close" size={28} color="#fff" />
           </TouchableOpacity>
 
           <View style={styles.premiumBadge}>
@@ -90,7 +90,7 @@ export default function PremiumScreen({ onClose }) {
         style={styles.gradient}
       >
         <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-          <Ionicons name="close" size={28} color={COLORS.text} />
+          <Ionicons name="close" size={28} color="#fff" />
         </TouchableOpacity>
 
         <ScrollView
@@ -233,12 +233,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '900',
-    color: COLORS.text,
+    color: '#fff',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.textMuted,
+    color: '#666',
     fontWeight: '600',
   },
   featuresGrid: {
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.primaryDim,
+    backgroundColor: 'rgba(0,245,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -268,12 +268,12 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.text,
+    color: '#fff',
     marginBottom: 4,
   },
   featureDesc: {
     fontSize: 12,
-    color: COLORS.textMuted,
+    color: '#666',
   },
   pricingSection: {
     marginBottom: 30,
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   pricingTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: COLORS.text,
+    color: '#fff',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   bestValue: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.primaryDim,
+    backgroundColor: 'rgba(0,245,255,0.05)',
   },
   bestValueBadge: {
     position: 'absolute',
@@ -310,20 +310,20 @@ const styles = StyleSheet.create({
   bestValueText: {
     fontSize: 11,
     fontWeight: '900',
-    color: COLORS.cream,
+    color: '#000',
   },
   freeTrialBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: COLORS.primaryDim,
+    backgroundColor: 'rgba(0,245,255,0.15)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 16,
     marginBottom: 12,
     gap: 4,
     borderWidth: 1,
-    borderColor: COLORS.primaryBorder,
+    borderColor: 'rgba(0,245,255,0.3)',
   },
   freeTrialText: {
     fontSize: 12,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   pricingName: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: '#fff',
     marginBottom: 8,
   },
   pricingPrice: {
@@ -345,15 +345,15 @@ const styles = StyleSheet.create({
   pricingSave: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.success,
+    color: '#22c55e',
   },
   pricingDesc: {
     fontSize: 13,
-    color: COLORS.textMuted,
+    color: '#666',
   },
   trialDesc: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: '#888',
     marginTop: 6,
     fontWeight: '500',
   },
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.primaryBorder,
+    borderColor: 'rgba(0, 245, 255, 0.2)',
   },
   legalLinkText: {
     fontSize: 14,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   terms: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: '#666',
     lineHeight: 16,
     textAlign: 'center',
   },
@@ -404,12 +404,12 @@ const styles = StyleSheet.create({
   premiumTitle: {
     fontSize: 28,
     fontWeight: '900',
-    color: COLORS.text,
+    color: '#fff',
     marginTop: 20,
   },
   premiumSubtitle: {
     fontSize: 16,
-    color: COLORS.textMuted,
+    color: '#666',
     marginTop: 8,
   },
   manageBtn: {
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
   manageBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.cream,
+    color: '#000',
     textAlign: 'center',
   },
 });
