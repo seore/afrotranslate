@@ -17,7 +17,6 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { usePremium } from './PremiumContext';
-import { COLORS } from './theme';
 
 const { width } = Dimensions.get('window');
 
@@ -25,10 +24,12 @@ export default function PremiumScreen({ onClose }) {
   const { products, purchasePremium, restorePurchases, isPremium } = usePremium();
 
   const features = [
-    { icon: 'school', title: 'Every Unit Unlocked', desc: 'The full Yorùbá course, not just unit one' },
-    { icon: 'snow', title: 'Unlimited Streak Freezes', desc: 'A missed day never breaks your streak' },
-    { icon: 'mic', title: 'Pronunciation Practice', desc: 'Record yourself against native audio' },
-    { icon: 'volume-high', title: 'Premium Native Voices', desc: 'Higher-quality Yorùbá pronunciation' },
+    { icon: 'infinite', title: 'Unlimited Translations', desc: 'Never run out of translations' },
+    { icon: 'language', title: 'All 14 Languages', desc: 'Unlock every African language' },
+    { icon: 'chatbubble-ellipses', title: 'Conversation Mode', desc: 'Real-time two-way conversations' },
+    { icon: 'mic', title: 'Premium AI Voices', desc: 'Native African pronunciation' },
+    { icon: 'cloud-offline', title: 'Extended Offline Mode', desc: '500+ phrases per language' },
+    { icon: 'chatbubbles', title: 'Conversation History', desc: 'Save and export conversations' },
     { icon: 'notifications-off', title: 'Ad-Free Experience', desc: 'No interruptions' },
     { icon: 'flash', title: 'Priority Support', desc: 'Get help faster' },
   ];
@@ -66,7 +67,7 @@ export default function PremiumScreen({ onClose }) {
     return (
       <View style={styles.container}>
         <LinearGradient
-          colors={[COLORS.bg, COLORS.bgMid]}
+          colors={['#0A0A0A', '#1A1A1A']}
           style={styles.gradient}
         >
           <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
@@ -74,9 +75,9 @@ export default function PremiumScreen({ onClose }) {
           </TouchableOpacity>
 
           <View style={styles.premiumBadge}>
-            <Ionicons name="checkmark-circle" size={80} color={COLORS.primary} />
+            <Ionicons name="checkmark-circle" size={80} color="#00F5FF" />
             <Text style={styles.premiumTitle}>You're Premium! 🎉</Text>
-            <Text style={styles.premiumSubtitle}>Every unit unlocked, streak protected</Text>
+            <Text style={styles.premiumSubtitle}>Enjoy unlimited translations</Text>
           </View>
         </LinearGradient>
       </View>
@@ -86,7 +87,7 @@ export default function PremiumScreen({ onClose }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[COLORS.bg, COLORS.bgMid]}
+        colors={['#0A0A0A', '#1A1A1A']}
         style={styles.gradient}
       >
         <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
@@ -107,7 +108,7 @@ export default function PremiumScreen({ onClose }) {
             {features.map((feature, index) => (
               <View key={index} style={styles.featureCard}>
                 <View style={styles.featureIcon}>
-                  <Ionicons name={feature.icon} size={24} color={COLORS.primary} />
+                  <Ionicons name={feature.icon} size={24} color="#00F5FF" />
                 </View>
                 <Text style={styles.featureTitle}>{feature.title}</Text>
                 <Text style={styles.featureDesc}>{feature.desc}</Text>
@@ -127,7 +128,7 @@ export default function PremiumScreen({ onClose }) {
                 <Text style={styles.bestValueText}>BEST VALUE</Text>
               </View>
               <View style={styles.freeTrialBadge}>
-                <Ionicons name="gift" size={14} color={COLORS.primary} />
+                <Ionicons name="gift" size={14} color="#00F5FF" />
                 <Text style={styles.freeTrialText}>7-Day Free Trial</Text>
               </View>
               <Text style={styles.pricingName}>Yearly</Text>
@@ -142,7 +143,7 @@ export default function PremiumScreen({ onClose }) {
               onPress={() => handlePurchase('$rc_monthly')}
             >
               <View style={styles.freeTrialBadge}>
-                <Ionicons name="gift" size={14} color={COLORS.primary} />
+                <Ionicons name="gift" size={14} color="#00F5FF" />
                 <Text style={styles.freeTrialText}>7-Day Free Trial</Text>
               </View>
               <Text style={styles.pricingName}>Monthly</Text>
@@ -169,7 +170,7 @@ export default function PremiumScreen({ onClose }) {
               activeOpacity={0.7}
             >
               <Text style={styles.legalLinkText}>Privacy Policy</Text>
-              <Ionicons name="open-outline" size={16} color={COLORS.primary} />
+              <Ionicons name="open-outline" size={16} color="#00F5FF" />
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -178,7 +179,7 @@ export default function PremiumScreen({ onClose }) {
               activeOpacity={0.7}
             >
               <Text style={styles.legalLinkText}>Terms of Use (EULA)</Text>
-              <Ionicons name="open-outline" size={16} color={COLORS.primary} />
+              <Ionicons name="open-outline" size={16} color="#00F5FF" />
             </TouchableOpacity>
           </View>
 
@@ -295,14 +296,14 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   bestValue: {
-    borderColor: COLORS.primary,
+    borderColor: '#00F5FF',
     backgroundColor: 'rgba(0,245,255,0.05)',
   },
   bestValueBadge: {
     position: 'absolute',
     top: -12,
     right: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#00F5FF',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
   freeTrialText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: '#00F5FF',
   },
   pricingName: {
     fontSize: 18,
@@ -339,7 +340,7 @@ const styles = StyleSheet.create({
   pricingPrice: {
     fontSize: 28,
     fontWeight: '900',
-    color: COLORS.primary,
+    color: '#00F5FF',
     marginBottom: 4,
   },
   pricingSave: {
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
   },
   legalLinkText: {
     fontSize: 14,
-    color: COLORS.primary,
+    color: '#00F5FF',
     fontWeight: '600',
   },
   restoreBtn: {
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
   restoreText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: '#00F5FF',
   },
   terms: {
     fontSize: 11,
@@ -413,7 +414,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   manageBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#00F5FF',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 25,
