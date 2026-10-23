@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { PremiumProvider } from './PremiumContext';
 import { LearnerProfileProvider } from './context/LearnerProfileContext';
+import { ProgressProvider } from './context/ProgressContext';
 import RootNavigator from './navigation/RootNavigator';
 import { colors } from './theme/colors';
 
@@ -17,9 +18,11 @@ export default function App() {
     <SafeAreaProvider>
       <PremiumProvider>
         <LearnerProfileProvider>
-          <NavigationContainer theme={navigationTheme}>
-            <RootNavigator />
-          </NavigationContainer>
+          <ProgressProvider>
+            <NavigationContainer theme={navigationTheme}>
+              <RootNavigator />
+            </NavigationContainer>
+          </ProgressProvider>
         </LearnerProfileProvider>
       </PremiumProvider>
     </SafeAreaProvider>

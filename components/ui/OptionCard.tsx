@@ -14,6 +14,8 @@ interface OptionCardProps {
   onPress: () => void;
   /** BCP-47 code so VoiceOver reads non-English titles in the right voice. */
   titleLanguage?: string;
+  /** Answer feedback colouring for quiz options. */
+  result?: 'correct' | 'wrong';
 }
 
 // Selectable card in the style of the premium plan cards.
@@ -26,6 +28,7 @@ export function OptionCard({
   badge,
   onPress,
   titleLanguage,
+  result,
 }: OptionCardProps) {
   return (
     <TouchableOpacity
@@ -35,7 +38,13 @@ export function OptionCard({
       accessibilityRole="radio"
       accessibilityLabel={[title, subtitle, badge].filter(Boolean).join(', ')}
       accessibilityState={{ selected, disabled }}
-      style={[styles.card, selected && styles.selected, disabled && styles.disabled]}
+      style={[
+        styles.card,
+        selected && styles.selected,
+        result === 'correct' && styles.correct,
+        result === 'wrong' && styles.wrong,
+        disabled && styles.disabled,
+      ]}
     >
       {emoji ? (
         <Text style={styles.emoji} importantForAccessibility="no">
@@ -49,7 +58,15 @@ export function OptionCard({
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
       {badge ? <Text style={styles.badge}>{badge}</Text> : null}
-      {selected ? <Ionicons name="checkmark-circle" size={24} color={colors.accent} /> : null}
+      {result ? (
+        <Ionicons
+          name={result === 'correct' ? 'checkmark-circle' : 'close-circle'}
+          size={24}
+          color={result === 'correct' ? colors.success : colors.error}
+        />
+      ) : selected ? (
+        <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
+      ) : null}
     </TouchableOpacity>
   );
 }
@@ -69,6 +86,14 @@ const styles = StyleSheet.create({
   selected: {
     borderColor: colors.accent,
     backgroundColor: colors.accentSoft,
+  },
+  correct: {
+    borderColor: colors.success,
+    backgroundColor: 'rgba(34,197,94,0.1)',
+  },
+  wrong: {
+    borderColor: colors.error,
+    backgroundColor: 'rgba(255,59,48,0.1)',
   },
   disabled: {
     opacity: 0.5,

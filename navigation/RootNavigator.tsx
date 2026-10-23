@@ -13,6 +13,8 @@ import TranslatorScreen from '../TranslatorScreen';
 import { useLearnerProfile } from '../context/LearnerProfileContext';
 import LearnHomeScreen from '../screens/learn/LearnHomeScreen';
 import FirstLessonScreen from '../screens/lesson/FirstLessonScreen';
+import LessonCompleteScreen from '../screens/lesson/LessonCompleteScreen';
+import LessonScreen from '../screens/lesson/LessonScreen';
 import FirstWinScreen from '../screens/onboarding/FirstWinScreen';
 import LanguageScreen from '../screens/onboarding/LanguageScreen';
 import LevelScreen from '../screens/onboarding/LevelScreen';
@@ -70,6 +72,8 @@ export default function RootNavigator() {
         <>
           <Stack.Screen name="Tabs" component={Tabs} />
           <Stack.Screen name="FirstLesson" component={FirstLessonScreen} />
+          <Stack.Screen name="Lesson" component={LessonScreen} options={{ gestureEnabled: false }} />
+          <Stack.Screen name="LessonComplete" component={LessonCompleteScreen} options={{ gestureEnabled: false }} />
         </>
       ) : (
         <>

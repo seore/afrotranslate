@@ -10,9 +10,11 @@ interface StepHeaderProps {
   /** 0–1. Omit to hide the progress bar. */
   progress?: number;
   onBack?: () => void;
+  /** Close (✕) for leaving a lesson; chevron for going back a step. */
+  backIcon?: 'back' | 'close';
 }
 
-export function StepHeader({ title, subtitle, progress, onBack }: StepHeaderProps) {
+export function StepHeader({ title, subtitle, progress, onBack, backIcon = 'back' }: StepHeaderProps) {
   return (
     <View style={styles.wrap}>
       <View style={styles.topRow}>
@@ -21,9 +23,9 @@ export function StepHeader({ title, subtitle, progress, onBack }: StepHeaderProp
             onPress={onBack}
             style={styles.backBtn}
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel={backIcon === 'close' ? 'Close' : 'Back'}
           >
-            <Ionicons name="chevron-back" size={22} color={colors.text} />
+            <Ionicons name={backIcon === 'close' ? 'close' : 'chevron-back'} size={22} color={colors.text} />
           </TouchableOpacity>
         ) : null}
         {progress !== undefined ? (
@@ -36,9 +38,11 @@ export function StepHeader({ title, subtitle, progress, onBack }: StepHeaderProp
           </View>
         ) : null}
       </View>
-      <Text style={styles.title} accessibilityRole="header">
-        {title}
-      </Text>
+      {title ? (
+        <Text style={styles.title} accessibilityRole="header">
+          {title}
+        </Text>
+      ) : null}
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
     </View>
   );

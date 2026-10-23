@@ -1,29 +1,41 @@
-// Learn tab home. Phase 1 shows the first lesson; the full unit and
-// lesson path arrive with the lesson engine in Phase 2.
+// Learn tab home: the starter lesson, then each unit's lessons in order.
+// A lesson unlocks when the one before it is complete.
 
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Button } from '../../components/ui/Button';
 import { Screen } from '../../components/ui/Screen';
-import { getFirstLesson } from '../../content';
+import { getCourse, getFirstLesson } from '../../content';
 import { LEARNABLE_LANGUAGES } from '../../content/languages';
 import { REASONS } from '../../content/reasons';
+import type { Lesson } from '../../content/types';
 import { useLearnerProfile } from '../../context/LearnerProfileContext';
+import { useProgress } from '../../context/ProgressContext';
+import { allLessons } from '../../lib/course';
 import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/colors';
+
+type LessonStatus = 'done' | 'next' | 'locked';
 
 export default function LearnHomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile } = useLearnerProfile();
+  const { isLessonComplete } = useProgress();
   const language = profile.language ?? 'yo';
   const languageName = LEARNABLE_LANGUAGES.find((l) => l.code === language)?.native ?? '';
-  const lesson = getFirstLesson(language);
+  const starter = getFirstLesson(language);
+  const course = getCourse(language);
   const reason = REASONS.find((r) => r.id === profile.reason);
-  const done = Boolean(profile.firstLessonCompletedAt);
+  const starterDone = Boolean(profile.firstLessonCompletedAt);
+
+  const ordered = course ? allLessons(course) : [];
+  const nextId = ordered.find((l) => !isLessonComplete(l.id))?.id;
+  const statusOf = (lesson: Lesson): LessonStatus =>
+    isLessonComplete(lesson.id) ? 'done' : lesson.id === nextId ? 'next' : 'locked';
 
   return (
     <Screen>
@@ -39,39 +51,81 @@ export default function LearnHomeScreen() {
         ) : null}
       </View>
 
-      {lesson ? (
-        <View style={styles.card}>
-          <View style={styles.cardTop}>
-            <Text style={styles.cardLabel}>FIRST LESSON</Text>
-            {done ? <Ionicons name="checkmark-circle" size={22} color={colors.success} /> : null}
+      {starter ? (
+        <TouchableOpacity
+          style={styles.starter}
+          onPress={() => navigation.navigate('FirstLesson', { mode: 'practice' })}
+          accessibilityRole="button"
+          accessibilityLabel={`Starter lesson: ${starter.title}. ${starterDone ? 'Completed. Practise again' : 'Start'}`}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name={starterDone ? 'checkmark-circle' : 'play-circle'}
+            size={26}
+            color={starterDone ? colors.success : colors.accent}
+          />
+          <View style={styles.flex}>
+            <Text style={styles.starterLabel}>STARTER</Text>
+            <Text style={styles.starterTitle}>{starter.title}</Text>
           </View>
-          <Text style={styles.cardTitle}>{lesson.title}</Text>
-          <Text style={styles.cardBody}>
-            {lesson.phrases.length} phrases · about 2 minutes
-          </Text>
-          <View style={styles.cardAction}>
-            <Button
-              label={done ? 'Practise again' : 'Start'}
-              variant={done ? 'secondary' : 'primary'}
-              icon="play"
-              onPress={() => navigation.navigate('FirstLesson', { mode: 'practice' })}
-            />
-          </View>
-        </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+        </TouchableOpacity>
       ) : null}
 
-      <View style={[styles.card, styles.upcoming]}>
-        <Text style={styles.cardLabel}>UNIT 1</Text>
-        <Text style={styles.cardTitle}>Family phrases</Text>
-        <Text style={styles.cardBody}>
-          Greetings for every time of day, respect forms and family words. Coming in the next update.
-        </Text>
-      </View>
+      {course?.units.map((unit, unitIndex) => (
+        <View key={unit.id} style={styles.unit}>
+          <Text style={styles.unitLabel}>UNIT {unitIndex + 1}</Text>
+          <Text style={styles.unitTitle} accessibilityRole="header">
+            {unit.title}
+          </Text>
+          <Text style={styles.unitBody}>{unit.description}</Text>
+
+          {unit.lessons.map((lesson, lessonIndex) => {
+            const status = statusOf(lesson);
+            const open = () => navigation.navigate('Lesson', { lessonId: lesson.id });
+            return (
+              <View key={lesson.id} style={[styles.lesson, status === 'next' && styles.lessonNext]}>
+                <TouchableOpacity
+                  style={styles.lessonRow}
+                  onPress={open}
+                  disabled={status === 'locked'}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Lesson ${lessonIndex + 1}: ${lesson.title}. ${
+                    status === 'done' ? 'Completed' : status === 'locked' ? 'Locked' : 'Up next'
+                  }`}
+                  accessibilityState={{ disabled: status === 'locked' }}
+                >
+                  <View style={[styles.lessonIcon, status === 'done' && styles.iconDone]}>
+                    <Ionicons
+                      name={status === 'done' ? 'checkmark' : status === 'locked' ? 'lock-closed' : 'play'}
+                      size={18}
+                      color={status === 'locked' ? colors.textMuted : status === 'done' ? colors.onAccent : colors.accent}
+                    />
+                  </View>
+                  <View style={styles.flex}>
+                    <Text style={[styles.lessonTitle, status === 'locked' && styles.muted]}>{lesson.title}</Text>
+                    <Text style={styles.lessonBody}>{lesson.description}</Text>
+                  </View>
+                </TouchableOpacity>
+                {status === 'next' ? (
+                  <View style={styles.lessonAction}>
+                    <Button label="Start lesson" icon="play" onPress={open} />
+                  </View>
+                ) : null}
+              </View>
+            );
+          })}
+        </View>
+      ))}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   header: {
     alignItems: 'center',
     paddingTop: 24,
@@ -95,42 +149,92 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 14,
   },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-  },
-  upcoming: {
+  starter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     backgroundColor: colors.card,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: colors.cardBorder,
-    opacity: 0.7,
+    padding: 16,
+    marginBottom: 24,
   },
-  cardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  starterLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: colors.textMuted,
   },
-  cardLabel: {
+  starterTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 2,
+  },
+  unit: {
+    marginBottom: 24,
+  },
+  unitLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
     color: colors.accent,
   },
-  cardTitle: {
-    fontSize: 22,
+  unitTitle: {
+    fontSize: 24,
     fontWeight: '800',
     color: colors.text,
-    marginTop: 8,
+    marginTop: 4,
   },
-  cardBody: {
+  unitBody: {
     fontSize: 15,
     lineHeight: 21,
     color: colors.textSecondary,
-    marginTop: 6,
+    marginTop: 4,
+    marginBottom: 16,
   },
-  cardAction: {
-    marginTop: 18,
+  lesson: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    padding: 16,
+    marginBottom: 10,
+  },
+  lessonNext: {
+    borderColor: colors.accent,
+  },
+  lessonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  lessonIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconDone: {
+    backgroundColor: colors.success,
+  },
+  lessonTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  muted: {
+    color: colors.textMuted,
+  },
+  lessonBody: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  lessonAction: {
+    marginTop: 14,
   },
 });

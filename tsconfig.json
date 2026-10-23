@@ -4,8 +4,19 @@
     "strict": true,
     "allowJs": true,
     "checkJs": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "types/**/*.d.ts"],
-  "exclude": ["node_modules", "ios", "android", "training_data", "models"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "ios",
+    "android",
+    "training_data",
+    "models"
+  ]
 }

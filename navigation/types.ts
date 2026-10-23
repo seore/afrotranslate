@@ -12,5 +12,7 @@ export type RootStackParamList = {
   Language: undefined;
   FirstLesson: { mode: 'onboarding' | 'practice' };
   FirstWin: undefined;
+  Lesson: { lessonId: string };
+  LessonComplete: { lessonId: string; accuracy: number };
   Tabs: NavigatorScreenParams<TabParamList> | undefined;
 };

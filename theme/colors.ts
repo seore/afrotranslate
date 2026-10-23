@@ -13,5 +13,6 @@ export const colors = {
   textMuted: '#666',
   textSecondary: '#A3A3A3',
   success: '#22c55e',
+  error: '#ff3b30',
   onAccent: '#000',
 };

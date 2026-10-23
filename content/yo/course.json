@@ -1,0 +1,234 @@
+{
+  "language": "yo",
+  "lexicon": {
+    "e_kaaro": {
+      "text": "Ẹ káàárọ̀",
+      "english": "Good morning",
+      "audioKey": "yo_e_kaaro",
+      "note": "Respectful: for parents, grandparents and anyone older."
+    },
+    "kaaro": {
+      "text": "Káàárọ̀",
+      "english": "Good morning (to a friend)",
+      "audioKey": "yo_kaaro",
+      "note": "Without the Ẹ, it's for friends, siblings your age and younger people."
+    },
+    "e_kaasan": {
+      "text": "Ẹ káàsán",
+      "english": "Good afternoon",
+      "audioKey": "yo_e_kaasan"
+    },
+    "e_kaale": {
+      "text": "Ẹ káalẹ́",
+      "english": "Good evening",
+      "audioKey": "yo_e_kaale"
+    },
+    "o_daaro": {
+      "text": "Ó dàárọ̀",
+      "english": "Good night",
+      "audioKey": "yo_o_daaro",
+      "note": "Literally “until the morning”."
+    },
+    "e_se": {
+      "text": "Ẹ ṣé",
+      "english": "Thank you",
+      "audioKey": "yo_e_se",
+      "note": "Respectful “thank you”, for elders."
+    },
+    "o_se": {
+      "text": "O ṣé",
+      "english": "Thank you (to a friend)",
+      "audioKey": "yo_o_se",
+      "note": "For friends and anyone younger than you."
+    },
+    "e_jowo": {
+      "text": "Ẹ jọ̀wọ́",
+      "english": "Please",
+      "audioKey": "yo_e_jowo"
+    },
+    "e_ku_ise": {
+      "text": "Ẹ kú iṣẹ́",
+      "english": "Well done (for your work)",
+      "audioKey": "yo_e_ku_ise",
+      "note": "Said to someone who is working or has just finished. Yorùbá has a greeting for almost every situation."
+    },
+    "baba": {
+      "text": "Bàbá",
+      "english": "Father",
+      "audioKey": "yo_baba"
+    },
+    "iya": {
+      "text": "Ìyá",
+      "english": "Mother",
+      "audioKey": "yo_iya"
+    },
+    "baba_agba": {
+      "text": "Bàbá àgbà",
+      "english": "Grandfather",
+      "audioKey": "yo_baba_agba",
+      "note": "Literally “elder father”."
+    },
+    "iya_agba": {
+      "text": "Ìyá àgbà",
+      "english": "Grandmother",
+      "audioKey": "yo_iya_agba",
+      "note": "Literally “elder mother”."
+    },
+    "egbon": {
+      "text": "Ẹ̀gbọ́n",
+      "english": "Older sibling or cousin",
+      "audioKey": "yo_egbon",
+      "note": "Yorùbá cares more about who is older than about brother or sister."
+    },
+    "aburo": {
+      "text": "Àbúrò",
+      "english": "Younger sibling or cousin",
+      "audioKey": "yo_aburo"
+    },
+    "beeni": {
+      "text": "Bẹ́ẹ̀ni",
+      "english": "Yes",
+      "audioKey": "yo_beeni"
+    },
+    "rara": {
+      "text": "Rárá",
+      "english": "No",
+      "audioKey": "yo_rara"
+    },
+    "se_alaafia_ni": {
+      "text": "Ṣé àlàáfíà ni?",
+      "english": "Are you well?",
+      "audioKey": "yo_se_alaafia_ni"
+    },
+    "alaafia_ni": {
+      "text": "Àlàáfíà ni",
+      "english": "I'm well (all is well)",
+      "audioKey": "yo_alaafia_ni"
+    },
+    "mo_wa_daadaa": {
+      "text": "Mo wà dáadáa",
+      "english": "I'm fine",
+      "audioKey": "yo_mo_wa_daadaa"
+    },
+    "o_dabo": {
+      "text": "Ó dàbọ̀",
+      "english": "Goodbye",
+      "audioKey": "yo_o_dabo"
+    },
+    "kaaro_iya_agba": {
+      "text": "Ẹ káàárọ̀, ìyá àgbà",
+      "english": "Good morning, Grandma",
+      "audioKey": "yo_kaaro_iya_agba",
+      "note": "Traditionally, girls and women kneel and boys and men bow or prostrate when greeting elders."
+    },
+    "kaale_baba_agba": {
+      "text": "Ẹ káalẹ́, bàbá àgbà",
+      "english": "Good evening, Grandpa",
+      "audioKey": "yo_kaale_baba_agba"
+    },
+    "se_iya": {
+      "text": "Ẹ ṣé, ìyá",
+      "english": "Thank you, Mum",
+      "audioKey": "yo_se_iya"
+    },
+    "alaafia_baba": {
+      "text": "Ṣé àlàáfíà ni, bàbá?",
+      "english": "Are you well, Dad?",
+      "audioKey": "yo_alaafia_baba"
+    }
+  },
+  "units": [
+    {
+      "id": "yo_u1",
+      "title": "Family phrases",
+      "description": "Greet your family properly, at any time of day.",
+      "lessons": [
+        {
+          "id": "yo_u1_l1",
+          "title": "Greetings through the day",
+          "description": "Morning, afternoon, evening and night.",
+          "newItemIds": ["e_kaaro", "e_kaasan", "e_kaale", "o_daaro"],
+          "exercises": [
+            { "type": "listen_choose", "id": "l1_e1", "itemId": "e_kaaro", "optionIds": ["e_kaaro", "e_kaale", "o_daaro"] },
+            { "type": "listen_choose", "id": "l1_e2", "itemId": "e_kaasan", "optionIds": ["e_kaasan", "e_kaaro", "e_kaale"] },
+            { "type": "listen_repeat", "id": "l1_e3", "itemId": "e_kaaro" },
+            { "type": "listen_choose", "id": "l1_e4", "itemId": "e_kaale", "optionIds": ["e_kaale", "e_kaasan", "o_daaro"] },
+            { "type": "listen_choose", "id": "l1_e5", "itemId": "o_daaro", "optionIds": ["o_daaro", "e_kaaro", "e_kaale"] },
+            { "type": "match_pairs", "id": "l1_e6", "itemIds": ["e_kaaro", "e_kaasan", "e_kaale", "o_daaro"] },
+            { "type": "translate_phrase", "id": "l1_e7", "itemId": "e_kaale", "distractors": ["káàsán", "Ó"] },
+            { "type": "listen_repeat", "id": "l1_e8", "itemId": "e_kaale" }
+          ]
+        },
+        {
+          "id": "yo_u1_l2",
+          "title": "Showing respect: Ẹ and O",
+          "description": "How Yorùbá shows respect to elders.",
+          "newItemIds": ["e_se", "o_se", "kaaro", "e_jowo", "e_ku_ise"],
+          "exercises": [
+            { "type": "listen_choose", "id": "l2_e1", "itemId": "e_se", "optionIds": ["e_se", "e_jowo", "e_ku_ise"] },
+            { "type": "fill_gap", "id": "l2_e2", "itemId": "e_se", "prompt": "Thank your grandmother", "gap": "Ẹ", "options": ["Ẹ", "O"] },
+            { "type": "fill_gap", "id": "l2_e3", "itemId": "o_se", "prompt": "Thank your younger cousin", "gap": "O", "options": ["Ẹ", "O"] },
+            { "type": "listen_repeat", "id": "l2_e4", "itemId": "e_se" },
+            { "type": "listen_choose", "id": "l2_e5", "itemId": "e_jowo", "optionIds": ["e_jowo", "e_se", "kaaro"] },
+            { "type": "listen_choose", "id": "l2_e6", "itemId": "kaaro", "optionIds": ["kaaro", "e_kaaro", "e_se"] },
+            { "type": "listen_choose", "id": "l2_e7", "itemId": "e_ku_ise", "optionIds": ["e_ku_ise", "e_se", "e_kaasan"] },
+            { "type": "match_pairs", "id": "l2_e8", "itemIds": ["e_se", "o_se", "kaaro", "e_jowo"] },
+            { "type": "translate_phrase", "id": "l2_e9", "itemId": "e_ku_ise", "distractors": ["ṣé", "O"] },
+            { "type": "listen_repeat", "id": "l2_e10", "itemId": "e_ku_ise" }
+          ]
+        },
+        {
+          "id": "yo_u1_l3",
+          "title": "Family words",
+          "description": "Parents, grandparents and siblings.",
+          "newItemIds": ["baba", "iya", "baba_agba", "iya_agba", "egbon", "aburo"],
+          "exercises": [
+            { "type": "listen_choose", "id": "l3_e1", "itemId": "iya", "optionIds": ["iya", "baba", "aburo"] },
+            { "type": "listen_choose", "id": "l3_e2", "itemId": "baba", "optionIds": ["baba", "iya", "egbon"] },
+            { "type": "listen_repeat", "id": "l3_e3", "itemId": "iya_agba" },
+            { "type": "match_pairs", "id": "l3_e4", "itemIds": ["baba", "iya", "baba_agba", "iya_agba"] },
+            { "type": "listen_choose", "id": "l3_e5", "itemId": "egbon", "optionIds": ["egbon", "aburo", "baba_agba"] },
+            { "type": "listen_choose", "id": "l3_e6", "itemId": "aburo", "optionIds": ["aburo", "egbon", "iya"] },
+            { "type": "translate_phrase", "id": "l3_e7", "itemId": "baba_agba", "distractors": ["Ìyá", "Ẹ̀gbọ́n"] },
+            { "type": "match_pairs", "id": "l3_e8", "itemIds": ["egbon", "aburo", "iya_agba", "baba"] },
+            { "type": "listen_repeat", "id": "l3_e9", "itemId": "baba_agba" }
+          ]
+        },
+        {
+          "id": "yo_u1_l4",
+          "title": "Answering back",
+          "description": "Yes, no, how are you, and goodbye.",
+          "newItemIds": ["beeni", "rara", "se_alaafia_ni", "alaafia_ni", "mo_wa_daadaa", "o_dabo"],
+          "exercises": [
+            { "type": "listen_choose", "id": "l4_e1", "itemId": "beeni", "optionIds": ["beeni", "rara", "o_dabo"] },
+            { "type": "listen_choose", "id": "l4_e2", "itemId": "rara", "optionIds": ["rara", "beeni", "alaafia_ni"] },
+            { "type": "listen_choose", "id": "l4_e3", "itemId": "se_alaafia_ni", "optionIds": ["se_alaafia_ni", "alaafia_ni", "mo_wa_daadaa"] },
+            { "type": "listen_repeat", "id": "l4_e4", "itemId": "se_alaafia_ni" },
+            { "type": "match_pairs", "id": "l4_e5", "itemIds": ["beeni", "rara", "alaafia_ni", "o_dabo"] },
+            { "type": "translate_phrase", "id": "l4_e6", "itemId": "mo_wa_daadaa", "distractors": ["ni", "Ó"] },
+            { "type": "listen_choose", "id": "l4_e7", "itemId": "o_dabo", "optionIds": ["o_dabo", "o_daaro", "e_kaale"] },
+            { "type": "listen_repeat", "id": "l4_e8", "itemId": "alaafia_ni" },
+            { "type": "translate_phrase", "id": "l4_e9", "itemId": "se_alaafia_ni", "distractors": ["Mo", "wà"] }
+          ]
+        },
+        {
+          "id": "yo_u1_l5",
+          "title": "Greet your grandparents",
+          "description": "Put it together: greetings with family names.",
+          "newItemIds": ["kaaro_iya_agba", "kaale_baba_agba", "se_iya", "alaafia_baba"],
+          "exercises": [
+            { "type": "listen_choose", "id": "l5_e1", "itemId": "kaaro_iya_agba", "optionIds": ["kaaro_iya_agba", "kaale_baba_agba", "se_iya"] },
+            { "type": "listen_repeat", "id": "l5_e2", "itemId": "kaaro_iya_agba" },
+            { "type": "fill_gap", "id": "l5_e3", "itemId": "kaale_baba_agba", "prompt": "Say good evening to your grandfather", "gap": "bàbá", "options": ["bàbá", "ìyá", "ẹ̀gbọ́n"] },
+            { "type": "translate_phrase", "id": "l5_e4", "itemId": "se_iya", "distractors": ["O", "bàbá"] },
+            { "type": "listen_choose", "id": "l5_e5", "itemId": "alaafia_baba", "optionIds": ["alaafia_baba", "se_iya", "kaaro_iya_agba"] },
+            { "type": "match_pairs", "id": "l5_e6", "itemIds": ["kaaro_iya_agba", "kaale_baba_agba", "se_iya", "alaafia_baba"] },
+            { "type": "translate_phrase", "id": "l5_e7", "itemId": "kaaro_iya_agba", "distractors": ["káalẹ́", "bàbá"] },
+            { "type": "listen_repeat", "id": "l5_e8", "itemId": "alaafia_baba" },
+            { "type": "fill_gap", "id": "l5_e9", "itemId": "alaafia_baba", "prompt": "Ask your father if he is well", "gap": "àlàáfíà", "options": ["àlàáfíà", "dáadáa", "dàbọ̀"] }
+          ]
+        }
+      ]
+    }
+  ]
+}
