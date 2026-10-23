@@ -2,6 +2,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type TabParamList = {
   Learn: undefined;
+  Review: undefined;
   Tools: undefined;
 };
 
@@ -12,7 +13,16 @@ export type RootStackParamList = {
   Language: undefined;
   FirstLesson: { mode: 'onboarding' | 'practice' };
   FirstWin: undefined;
-  Lesson: { lessonId: string };
-  LessonComplete: { lessonId: string; accuracy: number };
   Tabs: NavigatorScreenParams<TabParamList> | undefined;
+  /** A course lesson id, or lib/review's REVIEW_LESSON_ID for a review session. */
+  Lesson: { lessonId: string };
+  LessonComplete: {
+    lessonId: string;
+    accuracy: number;
+    xp: number;
+    goalJustMet: boolean;
+    streak: number;
+    firstCourseLessonJustDone: boolean;
+  };
+  HabitSettings: undefined;
 };

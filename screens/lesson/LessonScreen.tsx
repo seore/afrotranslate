@@ -1,10 +1,11 @@
 // ================================================================
-// LessonScreen.tsx - Runs one lesson: intro cards for new phrases, then
-// exercises, with feedback after each answer. Flow rules live in
-// lib/lessonEngine.ts; this screen only renders the current step.
+// LessonScreen.tsx - Runs one lesson or a review session: intro cards
+// for new phrases, then exercises, with feedback after each answer.
+// Flow rules live in lib/lessonEngine.ts; this screen renders the
+// current step and records the result (progress, XP, streak, reviews).
 // ================================================================
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -20,11 +21,13 @@ import { Button } from '../../components/ui/Button';
 import { Screen } from '../../components/ui/Screen';
 import { StepHeader } from '../../components/ui/StepHeader';
 import { getCourse } from '../../content';
-import type { Exercise } from '../../content/types';
+import type { Exercise, Lesson } from '../../content/types';
+import { useHabit } from '../../context/HabitContext';
 import { useLearnerProfile } from '../../context/LearnerProfileContext';
 import { useProgress } from '../../context/ProgressContext';
 import { usePhraseAudio } from '../../hooks/usePhraseAudio';
 import { findLesson } from '../../lib/course';
+import { dateKey } from '../../lib/dates';
 import {
   accuracy,
   advance,
@@ -35,6 +38,9 @@ import {
   progress,
   type LessonState,
 } from '../../lib/lessonEngine';
+import { buildReviewLesson, REVIEW_LESSON_ID } from '../../lib/review';
+import { dueItemIds } from '../../lib/srs';
+import { XP, lessonXp } from '../../lib/streak';
 import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/colors';
 
@@ -58,23 +64,58 @@ function ExerciseView(props: ExerciseProps<Exercise>) {
 
 export default function LessonScreen({ navigation, route }: Props) {
   const { profile } = useLearnerProfile();
-  const { recordLessonComplete } = useProgress();
+  const { progress: learnerProgress, recordLessonComplete, recordReview } = useProgress();
+  const { recordSession } = useHabit();
   const language = profile.language ?? 'yo';
   const course = getCourse(language);
-  const found = course ? findLesson(course, route.params.lessonId) : null;
+  const isReview = route.params.lessonId === REVIEW_LESSON_ID;
+
+  // Fixed for the whole session, even as progress updates underneath.
+  const [lesson] = useState<Lesson | null>(() => {
+    if (!course) return null;
+    if (!isReview) return findLesson(course, route.params.lessonId)?.lesson ?? null;
+    const due = dueItemIds(learnerProgress.cards, dateKey(new Date()));
+    return due.length ? buildReviewLesson(due, learnerProgress.learnedItemIds, course.lexicon) : null;
+  });
 
   const audio = usePhraseAudio(language);
-  const [state, setState] = useState<LessonState | null>(() => (found ? createLessonState(found.lesson) : null));
+  const [state, setState] = useState<LessonState | null>(() => (lesson ? createLessonState(lesson) : null));
   const [feedback, setFeedback] = useState<boolean | null>(null);
+  const startedAt = useRef(Date.now());
 
   const finished = state ? isFinished(state) : false;
 
   useEffect(() => {
-    if (!finished || !state || !found) return;
-    const score = accuracy(state, found.lesson);
-    recordLessonComplete(found.lesson.id, score, found.lesson.newItemIds).then(() =>
-      navigation.replace('LessonComplete', { lessonId: found.lesson.id, accuracy: score }),
-    );
+    if (!finished || !state || !lesson) return;
+    const score = accuracy(state, lesson);
+    const seconds = (Date.now() - startedAt.current) / 1000;
+
+    const save = async () => {
+      let xp: number;
+      let firstCourseLessonJustDone = false;
+      if (isReview) {
+        const results = lesson.exercises.map((ex) => ({
+          itemId: ex.type === 'match_pairs' ? ex.itemIds[0] : ex.itemId,
+          correct: state.firstTry[ex.id] === true,
+        }));
+        await recordReview(results);
+        xp = Math.max(5, results.filter((r) => r.correct).length * XP.reviewPerItem);
+      } else {
+        firstCourseLessonJustDone = Object.keys(learnerProgress.lessons).length === 0;
+        await recordLessonComplete(lesson.id, score, lesson.newItemIds);
+        xp = lessonXp(score);
+      }
+      const session = await recordSession(seconds, xp);
+      navigation.replace('LessonComplete', {
+        lessonId: lesson.id,
+        accuracy: score,
+        xp,
+        goalJustMet: session.goalJustMet,
+        streak: session.streak.current,
+        firstCourseLessonJustDone,
+      });
+    };
+    save();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished]);
 
@@ -87,13 +128,23 @@ export default function LessonScreen({ navigation, route }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.index]);
 
-  if (!course || !found || !state) return null;
+  if (!course || !lesson || !state) {
+    return (
+      <Screen footer={<Button label="Back" onPress={() => navigation.goBack()} />}>
+        <Text style={styles.empty}>{isReview ? 'Nothing to review right now. Come back tomorrow!' : 'Lesson not found.'}</Text>
+      </Screen>
+    );
+  }
 
   const quit = () =>
-    Alert.alert('Leave this lesson?', 'Your answers in this lesson won’t be saved.', [
-      { text: 'Keep going', style: 'cancel' },
-      { text: 'Leave', style: 'destructive', onPress: () => navigation.goBack() },
-    ]);
+    Alert.alert(
+      isReview ? 'Leave this review?' : 'Leave this lesson?',
+      'Your answers so far won’t be saved.',
+      [
+        { text: 'Keep going', style: 'cancel' },
+        { text: 'Leave', style: 'destructive', onPress: () => navigation.goBack() },
+      ],
+    );
 
   const next = () => {
     setFeedback(null);
@@ -165,5 +216,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     color: colors.accent,
     marginBottom: 12,
+  },
+  empty: {
+    fontSize: 18,
+    lineHeight: 26,
+    color: colors.text,
+    textAlign: 'center',
+    marginTop: 80,
   },
 });

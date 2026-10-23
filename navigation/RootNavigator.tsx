@@ -11,8 +11,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import TranslatorScreen from '../TranslatorScreen';
 import { useLearnerProfile } from '../context/LearnerProfileContext';
+import { useReminderSync } from '../hooks/useReminderSync';
 import LearnHomeScreen from '../screens/learn/LearnHomeScreen';
 import FirstLessonScreen from '../screens/lesson/FirstLessonScreen';
+import ReviewHomeScreen from '../screens/review/ReviewHomeScreen';
+import HabitSettingsScreen from '../screens/settings/HabitSettingsScreen';
 import LessonCompleteScreen from '../screens/lesson/LessonCompleteScreen';
 import LessonScreen from '../screens/lesson/LessonScreen';
 import FirstWinScreen from '../screens/onboarding/FirstWinScreen';
@@ -47,6 +50,13 @@ function Tabs() {
         }}
       />
       <Tab.Screen
+        name="Review"
+        component={ReviewHomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="refresh-outline" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
         name="Tools"
         component={TranslatorScreen}
         options={{
@@ -60,6 +70,7 @@ function Tabs() {
 
 export default function RootNavigator() {
   const { profile, loaded } = useLearnerProfile();
+  useReminderSync();
 
   // Dark placeholder while the profile loads, so there's no white flash.
   if (!loaded) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
@@ -74,6 +85,7 @@ export default function RootNavigator() {
           <Stack.Screen name="FirstLesson" component={FirstLessonScreen} />
           <Stack.Screen name="Lesson" component={LessonScreen} options={{ gestureEnabled: false }} />
           <Stack.Screen name="LessonComplete" component={LessonCompleteScreen} options={{ gestureEnabled: false }} />
+          <Stack.Screen name="HabitSettings" component={HabitSettingsScreen} />
         </>
       ) : (
         <>

@@ -4,7 +4,7 @@
 // Used at the end of onboarding and later as "practise again".
 // ================================================================
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -15,9 +15,11 @@ import { OptionCard } from '../../components/ui/OptionCard';
 import { Screen } from '../../components/ui/Screen';
 import { StepHeader } from '../../components/ui/StepHeader';
 import { getFirstLesson } from '../../content';
+import { useHabit } from '../../context/HabitContext';
 import { useLearnerProfile } from '../../context/LearnerProfileContext';
 import { useAttemptRecorder } from '../../hooks/useAttemptRecorder';
 import { usePhraseAudio } from '../../hooks/usePhraseAudio';
+import { XP } from '../../lib/streak';
 import type { RootStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/colors';
 
@@ -30,6 +32,8 @@ export default function FirstLessonScreen({ navigation, route }: Props) {
 
   const audio = usePhraseAudio(language);
   const recorder = useAttemptRecorder();
+  const { recordSession } = useHabit();
+  const startedAt = useRef(Date.now());
   const [step, setStep] = useState(0);
   const [choiceId, setChoiceId] = useState<string | null>(null);
 
@@ -49,6 +53,7 @@ export default function FirstLessonScreen({ navigation, route }: Props) {
   if (!lesson) return null;
 
   const finish = async () => {
+    await recordSession((Date.now() - startedAt.current) / 1000, XP.starter);
     if (!profile.firstLessonCompletedAt) {
       await updateProfile({ firstLessonCompletedAt: new Date().toISOString() });
     }

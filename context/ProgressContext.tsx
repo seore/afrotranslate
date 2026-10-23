@@ -1,11 +1,13 @@
 // ================================================================
-// ProgressContext.tsx - Lesson completion and learned phrases, on device.
-// Same AsyncStorage approach as LearnerProfileContext. Phase 3 builds
-// streaks, XP and the review queue on top of `learnedItemIds`.
+// ProgressContext.tsx - Lesson completion, learned phrases and their
+// spaced-repetition cards, on device. Scheduling rules: lib/srs.ts.
 // ================================================================
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { dateKey } from '../lib/dates';
+import { addCards, gradeCard, type SrsCards } from '../lib/srs';
 
 export interface LessonRecord {
   firstCompletedAt: string;
@@ -18,6 +20,7 @@ export interface Progress {
   lessons: Record<string, LessonRecord>;
   /** Lexicon ids the learner has been taught, in the order first learned. */
   learnedItemIds: string[];
+  cards: SrsCards;
 }
 
 interface ProgressValue {
@@ -25,10 +28,11 @@ interface ProgressValue {
   loaded: boolean;
   isLessonComplete: (lessonId: string) => boolean;
   recordLessonComplete: (lessonId: string, accuracy: number, itemIds: string[]) => Promise<void>;
+  recordReview: (results: { itemId: string; correct: boolean }[]) => Promise<void>;
 }
 
 const STORAGE_KEY = 'griot.progress.v1';
-const EMPTY: Progress = { lessons: {}, learnedItemIds: [] };
+const EMPTY: Progress = { lessons: {}, learnedItemIds: [], cards: {} };
 
 const ProgressContext = createContext<ProgressValue | null>(null);
 
@@ -48,32 +52,17 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
         if (!stored) return;
-        progressRef.current = { ...EMPTY, ...JSON.parse(stored) };
-        setProgress(progressRef.current);
+        const parsed: Progress = { ...EMPTY, ...JSON.parse(stored) };
+        // Phrases learned before review cards existed (Phase 2) get cards now.
+        parsed.cards = addCards(parsed.cards, parsed.learnedItemIds, dateKey(new Date()));
+        progressRef.current = parsed;
+        setProgress(parsed);
       })
       .catch((error) => console.error('Load progress error:', error))
       .finally(() => setLoaded(true));
   }, []);
 
-  const recordLessonComplete = useCallback(async (lessonId: string, accuracy: number, itemIds: string[]) => {
-    const prev = progressRef.current;
-    const now = new Date().toISOString();
-    const existing = prev.lessons[lessonId];
-    const learned = new Set(prev.learnedItemIds);
-
-    const next: Progress = {
-      lessons: {
-        ...prev.lessons,
-        [lessonId]: {
-          firstCompletedAt: existing?.firstCompletedAt ?? now,
-          lastCompletedAt: now,
-          bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, accuracy),
-          timesCompleted: (existing?.timesCompleted ?? 0) + 1,
-        },
-      },
-      learnedItemIds: [...prev.learnedItemIds, ...itemIds.filter((id) => !learned.has(id))],
-    };
-
+  const save = useCallback(async (next: Progress) => {
     progressRef.current = next;
     setProgress(next);
     try {
@@ -83,11 +72,49 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const recordLessonComplete = useCallback(
+    async (lessonId: string, accuracy: number, itemIds: string[]) => {
+      const prev = progressRef.current;
+      const now = new Date();
+      const iso = now.toISOString();
+      const existing = prev.lessons[lessonId];
+      const learned = new Set(prev.learnedItemIds);
+
+      await save({
+        lessons: {
+          ...prev.lessons,
+          [lessonId]: {
+            firstCompletedAt: existing?.firstCompletedAt ?? iso,
+            lastCompletedAt: iso,
+            bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, accuracy),
+            timesCompleted: (existing?.timesCompleted ?? 0) + 1,
+          },
+        },
+        learnedItemIds: [...prev.learnedItemIds, ...itemIds.filter((id) => !learned.has(id))],
+        cards: addCards(prev.cards, itemIds, dateKey(now)),
+      });
+    },
+    [save],
+  );
+
+  const recordReview = useCallback(
+    async (results: { itemId: string; correct: boolean }[]) => {
+      const prev = progressRef.current;
+      const today = dateKey(new Date());
+      const cards = { ...prev.cards };
+      for (const { itemId, correct } of results) {
+        if (cards[itemId]) cards[itemId] = gradeCard(cards[itemId], correct, today);
+      }
+      await save({ ...prev, cards });
+    },
+    [save],
+  );
+
   const isLessonComplete = useCallback((lessonId: string) => lessonId in progress.lessons, [progress]);
 
   const value = useMemo(
-    () => ({ progress, loaded, isLessonComplete, recordLessonComplete }),
-    [progress, loaded, isLessonComplete, recordLessonComplete],
+    () => ({ progress, loaded, isLessonComplete, recordLessonComplete, recordReview }),
+    [progress, loaded, isLessonComplete, recordLessonComplete, recordReview],
   );
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;

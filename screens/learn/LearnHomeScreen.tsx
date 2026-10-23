@@ -7,12 +7,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import { HabitBar } from '../../components/habit/HabitBar';
 import { Button } from '../../components/ui/Button';
 import { Screen } from '../../components/ui/Screen';
 import { getCourse, getFirstLesson } from '../../content';
 import { LEARNABLE_LANGUAGES } from '../../content/languages';
 import { REASONS } from '../../content/reasons';
 import type { Lesson } from '../../content/types';
+import { useHabit } from '../../context/HabitContext';
 import { useLearnerProfile } from '../../context/LearnerProfileContext';
 import { useProgress } from '../../context/ProgressContext';
 import { allLessons } from '../../lib/course';
@@ -25,12 +27,14 @@ export default function LearnHomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile } = useLearnerProfile();
   const { isLessonComplete } = useProgress();
+  const { habit, update } = useHabit();
   const language = profile.language ?? 'yo';
   const languageName = LEARNABLE_LANGUAGES.find((l) => l.code === language)?.native ?? '';
   const starter = getFirstLesson(language);
   const course = getCourse(language);
   const reason = REASONS.find((r) => r.id === profile.reason);
   const starterDone = Boolean(profile.firstLessonCompletedAt);
+  const showReminderPrompt = starterDone && !habit.reminder.enabled && !habit.reminderPromptDismissed;
 
   const ordered = course ? allLessons(course) : [];
   const nextId = ordered.find((l) => !isLessonComplete(l.id))?.id;
@@ -50,6 +54,21 @@ export default function LearnHomeScreen() {
           </Text>
         ) : null}
       </View>
+
+      <HabitBar onPressSettings={() => navigation.navigate('HabitSettings')} />
+
+      {showReminderPrompt ? (
+        <View style={styles.reminder}>
+          <Text style={styles.reminderTitle}>🔔 Set a daily reminder</Text>
+          <Text style={styles.reminderBody}>A nudge at a time that suits you makes the habit stick.</Text>
+          <View style={styles.reminderActions}>
+            <View style={styles.flex}>
+              <Button label="Choose a time" onPress={() => navigation.navigate('HabitSettings')} />
+            </View>
+            <Button label="Not now" variant="text" onPress={() => update({ reminderPromptDismissed: true })} />
+          </View>
+        </View>
+      ) : null}
 
       {starter ? (
         <TouchableOpacity
@@ -147,6 +166,32 @@ const styles = StyleSheet.create({
   goal: {
     fontSize: 15,
     color: colors.textSecondary,
+    marginTop: 14,
+  },
+  reminder: {
+    backgroundColor: colors.accentSoft,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    padding: 16,
+    marginBottom: 20,
+  },
+  reminderTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  reminderBody: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  reminderActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
     marginTop: 14,
   },
   starter: {

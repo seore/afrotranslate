@@ -3,6 +3,7 @@ import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { PremiumProvider } from './PremiumContext';
+import { HabitProvider } from './context/HabitContext';
 import { LearnerProfileProvider } from './context/LearnerProfileContext';
 import { ProgressProvider } from './context/ProgressContext';
 import RootNavigator from './navigation/RootNavigator';
@@ -19,9 +20,11 @@ export default function App() {
       <PremiumProvider>
         <LearnerProfileProvider>
           <ProgressProvider>
-            <NavigationContainer theme={navigationTheme}>
-              <RootNavigator />
-            </NavigationContainer>
+            <HabitProvider>
+              <NavigationContainer theme={navigationTheme}>
+                <RootNavigator />
+              </NavigationContainer>
+            </HabitProvider>
           </ProgressProvider>
         </LearnerProfileProvider>
       </PremiumProvider>
