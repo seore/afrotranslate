@@ -1160,7 +1160,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 25,
+    paddingBottom: 10,
     alignItems: 'center',
     position: 'relative',
   },
@@ -1255,8 +1255,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 20,
-    paddingVertical: 30,
-    marginBottom: 20
+    paddingTop: 16,
+    paddingBottom: 20,
+    marginBottom: 10
   },
   langInfo: {
     alignItems: 'center',
@@ -1414,7 +1415,7 @@ const styles = StyleSheet.create({
     gap: 10,
     alignSelf: 'stretch',
     marginHorizontal: 20,
-    marginTop: 18,
+    marginTop: 28,
   },
   typeInput: {
     flex: 1,
