@@ -77,7 +77,7 @@ export default function SettingsScreen({ onClose, onOpenPremium }) {
           icon: 'shield-checkmark',
           label: 'Privacy Policy',
           color: '#00F5FF',
-          onPress: () => openURL('https://seore.github.io/afrotranslate-privacy/privacy.html', 'Privacy Policy'),
+          onPress: () => openURL('https://ourgriot.app/privacy', 'Privacy Policy'),
           showChevron: true,
         },
         {
@@ -96,15 +96,14 @@ export default function SettingsScreen({ onClose, onOpenPremium }) {
           icon: 'help-circle',
           label: 'Help & Support',
           color: '#00F5FF',
-          onPress: () => openURL('https://seore.github.io/griot-support/support.html', 'Support'),
+          onPress: () => openURL('https://ourgriot.app/support', 'Support'),
           showChevron: true,
         },
         {
           icon: 'mail',
           label: 'Contact Us',
-          //value: 'seorem2021@gmail.com',
           color: '#00F5FF',
-          onPress: () => openURL('mailto:seorem2021@gmail.com', 'Email'),
+          onPress: () => openURL('mailto:hello@eroesmeraki.com', 'Email'),
           showChevron: true,
         },
         {
@@ -113,8 +112,8 @@ export default function SettingsScreen({ onClose, onOpenPremium }) {
           color: '#FFD700',
           onPress: () => {
             // TODO: Replace with your actual App Store ID after approval
-            Alert.alert('Rate GRIOT', 'Thank you for using GRIOT! App Store link coming soon.');
-            // Linking.openURL('https://apps.apple.com/app/id123456789');
+            //Alert.alert('Rate GRIOT', 'Thank you for using GRIOT! App Store link coming soon.');
+            Linking.openURL('https://apps.apple.com/app/id6758318794');
           },
           showChevron: true,
         },

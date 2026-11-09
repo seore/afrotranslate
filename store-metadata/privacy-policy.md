@@ -98,4 +98,4 @@ GRIOT is not directed at children under 13 and does not knowingly collect person
 We'll update this page and the date above when this policy changes.
 
 ## 9. Contact
-seorem2021@gmail.com — we respond to privacy questions within 30 days.
+privacy@eroesmeraki.com — we respond to privacy questions within 30 days.
